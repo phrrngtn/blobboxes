@@ -13,11 +13,14 @@ extern "C" {
 void bboxes_pdf_init(void);
 void bboxes_pdf_destroy(void);
 
+void bboxes_xlsx_init(void);     /* no-op (xlnt needs no global init) */
+void bboxes_xlsx_destroy(void);  /* no-op */
+
 /* ── struct types ────────────────────────────────────────────────── */
 
 typedef struct {
     uint32_t    document_id;
-    const char* source_type;   /* "pdf", "html", "xlsx", ... */
+    const char* source_type;   /* "pdf", "xlsx", "text", "docx", ... */
     const char* filename;      /* NULL for buffer-based open  */
     int         page_count;
 } bboxes_doc;
@@ -66,6 +69,14 @@ typedef struct bboxes_cursor bboxes_cursor;
 bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
                                 const char* password,
                                 int start_page, int end_page);
+
+bboxes_cursor* bboxes_open_xlsx(const void* buf, size_t len,
+                                 const char* password,
+                                 int start_page, int end_page);
+
+bboxes_cursor* bboxes_open_text(const void* buf, size_t len);
+
+bboxes_cursor* bboxes_open_docx(const void* buf, size_t len);
 
 /* doc (single row, not an iterator) */
 const bboxes_doc*   bboxes_get_doc(bboxes_cursor* cursor);

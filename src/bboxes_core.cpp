@@ -39,14 +39,10 @@ struct bboxes_cursor {
     std::string bbox_json;
 };
 
-/* ── open (PDF backend) ─────────────────────────────────────────────── */
+/* ── helper: wrap a BBoxResult into a cursor ───────────────────────── */
 
-bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
-                                const char* password,
-                                int start_page, int end_page) {
-    BBoxResult r = extract_pdf(buf, len, password, start_page, end_page);
+static bboxes_cursor* wrap_result(BBoxResult r) {
     if (r.page_count < 0) return nullptr;
-
     auto* c = new bboxes_cursor{};
     c->result       = std::move(r);
     c->doc_returned = false;
@@ -57,6 +53,50 @@ bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
     c->bbox_within  = 0;
     return c;
 }
+
+/* ── open (PDF backend) ─────────────────────────────────────────────── */
+
+bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
+                                const char* password,
+                                int start_page, int end_page) {
+    return wrap_result(extract_pdf(buf, len, password, start_page, end_page));
+}
+
+/* ── open (XLSX backend) ────────────────────────────────────────────── */
+
+#ifdef BBOXES_HAS_XLSX
+bboxes_cursor* bboxes_open_xlsx(const void* buf, size_t len,
+                                 const char* password,
+                                 int start_page, int end_page) {
+    return wrap_result(extract_xlsx(buf, len, password, start_page, end_page));
+}
+#else
+void bboxes_xlsx_init(void) {}
+void bboxes_xlsx_destroy(void) {}
+bboxes_cursor* bboxes_open_xlsx(const void*, size_t, const char*, int, int) {
+    return nullptr;
+}
+#endif
+
+/* ── open (text backend) ────────────────────────────────────────────── */
+
+#ifdef BBOXES_HAS_TEXT
+bboxes_cursor* bboxes_open_text(const void* buf, size_t len) {
+    return wrap_result(extract_text(buf, len));
+}
+#else
+bboxes_cursor* bboxes_open_text(const void*, size_t) { return nullptr; }
+#endif
+
+/* ── open (DOCX backend) ────────────────────────────────────────────── */
+
+#ifdef BBOXES_HAS_DOCX
+bboxes_cursor* bboxes_open_docx(const void* buf, size_t len) {
+    return wrap_result(extract_docx(buf, len));
+}
+#else
+bboxes_cursor* bboxes_open_docx(const void*, size_t) { return nullptr; }
+#endif
 
 /* ── doc ────────────────────────────────────────────────────────────── */
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cross-check struct vs JSON interfaces across all consumers.
-# Requires: built project, .venv with nanobind module, duckdb CLI, a test PDF.
+# Requires: built project, .venv with nanobind module, duckdb CLI, test files.
 #
 # Usage:
 #   ./test_cross_check.sh [file.pdf]
@@ -13,6 +13,10 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 PDF="${1:-$DIR/glavel_receipt.pdf}"
 PDF="$(cd "$(dirname "$PDF")" && pwd)/$(basename "$PDF")"
+
+XLSX="$DIR/test_data/sample.xlsx"
+TXT="$DIR/test_data/sample.txt"
+DOCX="$DIR/test_data/sample.docx"
 
 PASS=0
 FAIL=0
@@ -30,10 +34,12 @@ check() {
 
 PYTHON="${PYTHON:-$DIR/.venv/bin/python}"
 
-echo "=== Python: struct vs JSON ==="
+# ─── PDF: Python struct vs JSON ───────────────────────────────────
 
-check "doc" "$PYTHON" -c "
-import json, sys; sys.path.insert(0, '$DIR')
+echo "=== Python PDF: struct vs JSON ==="
+
+check "pdf/doc" "$PYTHON" -c "
+import json, sys; sys.path.insert(0, '$DIR/python')
 import bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
@@ -45,8 +51,8 @@ for k in ['document_id','source_type','page_count']:
 print(f'    doc matches (pages={struct[\"page_count\"]})')
 "
 
-check "pages" "$PYTHON" -c "
-import json, sys; sys.path.insert(0, '$DIR')
+check "pdf/pages" "$PYTHON" -c "
+import json, sys; sys.path.insert(0, '$DIR/python')
 import bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
@@ -62,8 +68,8 @@ for i,(s,j) in enumerate(zip(structs, jsons)):
 print(f'    {len(structs)} page rows match')
 "
 
-check "fonts" "$PYTHON" -c "
-import json, sys; sys.path.insert(0, '$DIR')
+check "pdf/fonts" "$PYTHON" -c "
+import json, sys; sys.path.insert(0, '$DIR/python')
 import bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
@@ -77,8 +83,8 @@ for i,(s,j) in enumerate(zip(structs, jsons)):
 print(f'    {len(structs)} font rows match')
 "
 
-check "styles" "$PYTHON" -c "
-import json, sys; sys.path.insert(0, '$DIR')
+check "pdf/styles" "$PYTHON" -c "
+import json, sys; sys.path.insert(0, '$DIR/python')
 import bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
@@ -94,8 +100,8 @@ for i,(s,j) in enumerate(zip(structs, jsons)):
 print(f'    {len(structs)} style rows match')
 "
 
-check "bboxes" "$PYTHON" -c "
-import json, sys; sys.path.insert(0, '$DIR')
+check "pdf/bboxes" "$PYTHON" -c "
+import json, sys; sys.path.insert(0, '$DIR/python')
 import bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
@@ -111,13 +117,81 @@ for i,(s,j) in enumerate(zip(structs, jsons)):
 print(f'    {len(structs)} bbox rows match')
 "
 
+# ─── XLSX: Python smoke test ──────────────────────────────────────
+
 echo ""
-echo "=== DuckDB: table function EXCEPT scalar JSON ==="
+echo "=== Python XLSX: smoke test ==="
+
+check "xlsx/smoke" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import bboxes
+data = open('$XLSX','rb').read()
+cur = bboxes.open_xlsx(data)
+d = cur.doc()
+assert d['source_type'] == 'xlsx', f'source_type={d[\"source_type\"]!r}'
+assert d['page_count'] >= 1, f'page_count={d[\"page_count\"]}'
+pages = cur.pages()
+assert len(pages) >= 1
+fonts = cur.fonts()
+assert len(fonts) >= 1
+styles = cur.styles()
+assert len(styles) >= 1
+boxes = cur.bboxes()
+assert len(boxes) >= 1
+cur.close()
+print(f'    xlsx: {d[\"page_count\"]} pages, {len(fonts)} fonts, {len(styles)} styles, {len(boxes)} bboxes')
+"
+
+# ─── Text: Python smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== Python Text: smoke test ==="
+
+check "text/smoke" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import bboxes
+data = open('$TXT','rb').read()
+cur = bboxes.open_text(data)
+d = cur.doc()
+assert d['source_type'] == 'text', f'source_type={d[\"source_type\"]!r}'
+assert d['page_count'] == 1
+pages = cur.pages()
+assert len(pages) == 1
+boxes = cur.bboxes()
+assert len(boxes) >= 1
+cur.close()
+print(f'    text: {len(boxes)} bboxes (lines)')
+"
+
+# ─── DOCX: Python smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== Python DOCX: smoke test ==="
+
+check "docx/smoke" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import bboxes
+data = open('$DOCX','rb').read()
+cur = bboxes.open_docx(data)
+d = cur.doc()
+assert d['source_type'] == 'docx', f'source_type={d[\"source_type\"]!r}'
+assert d['page_count'] >= 1
+pages = cur.pages()
+boxes = cur.bboxes()
+assert len(boxes) >= 1
+cur.close()
+print(f'    docx: {d[\"page_count\"]} tables, {len(boxes)} bboxes (cells)')
+"
+
+# ─── DuckDB: PDF table function EXCEPT scalar JSON ───────────────
+
+echo ""
+echo "=== DuckDB PDF: table function EXCEPT scalar JSON ==="
 
 DUCKDB_EXT="$DIR/build/duckdb/bboxes.duckdb_extension"
 DUCKDB="${DUCKDB:-duckdb}"
 
-check "doc" "$DUCKDB" -unsigned -c "
+check "duckdb/pdf/doc" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT document_id, source_type, page_count FROM bboxes_doc('$PDF')
@@ -128,7 +202,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
-check "pages" "$DUCKDB" -unsigned -c "
+check "duckdb/pdf/pages" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM bboxes_pages('$PDF')
@@ -140,7 +214,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
-check "fonts" "$DUCKDB" -unsigned -c "
+check "duckdb/pdf/fonts" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM bboxes_fonts('$PDF')
@@ -150,7 +224,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
-check "styles" "$DUCKDB" -unsigned -c "
+check "duckdb/pdf/styles" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM bboxes_styles('$PDF')
@@ -162,7 +236,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
-check "bboxes" "$DUCKDB" -unsigned -c "
+check "duckdb/pdf/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM bboxes('$PDF')
@@ -176,12 +250,47 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
+# ─── DuckDB: XLSX smoke test ─────────────────────────────────────
+
 echo ""
-echo "=== SQLite: virtual table EXCEPT scalar JSON ==="
+echo "=== DuckDB XLSX: smoke test ==="
+
+check "duckdb/xlsx/bboxes" "$DUCKDB" -unsigned -c "
+LOAD '$DUCKDB_EXT';
+SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
+FROM bboxes_xlsx('$XLSX');
+"
+
+# ─── DuckDB: Text smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== DuckDB Text: smoke test ==="
+
+check "duckdb/text/bboxes" "$DUCKDB" -unsigned -c "
+LOAD '$DUCKDB_EXT';
+SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
+FROM bboxes_text('$TXT');
+"
+
+# ─── DuckDB: DOCX smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== DuckDB DOCX: smoke test ==="
+
+check "duckdb/docx/bboxes" "$DUCKDB" -unsigned -c "
+LOAD '$DUCKDB_EXT';
+SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
+FROM bboxes_docx('$DOCX');
+"
+
+# ─── SQLite: PDF virtual table EXCEPT scalar JSON ────────────────
+
+echo ""
+echo "=== SQLite PDF: virtual table EXCEPT scalar JSON ==="
 
 SQLITE_EXT="$DIR/build/sqlite/bboxes"
 
-check "doc" "$PYTHON" -c "
+check "sqlite/pdf/doc" "$PYTHON" -c "
 import sqlite3, json
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -196,7 +305,7 @@ rows = db.execute('''
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
 
-check "pages" "$PYTHON" -c "
+check "sqlite/pdf/pages" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -212,7 +321,7 @@ rows = db.execute('''
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
 
-check "fonts" "$PYTHON" -c "
+check "sqlite/pdf/fonts" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -226,7 +335,7 @@ rows = db.execute('''
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
 
-check "styles" "$PYTHON" -c "
+check "sqlite/pdf/styles" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -243,7 +352,7 @@ rows = db.execute('''
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
 
-check "bboxes" "$PYTHON" -c "
+check "sqlite/pdf/bboxes" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -259,6 +368,51 @@ rows = db.execute('''
     FROM json_each(bboxes_json('$PDF'))
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
+"
+
+# ─── SQLite: XLSX smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== SQLite XLSX: smoke test ==="
+
+check "sqlite/xlsx/bboxes" "$PYTHON" -c "
+import sqlite3
+db = sqlite3.connect(':memory:')
+db.enable_load_extension(True)
+db.load_extension('$SQLITE_EXT')
+rows = db.execute(\"SELECT count(*) FROM bboxes_xlsx('$XLSX')\").fetchone()
+assert rows[0] > 0, f'expected rows, got {rows[0]}'
+print(f'    {rows[0]} xlsx bbox rows')
+"
+
+# ─── SQLite: Text smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== SQLite Text: smoke test ==="
+
+check "sqlite/text/bboxes" "$PYTHON" -c "
+import sqlite3
+db = sqlite3.connect(':memory:')
+db.enable_load_extension(True)
+db.load_extension('$SQLITE_EXT')
+rows = db.execute(\"SELECT count(*) FROM bboxes_text('$TXT')\").fetchone()
+assert rows[0] > 0, f'expected rows, got {rows[0]}'
+print(f'    {rows[0]} text bbox rows')
+"
+
+# ─── SQLite: DOCX smoke test ─────────────────────────────────────
+
+echo ""
+echo "=== SQLite DOCX: smoke test ==="
+
+check "sqlite/docx/bboxes" "$PYTHON" -c "
+import sqlite3
+db = sqlite3.connect(':memory:')
+db.enable_load_extension(True)
+db.load_extension('$SQLITE_EXT')
+rows = db.execute(\"SELECT count(*) FROM bboxes_docx('$DOCX')\").fetchone()
+assert rows[0] > 0, f'expected rows, got {rows[0]}'
+print(f'    {rows[0]} docx bbox rows')
 "
 
 echo ""

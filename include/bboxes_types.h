@@ -98,7 +98,7 @@ struct Page {
 };
 
 struct BBoxResult {
-    std::string source_type;   /* "pdf", "html", ... */
+    std::string source_type;   /* "pdf", "xlsx", ... */
     int         page_count;
     FontTable   fonts;
     StyleTable  styles;
@@ -109,5 +109,12 @@ struct BBoxResult {
 
 BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
                         int start_page, int end_page);
+
+BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
+                         int start_page, int end_page);
+
+BBoxResult extract_text(const void* buf, size_t len);
+
+BBoxResult extract_docx(const void* buf, size_t len);
 
 #endif

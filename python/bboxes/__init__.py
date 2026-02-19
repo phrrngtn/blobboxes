@@ -2,7 +2,11 @@
 
 from .bboxes_ext import (
     _pdf_init,
+    _xlsx_init,
     BBoxesCursor,
+    BBoxesXlsxCursor,
+    BBoxesTextCursor,
+    BBoxesDocxCursor,
     doc_json,
     pages_json,
     fonts_json,
@@ -11,5 +15,9 @@ from .bboxes_ext import (
 )
 
 _pdf_init()
+_xlsx_init()
 
-open_pdf = BBoxesCursor
+open_pdf  = BBoxesCursor
+open_xlsx = BBoxesXlsxCursor
+open_text = BBoxesTextCursor
+open_docx = BBoxesDocxCursor

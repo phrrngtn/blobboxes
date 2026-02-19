@@ -1,0 +1,4 @@
+Name,Amount,Date
+Widget A,100,2024-01-15
+Widget B,200,2024-02-20
+Widget C,300,2024-03-25
