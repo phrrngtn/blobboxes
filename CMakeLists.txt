@@ -34,6 +34,20 @@ FetchContent_Declare(nlohmann_json
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(nlohmann_json)
 
+# ── hash-library (MD5) ───────────────────────────────────────────────
+FetchContent_Declare(hash_library
+  GIT_REPOSITORY https://github.com/stbrumme/hash-library.git
+  GIT_TAG        hash_library_v8
+  GIT_SHALLOW    TRUE)
+FetchContent_Populate(hash_library)
+add_library(hash_library STATIC "${hash_library_SOURCE_DIR}/md5.cpp")
+target_include_directories(hash_library PUBLIC "${hash_library_SOURCE_DIR}")
+if(APPLE)
+  # macOS lacks <endian.h>; provide a shim that includes <machine/endian.h>
+  file(WRITE "${CMAKE_BINARY_DIR}/endian_shim/endian.h" "#include <machine/endian.h>\n")
+  target_include_directories(hash_library PRIVATE "${CMAKE_BINARY_DIR}/endian_shim")
+endif()
+
 # ── Fix pdfium dylib install name on macOS ───────────────────────────
 if(APPLE)
   set(_pdfium_dylib "${pdfium_SOURCE_DIR}/lib/libpdfium.dylib")
@@ -94,7 +108,7 @@ endif()
 # ── Sources used by all targets ──────────────────────────────────────
 set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp)
 set(BBOXES_INCLUDES include)
-set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json)
+set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json hash_library)
 set(BBOXES_DEFS "")
 
 if(BUILD_XLSX_BACKEND)

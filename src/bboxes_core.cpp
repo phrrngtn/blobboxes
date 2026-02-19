@@ -1,8 +1,8 @@
 #include "bboxes.h"
 #include "bboxes_types.h"
-#include "bboxes_md5.h"
 
 #include <nlohmann/json.hpp>
+#include "md5.h"
 
 #include <string>
 
@@ -44,7 +44,10 @@ struct bboxes_cursor {
 
 static bboxes_cursor* wrap_result(BBoxResult r, const void* buf, size_t len) {
     if (r.page_count < 0) return nullptr;
-    r.checksum = bboxes_md5::compute(buf, len);
+    {
+        MD5 md5;
+        r.checksum = md5(buf, len);
+    }
     auto* c = new bboxes_cursor{};
     c->result       = std::move(r);
     c->doc_returned = false;
