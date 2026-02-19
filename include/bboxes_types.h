@@ -87,6 +87,7 @@ struct BBox {
     uint32_t    style_id;
     double      x, y, w, h;
     std::string text;
+    std::string formula;
 };
 
 struct Page {

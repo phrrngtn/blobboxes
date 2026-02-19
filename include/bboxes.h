@@ -53,6 +53,7 @@ typedef struct {
     uint32_t    style_id;
     double      x, y, w, h;
     const char* text;
+    const char* formula;    /* raw formula string, NULL if none */
 } bboxes_bbox;
 
 /* ── cursor ──────────────────────────────────────────────────────── */

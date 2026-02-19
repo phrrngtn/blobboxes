@@ -338,6 +338,7 @@ static void bboxes_bind(duckdb_bind_info info) {
     duckdb_bind_add_result_column(info, "w", t_dbl);
     duckdb_bind_add_result_column(info, "h", t_dbl);
     duckdb_bind_add_result_column(info, "text", t_str);
+    duckdb_bind_add_result_column(info, "formula", t_str);
 
     duckdb_destroy_logical_type(&t_int);
     duckdb_destroy_logical_type(&t_dbl);
@@ -358,6 +359,7 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
     auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 6)));
     duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 7);
+    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 8);
 
     idx_t row = 0;
     while (row < 2048) {
@@ -371,6 +373,13 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
         w_data[row] = b->w;
         h_data[row] = b->h;
         duckdb_vector_assign_string_element(v_text, row, b->text);
+        if (b->formula) {
+            duckdb_vector_assign_string_element(v_formula, row, b->formula);
+        } else {
+            duckdb_vector_ensure_validity_writable(v_formula);
+            uint64_t* validity = duckdb_vector_get_validity(v_formula);
+            validity[row / 64] &= ~(uint64_t(1) << (row % 64));
+        }
         row++;
     }
     duckdb_data_chunk_set_size(output, row);
@@ -494,6 +503,7 @@ static void bboxes_func_fmt(duckdb_function_info info, duckdb_data_chunk output)
     auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
     auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 6)));
     duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 7);
+    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 8);
 
     idx_t row = 0;
     while (row < 2048) {
@@ -507,6 +517,13 @@ static void bboxes_func_fmt(duckdb_function_info info, duckdb_data_chunk output)
         w_data[row] = b->w;
         h_data[row] = b->h;
         duckdb_vector_assign_string_element(v_text, row, b->text);
+        if (b->formula) {
+            duckdb_vector_assign_string_element(v_formula, row, b->formula);
+        } else {
+            duckdb_vector_ensure_validity_writable(v_formula);
+            uint64_t* validity = duckdb_vector_get_validity(v_formula);
+            validity[row / 64] &= ~(uint64_t(1) << (row % 64));
+        }
         row++;
     }
     duckdb_data_chunk_set_size(output, row);

@@ -60,7 +60,7 @@ static nb::list cursor_styles(bboxes_cursor* cur) {
     return out;
 }
 
-static nb::list cursor_bboxes(bboxes_cursor* cur) {
+static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false) {
     nb::list out;
     while (auto* b = bboxes_next_bbox(cur)) {
         nb::dict d;
@@ -72,6 +72,8 @@ static nb::list cursor_bboxes(bboxes_cursor* cur) {
         d["w"] = b->w;
         d["h"] = b->h;
         d["text"] = b->text;
+        if (include_formula)
+            d["formula"] = b->formula ? nb::cast(b->formula) : nb::none();
         out.append(d);
     }
     return out;
@@ -117,7 +119,7 @@ struct BBoxesXlsxCursor {
     nb::list pages()    { return cursor_pages(cur); }
     nb::list fonts()    { return cursor_fonts(cur); }
     nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur); }
+    nb::list bboxes()   { return cursor_bboxes(cur, true); }
     void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
     ~BBoxesXlsxCursor() { close(); }
 };

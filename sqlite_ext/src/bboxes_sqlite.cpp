@@ -479,7 +479,7 @@ static int bboxesConnect(sqlite3* db, void* pAux, int, const char* const*,
                          sqlite3_vtab** ppVtab, char**) {
     int rc = sqlite3_declare_vtab(db,
         "CREATE TABLE x(bbox_id INTEGER, page_id INTEGER, style_id INTEGER, "
-        "x REAL, y REAL, w REAL, h REAL, text TEXT, file_path TEXT HIDDEN)");
+        "x REAL, y REAL, w REAL, h REAL, text TEXT, formula TEXT, file_path TEXT HIDDEN)");
     if (rc != SQLITE_OK) return rc;
     auto* v = new FmtVtab{};
     v->fmt = *static_cast<Format*>(pAux);
@@ -489,7 +489,7 @@ static int bboxesConnect(sqlite3* db, void* pAux, int, const char* const*,
 
 static int bboxesBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
     for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 8 &&
+        if (info->aConstraint[i].iColumn == 9 &&
             info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
             info->aConstraint[i].usable) {
             info->aConstraintUsage[i].argvIndex = 1;
@@ -549,6 +549,8 @@ static int bboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
         case 5: sqlite3_result_double(ctx, b->w); break;
         case 6: sqlite3_result_double(ctx, b->h); break;
         case 7: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
+        case 8: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
+                else sqlite3_result_null(ctx); break;
         default: sqlite3_result_null(ctx); break;
     }
     return SQLITE_OK;

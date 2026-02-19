@@ -212,6 +212,8 @@ const bboxes_bbox* bboxes_next_bbox(bboxes_cursor* c) {
             c->bbox_view.w = b.w;
             c->bbox_view.h = b.h;
             c->bbox_view.text = b.text.c_str();
+            c->bbox_view.formula = (c->result.source_type == "xlsx" && !b.formula.empty())
+                                   ? b.formula.c_str() : nullptr;
             return &c->bbox_view;
         }
         c->bbox_page++;
@@ -235,6 +237,8 @@ const char* bboxes_next_bbox_json(bboxes_cursor* c) {
             obj["w"] = b.w;
             obj["h"] = b.h;
             obj["text"] = b.text;
+            if (c->result.source_type == "xlsx")
+                obj["formula"] = b.formula.empty() ? json(nullptr) : json(b.formula);
             c->bbox_json = obj.dump();
             return c->bbox_json.c_str();
         }

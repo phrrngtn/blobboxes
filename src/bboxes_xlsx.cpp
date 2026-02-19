@@ -123,6 +123,8 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                     bb.w = 1.0;
                     bb.h = 1.0;
                     bb.text = cell.to_string();
+                    if (cell.has_formula())
+                        bb.formula = "=" + cell.formula();
                     page.bboxes.push_back(std::move(bb));
                 }
             }

@@ -112,6 +112,7 @@ assert len(structs) == len(jsons), f'{len(structs)} vs {len(jsons)}'
 for i,(s,j) in enumerate(zip(structs, jsons)):
     for k in ['bbox_id','page_id','style_id','text']:
         assert s[k] == j[k], f'bbox {i} {k}: {s[k]!r} vs {j[k]!r}'
+    assert 'formula' not in s, f'bbox {i}: formula should not appear for PDF'
     for k in ['x','y','w','h']:
         assert abs(s[k]-j[k]) < 1e-10, f'bbox {i} {k}: {s[k]} vs {j[k]}'
 print(f'    {len(structs)} bbox rows match')
@@ -239,7 +240,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 check "duckdb/pdf/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT * FROM bboxes('$PDF')
+    SELECT bbox_id, page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
     EXCEPT
     SELECT CAST(e->>'bbox_id' AS INTEGER), CAST(e->>'page_id' AS INTEGER),
            CAST(e->>'style_id' AS INTEGER),
@@ -358,7 +359,7 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT * FROM bboxes('$PDF')
+    SELECT bbox_id, page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
     EXCEPT
     SELECT json_extract(value,'\$.bbox_id'), json_extract(value,'\$.page_id'),
            json_extract(value,'\$.style_id'),
