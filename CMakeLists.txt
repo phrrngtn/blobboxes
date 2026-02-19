@@ -56,6 +56,12 @@ function(pdf_bboxes_runtime target rpath_origin)
     BUILD_RPATH "${rpath_origin}" INSTALL_RPATH "${rpath_origin}")
 endfunction()
 
+# ── Shared library ───────────────────────────────────────────────────
+add_library(pdf_bboxes SHARED ${PDF_BBOXES_SOURCES})
+target_include_directories(pdf_bboxes PUBLIC ${PDF_BBOXES_INCLUDES})
+target_link_libraries(pdf_bboxes PRIVATE ${PDF_BBOXES_LIBS})
+pdf_bboxes_runtime(pdf_bboxes "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+
 # ── C++ example ──────────────────────────────────────────────────────
 add_executable(pdf_bboxes_example example/main.cpp ${PDF_BBOXES_SOURCES})
 target_include_directories(pdf_bboxes_example PRIVATE ${PDF_BBOXES_INCLUDES})

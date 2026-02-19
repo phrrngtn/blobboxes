@@ -4,3 +4,5 @@ __pycache__/
 *.so
 *.dylib
 *.egg-info/
+.DS_Store
+uv.lock
