@@ -20,7 +20,6 @@ BBoxResult extract_text(const void* buf, size_t len) {
     page.document_id = 0;
     page.page_number = 1;
 
-    uint32_t bbox_id = 0;
     uint32_t line_number = 0;
     double max_width = 0.0;
     const char* line_start = data;
@@ -36,7 +35,6 @@ BBoxResult extract_text(const void* buf, size_t len) {
         /* skip empty lines (no bbox, but count for height) */
         if (line_len > 0) {
             BBox bb;
-            bb.bbox_id  = bbox_id++;
             bb.page_id  = 0;
             bb.style_id = style_id;
             bb.x = 1.0;

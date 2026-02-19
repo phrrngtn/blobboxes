@@ -112,7 +112,7 @@ static InitDataFmt* shared_init_cursor_fmt(duckdb_init_info info, Format fmt) {
     return data;
 }
 
-/* keep old shared_init_cursor for backward compat within this file */
+/* Auto-detecting init — used by generic bboxes(), bboxes_doc(), etc. */
 static InitData* shared_init_cursor(duckdb_init_info info) {
     auto* bind = static_cast<BindData*>(duckdb_init_get_bind_data(info));
     auto* data = new InitData{};
@@ -122,9 +122,9 @@ static InitData* shared_init_cursor(duckdb_init_info info) {
         delete data;
         return nullptr;
     }
-    data->cursor = bboxes_open_pdf(data->buf.data(), data->buf.size(), nullptr, 0, 0);
+    data->cursor = bboxes_open(data->buf.data(), data->buf.size());
     if (!data->cursor) {
-        duckdb_init_set_error(info, "failed to parse PDF");
+        duckdb_init_set_error(info, "failed to parse file");
         delete data;
         return nullptr;
     }
@@ -149,6 +149,7 @@ static void doc_bind(duckdb_bind_info info) {
     duckdb_bind_add_result_column(info, "document_id", t_int);
     duckdb_bind_add_result_column(info, "source_type", t_str);
     duckdb_bind_add_result_column(info, "filename", t_str);
+    duckdb_bind_add_result_column(info, "checksum", t_str);
     duckdb_bind_add_result_column(info, "page_count", t_int);
 
     duckdb_destroy_logical_type(&t_int);
@@ -163,7 +164,7 @@ static void doc_func(duckdb_function_info info, duckdb_data_chunk output) {
     if (!d) { duckdb_data_chunk_set_size(output, 0); return; }
 
     auto* doc_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
-    auto* page_count_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
+    auto* page_count_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
 
     doc_id_data[0] = static_cast<int32_t>(d->document_id);
     duckdb_vector_assign_string_element(duckdb_data_chunk_get_vector(output, 1), 0, d->source_type);
@@ -179,6 +180,7 @@ static void doc_func(duckdb_function_info info, duckdb_data_chunk output) {
             validity[0] &= ~(uint64_t(1));
         }
     }
+    duckdb_vector_assign_string_element(duckdb_data_chunk_get_vector(output, 3), 0, d->checksum);
     page_count_data[0] = d->page_count;
 
     duckdb_data_chunk_set_size(output, 1);
@@ -330,7 +332,6 @@ static void bboxes_bind(duckdb_bind_info info) {
     duckdb_logical_type t_dbl = duckdb_create_logical_type(DUCKDB_TYPE_DOUBLE);
     duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
 
-    duckdb_bind_add_result_column(info, "bbox_id", t_int);
     duckdb_bind_add_result_column(info, "page_id", t_int);
     duckdb_bind_add_result_column(info, "style_id", t_int);
     duckdb_bind_add_result_column(info, "x", t_dbl);
@@ -351,21 +352,19 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* data = static_cast<InitData*>(duckdb_function_get_init_data(info));
     if (!data->cursor) { duckdb_data_chunk_set_size(output, 0); return; }
 
-    auto* bbox_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
-    auto* page_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 1)));
-    auto* style_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 2)));
-    auto* x_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
-    auto* y_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
-    auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
-    auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 6)));
-    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 7);
-    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 8);
+    auto* page_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
+    auto* style_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 1)));
+    auto* x_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 2)));
+    auto* y_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
+    auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
+    auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
+    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 6);
+    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 7);
 
     idx_t row = 0;
     while (row < 2048) {
         const bboxes_bbox* b = bboxes_next_bbox(data->cursor);
         if (!b) break;
-        bbox_id_data[row]  = static_cast<int32_t>(b->bbox_id);
         page_id_data[row]  = static_cast<int32_t>(b->page_id);
         style_id_data[row] = static_cast<int32_t>(b->style_id);
         x_data[row] = b->x;
@@ -397,7 +396,7 @@ static void doc_func_fmt(duckdb_function_info info, duckdb_data_chunk output) {
     if (!d) { duckdb_data_chunk_set_size(output, 0); return; }
 
     auto* doc_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
-    auto* page_count_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
+    auto* page_count_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
 
     doc_id_data[0] = static_cast<int32_t>(d->document_id);
     duckdb_vector_assign_string_element(duckdb_data_chunk_get_vector(output, 1), 0, d->source_type);
@@ -413,6 +412,7 @@ static void doc_func_fmt(duckdb_function_info info, duckdb_data_chunk output) {
             validity[0] &= ~(uint64_t(1));
         }
     }
+    duckdb_vector_assign_string_element(duckdb_data_chunk_get_vector(output, 3), 0, d->checksum);
     page_count_data[0] = d->page_count;
 
     duckdb_data_chunk_set_size(output, 1);
@@ -495,21 +495,19 @@ static void bboxes_func_fmt(duckdb_function_info info, duckdb_data_chunk output)
     auto* data = static_cast<InitDataFmt*>(duckdb_function_get_init_data(info));
     if (!data->cursor) { duckdb_data_chunk_set_size(output, 0); return; }
 
-    auto* bbox_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
-    auto* page_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 1)));
-    auto* style_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 2)));
-    auto* x_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
-    auto* y_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
-    auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
-    auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 6)));
-    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 7);
-    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 8);
+    auto* page_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
+    auto* style_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 1)));
+    auto* x_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 2)));
+    auto* y_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
+    auto* w_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
+    auto* h_data = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
+    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 6);
+    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 7);
 
     idx_t row = 0;
     while (row < 2048) {
         const bboxes_bbox* b = bboxes_next_bbox(data->cursor);
         if (!b) break;
-        bbox_id_data[row]  = static_cast<int32_t>(b->bbox_id);
         page_id_data[row]  = static_cast<int32_t>(b->page_id);
         style_id_data[row] = static_cast<int32_t>(b->style_id);
         x_data[row] = b->x;
@@ -553,18 +551,14 @@ typedef const char* (*json_iter_fn)(bboxes_cursor*);
 static void json_array_scalar(duckdb_function_info info, duckdb_data_chunk input,
                                duckdb_vector output, json_iter_fn iter_fn) {
     idx_t count = duckdb_data_chunk_get_size(input);
-    idx_t ncols = duckdb_data_chunk_get_column_count(input);
     duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
 
     for (idx_t i = 0; i < count; i++) {
         const char* path = get_string(v_path, i);
-        int sp = (ncols > 1) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 1), i)) : 0;
-        int ep = (ncols > 2) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 2), i)) : 0;
-
         auto buf = read_file(path);
         std::string result = "[";
         if (!buf.empty()) {
-            auto* cur = bboxes_open_pdf(buf.data(), buf.size(), nullptr, sp, ep);
+            auto* cur = bboxes_open(buf.data(), buf.size());
             if (cur) {
                 bool first = true;
                 while (const char* json = iter_fn(cur)) {
@@ -584,18 +578,14 @@ static void json_single_scalar(duckdb_function_info info, duckdb_data_chunk inpu
                                 duckdb_vector output,
                                 const char* (*get_fn)(bboxes_cursor*)) {
     idx_t count = duckdb_data_chunk_get_size(input);
-    idx_t ncols = duckdb_data_chunk_get_column_count(input);
     duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
 
     for (idx_t i = 0; i < count; i++) {
         const char* path = get_string(v_path, i);
-        int sp = (ncols > 1) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 1), i)) : 0;
-        int ep = (ncols > 2) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 2), i)) : 0;
-
         auto buf = read_file(path);
         std::string result = "null";
         if (!buf.empty()) {
-            auto* cur = bboxes_open_pdf(buf.data(), buf.size(), nullptr, sp, ep);
+            auto* cur = bboxes_open(buf.data(), buf.size());
             if (cur) {
                 const char* json = get_fn(cur);
                 if (json) result = json;
@@ -732,6 +722,29 @@ static void bboxes_json_scalar_docx(duckdb_function_info info, duckdb_data_chunk
     json_array_scalar_fmt(info, input, output, bboxes_next_bbox_json, Format::DOCX);
 }
 
+/* ── bboxes_info scalar ─────────────────────────────────────────── */
+
+static void bboxes_info_scalar(duckdb_function_info info, duckdb_data_chunk input,
+                                duckdb_vector output) {
+    idx_t count = duckdb_data_chunk_get_size(input);
+    duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
+
+    for (idx_t i = 0; i < count; i++) {
+        const char* path = get_string(v_path, i);
+        auto buf = read_file(path);
+        std::string result = "null";
+        if (!buf.empty()) {
+            auto* cur = bboxes_open(buf.data(), buf.size());
+            if (cur) {
+                const char* doc_json = bboxes_get_doc_json(cur);
+                if (doc_json) result = doc_json;
+                bboxes_close(cur);
+            }
+        }
+        duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
+    }
+}
+
 /* ── registration helpers ────────────────────────────────────────── */
 
 static void register_table_fn(duckdb_connection conn, const char* name,
@@ -832,6 +845,9 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     register_json_scalar(connection, "bboxes_docx_fonts_json",  fonts_json_scalar_docx,  false);
     register_json_scalar(connection, "bboxes_docx_styles_json", styles_json_scalar_docx, false);
     register_json_scalar(connection, "bboxes_docx_json",        bboxes_json_scalar_docx, false);
+
+    /* Auto-detecting info scalar */
+    register_json_scalar(connection, "bboxes_info", bboxes_info_scalar, false);
 
     return true;
 }

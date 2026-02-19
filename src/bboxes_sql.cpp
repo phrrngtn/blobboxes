@@ -46,7 +46,6 @@ BBoxResult extract_sql(const char* db_path, const char* query) {
     page.page_number = 1;
     page.width       = static_cast<double>(col_count);
 
-    uint32_t bbox_id = 0;
     uint32_t row_num = 0;
 
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
@@ -56,7 +55,6 @@ BBoxResult extract_sql(const char* db_path, const char* query) {
                 sqlite3_column_text(stmt, c));
 
             BBox bb;
-            bb.bbox_id  = bbox_id++;
             bb.page_id  = 0;
             bb.style_id = static_cast<uint32_t>(c);
             bb.x = static_cast<double>(c + 1);

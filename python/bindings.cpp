@@ -15,6 +15,7 @@ static nb::dict cursor_doc(bboxes_cursor* cur) {
     out["document_id"] = d->document_id;
     out["source_type"] = d->source_type;
     out["filename"]    = d->filename ? nb::cast(d->filename) : nb::none();
+    out["checksum"]    = d->checksum;
     out["page_count"]  = d->page_count;
     return out;
 }
@@ -64,7 +65,6 @@ static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false) 
     nb::list out;
     while (auto* b = bboxes_next_bbox(cur)) {
         nb::dict d;
-        d["bbox_id"]  = b->bbox_id;
         d["page_id"]  = b->page_id;
         d["style_id"] = b->style_id;
         d["x"] = b->x;
@@ -166,6 +166,46 @@ struct BBoxesDocxCursor {
     ~BBoxesDocxCursor() { close(); }
 };
 
+/* ── Auto-detecting cursor ───────────────────────────────────────── */
+
+struct BBoxesAutoCursor {
+    bboxes_cursor* cur;
+    std::vector<char> buf;
+    bool is_xlsx;
+
+    BBoxesAutoCursor(nb::bytes data)
+        : buf(data.c_str(), data.c_str() + data.size()) {
+        const char* fmt = bboxes_detect(buf.data(), buf.size());
+        is_xlsx = (fmt[0] == 'x');
+        cur = bboxes_open(buf.data(), buf.size());
+        if (!cur) throw nb::value_error("failed to parse document");
+    }
+
+    nb::dict doc()      { return cursor_doc(cur); }
+    nb::list pages()    { return cursor_pages(cur); }
+    nb::list fonts()    { return cursor_fonts(cur); }
+    nb::list styles()   { return cursor_styles(cur); }
+    nb::list bboxes()   { return cursor_bboxes(cur, is_xlsx); }
+    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
+    ~BBoxesAutoCursor() { close(); }
+};
+
+/* ── detect + info convenience functions ─────────────────────────── */
+
+static nb::str detect_format(nb::bytes data) {
+    const char* fmt = bboxes_detect(data.c_str(), data.size());
+    return nb::str(fmt);
+}
+
+static nb::dict info(nb::bytes data) {
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open(buf.data(), buf.size());
+    if (!cur) throw nb::value_error("failed to parse document");
+    nb::dict out = cursor_doc(cur);
+    bboxes_close(cur);
+    return out;
+}
+
 /* ── JSON convenience functions ─────────────────────────────────────── */
 
 /* helper: build JSON array from an iterator */
@@ -219,7 +259,7 @@ static nb::str bboxes_json(nb::bytes data, std::optional<std::string> pw, int sp
 
 /* ── module definition ──────────────────────────────────────────────── */
 
-NB_MODULE(bboxes_ext, m) {
+NB_MODULE(blobboxes_ext, m) {
     m.def("_pdf_init", &bboxes_pdf_init);
     m.def("_pdf_destroy", &bboxes_pdf_destroy);
     m.def("_xlsx_init", &bboxes_xlsx_init);
@@ -268,6 +308,20 @@ NB_MODULE(bboxes_ext, m) {
         .def("styles", &BBoxesDocxCursor::styles)
         .def("bboxes", &BBoxesDocxCursor::bboxes)
         .def("close", &BBoxesDocxCursor::close);
+
+    /* Auto-detecting cursor */
+    nb::class_<BBoxesAutoCursor>(m, "BBoxesAutoCursor")
+        .def(nb::init<nb::bytes>(), nb::arg("data"))
+        .def("doc", &BBoxesAutoCursor::doc)
+        .def("pages", &BBoxesAutoCursor::pages)
+        .def("fonts", &BBoxesAutoCursor::fonts)
+        .def("styles", &BBoxesAutoCursor::styles)
+        .def("bboxes", &BBoxesAutoCursor::bboxes)
+        .def("close", &BBoxesAutoCursor::close);
+
+    /* detect + info */
+    m.def("detect", &detect_format, nb::arg("data"));
+    m.def("info", &info, nb::arg("data"));
 
     /* PDF JSON functions (original) */
     m.def("doc_json", &doc_json,

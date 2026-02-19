@@ -118,7 +118,6 @@ BBoxResult extract_docx(const void* buf, size_t len) {
     }
 
     result.page_count = static_cast<int>(tables.size());
-    uint32_t bbox_id = 0;
 
     for (size_t ti = 0; ti < tables.size(); ti++) {
         Page page;
@@ -152,7 +151,6 @@ BBoxResult extract_docx(const void* buf, size_t len) {
                 std::string text = get_cell_text(tc);
 
                 BBox bb;
-                bb.bbox_id  = bbox_id++;
                 bb.page_id  = page.page_id;
                 bb.style_id = style_id;
                 bb.x = static_cast<double>(col_num);

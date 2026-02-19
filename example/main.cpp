@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     printf("--- bboxes (first 10) ---\n");
     int count = 0;
     while (auto* b = bboxes_next_bbox(cur)) {
-        printf("  [%u] page=%u style=%u (%.1f,%.1f %.1fx%.1f) %s\n",
-               b->bbox_id, b->page_id, b->style_id,
+        printf("  page=%u style=%u (%.1f,%.1f %.1fx%.1f) %s\n",
+               b->page_id, b->style_id,
                b->x, b->y, b->w, b->h, b->text);
         if (++count >= 10) break;
     }

@@ -11,7 +11,7 @@ SQLITE_EXTENSION_INIT1
  * Format enum and dispatch
  * ══════════════════════════════════════════════════════════════════════ */
 
-enum Format { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX };
+enum Format { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX, FMT_AUTO };
 
 static bboxes_cursor* open_by_format(Format fmt, const void* buf, size_t len) {
     switch (fmt) {
@@ -19,6 +19,7 @@ static bboxes_cursor* open_by_format(Format fmt, const void* buf, size_t len) {
         case FMT_XLSX:  return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
         case FMT_TEXT:  return bboxes_open_text(buf, len);
         case FMT_DOCX:  return bboxes_open_docx(buf, len);
+        case FMT_AUTO:  return bboxes_open(buf, len);
     }
     return nullptr;
 }
@@ -50,7 +51,7 @@ static Format* make_fmt(Format f) {
     /* Allocated once, freed when the module is unregistered via
        sqlite3_create_module_v2's xDestroy, or lives for the
        lifetime of the connection.  We use static storage per-format. */
-    static Format fmts[4] = { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX };
+    static Format fmts[5] = { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX, FMT_AUTO };
     return &fmts[f];
 }
 
@@ -83,7 +84,7 @@ static int docConnect(sqlite3* db, void* pAux, int, const char* const*,
                       sqlite3_vtab** ppVtab, char**) {
     int rc = sqlite3_declare_vtab(db,
         "CREATE TABLE x(document_id INTEGER, source_type TEXT, "
-        "filename TEXT, page_count INTEGER, file_path TEXT HIDDEN)");
+        "filename TEXT, checksum TEXT, page_count INTEGER, file_path TEXT HIDDEN)");
     if (rc != SQLITE_OK) return rc;
     auto* v = new FmtVtab{};
     v->fmt = *static_cast<Format*>(pAux);
@@ -93,7 +94,7 @@ static int docConnect(sqlite3* db, void* pAux, int, const char* const*,
 
 static int docBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
     for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 4 &&
+        if (info->aConstraint[i].iColumn == 5 &&
             info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
             info->aConstraint[i].usable) {
             info->aConstraintUsage[i].argvIndex = 1;
@@ -146,7 +147,8 @@ static int docColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col
         case 1: sqlite3_result_text(ctx, d->source_type, -1, SQLITE_TRANSIENT); break;
         case 2: if (d->filename) sqlite3_result_text(ctx, d->filename, -1, SQLITE_TRANSIENT);
                 else sqlite3_result_null(ctx); break;
-        case 3: sqlite3_result_int(ctx, d->page_count); break;
+        case 3: sqlite3_result_text(ctx, d->checksum, -1, SQLITE_TRANSIENT); break;
+        case 4: sqlite3_result_int(ctx, d->page_count); break;
         default: sqlite3_result_null(ctx); break;
     }
     return SQLITE_OK;
@@ -478,7 +480,7 @@ struct BboxesCursor : sqlite3_vtab_cursor {
 static int bboxesConnect(sqlite3* db, void* pAux, int, const char* const*,
                          sqlite3_vtab** ppVtab, char**) {
     int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(bbox_id INTEGER, page_id INTEGER, style_id INTEGER, "
+        "CREATE TABLE x(page_id INTEGER, style_id INTEGER, "
         "x REAL, y REAL, w REAL, h REAL, text TEXT, formula TEXT, file_path TEXT HIDDEN)");
     if (rc != SQLITE_OK) return rc;
     auto* v = new FmtVtab{};
@@ -489,7 +491,7 @@ static int bboxesConnect(sqlite3* db, void* pAux, int, const char* const*,
 
 static int bboxesBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
     for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 9 &&
+        if (info->aConstraint[i].iColumn == 8 &&
             info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
             info->aConstraint[i].usable) {
             info->aConstraintUsage[i].argvIndex = 1;
@@ -541,15 +543,14 @@ static int bboxesEof(sqlite3_vtab_cursor* pCursor) { return static_cast<BboxesCu
 static int bboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* b = static_cast<BboxesCursor*>(pCursor)->current;
     switch (col) {
-        case 0: sqlite3_result_int(ctx, b->bbox_id); break;
-        case 1: sqlite3_result_int(ctx, b->page_id); break;
-        case 2: sqlite3_result_int(ctx, b->style_id); break;
-        case 3: sqlite3_result_double(ctx, b->x); break;
-        case 4: sqlite3_result_double(ctx, b->y); break;
-        case 5: sqlite3_result_double(ctx, b->w); break;
-        case 6: sqlite3_result_double(ctx, b->h); break;
-        case 7: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
-        case 8: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
+        case 0: sqlite3_result_int(ctx, b->page_id); break;
+        case 1: sqlite3_result_int(ctx, b->style_id); break;
+        case 2: sqlite3_result_double(ctx, b->x); break;
+        case 3: sqlite3_result_double(ctx, b->y); break;
+        case 4: sqlite3_result_double(ctx, b->w); break;
+        case 5: sqlite3_result_double(ctx, b->h); break;
+        case 6: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
+        case 7: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
                 else sqlite3_result_null(ctx); break;
         default: sqlite3_result_null(ctx); break;
     }
@@ -688,6 +689,30 @@ static void docx_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value*
     json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_DOCX);
 }
 
+/* ── Auto-detecting scalar wrappers ──────────────────────────────── */
+
+static void auto_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    doc_json_func_fmt(ctx, argc, argv, FMT_AUTO);
+}
+static void auto_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_AUTO);
+}
+static void auto_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_AUTO);
+}
+static void auto_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_AUTO);
+}
+static void auto_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_AUTO);
+}
+
+/* ── bboxes_info scalar ──────────────────────────────────────────── */
+
+static void bboxes_info_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    doc_json_func_fmt(ctx, argc, argv, FMT_AUTO);
+}
+
 /* ══════════════════════════════════════════════════════════════════════
  * Helper: register all 5 virtual tables + 5 JSON functions for a format
  * ══════════════════════════════════════════════════════════════════════ */
@@ -794,29 +819,33 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
     });
     if (rc != SQLITE_OK) return rc;
 
-    /* ── Legacy aliases (bboxes_doc, bboxes_pages, ... bboxes) ───── */
-    /* These keep backward compatibility -- they use the PDF backend. */
-    Format* pPdf = make_fmt(FMT_PDF);
-    rc = sqlite3_create_module(db, "bboxes_doc",    &docModule,    pPdf);
+    /* ── Generic aliases (bboxes_doc, bboxes_pages, ... bboxes) ──── */
+    /* Auto-detecting — inspect magic bytes to pick the right backend. */
+    Format* pAuto = make_fmt(FMT_AUTO);
+    rc = sqlite3_create_module(db, "bboxes_doc",    &docModule,    pAuto);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_pages",  &pagesModule,  pPdf);
+    rc = sqlite3_create_module(db, "bboxes_pages",  &pagesModule,  pAuto);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_fonts",  &fontsModule,  pPdf);
+    rc = sqlite3_create_module(db, "bboxes_fonts",  &fontsModule,  pAuto);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_styles", &stylesModule, pPdf);
+    rc = sqlite3_create_module(db, "bboxes_styles", &stylesModule, pAuto);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes",        &bboxesModule, pPdf);
+    rc = sqlite3_create_module(db, "bboxes",        &bboxesModule, pAuto);
     if (rc != SQLITE_OK) return rc;
 
-    rc = sqlite3_create_function(db, "bboxes_doc_json",    -1, SQLITE_UTF8, nullptr, pdf_doc_json_func,    nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_doc_json",    -1, SQLITE_UTF8, nullptr, auto_doc_json_func,    nullptr, nullptr);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_pages_json",  -1, SQLITE_UTF8, nullptr, pdf_pages_json_func,  nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_pages_json",  -1, SQLITE_UTF8, nullptr, auto_pages_json_func,  nullptr, nullptr);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_fonts_json",  -1, SQLITE_UTF8, nullptr, pdf_fonts_json_func,  nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_fonts_json",  -1, SQLITE_UTF8, nullptr, auto_fonts_json_func,  nullptr, nullptr);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_styles_json", -1, SQLITE_UTF8, nullptr, pdf_styles_json_func, nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_styles_json", -1, SQLITE_UTF8, nullptr, auto_styles_json_func, nullptr, nullptr);
     if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_json",        -1, SQLITE_UTF8, nullptr, pdf_bboxes_json_func, nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_json",        -1, SQLITE_UTF8, nullptr, auto_bboxes_json_func, nullptr, nullptr);
+    if (rc != SQLITE_OK) return rc;
+
+    /* bboxes_info — auto-detecting doc info scalar */
+    rc = sqlite3_create_function(db, "bboxes_info", 1, SQLITE_UTF8, nullptr, bboxes_info_func, nullptr, nullptr);
     return rc;
 }
 }

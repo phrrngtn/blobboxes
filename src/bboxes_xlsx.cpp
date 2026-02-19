@@ -33,8 +33,6 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
         if (ep > sheet_count) ep = sheet_count;
         if (sp > ep) { result.page_count = -1; return result; }
 
-        uint32_t bbox_id = 0;
-
         for (int si = sp - 1; si < ep; si++) {
             auto ws = wb.sheet_by_index(si);
 
@@ -115,7 +113,6 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                         font_id, font_size, color, weight, italic, underline);
 
                     BBox bb;
-                    bb.bbox_id  = bbox_id++;
                     bb.page_id  = page.page_id;
                     bb.style_id = style_id;
                     bb.x = static_cast<double>(col.index);

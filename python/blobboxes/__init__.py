@@ -1,12 +1,15 @@
-"""bboxes — extract text bounding boxes, fonts, and styles from documents."""
+"""blobboxes — extract text bounding boxes, fonts, and styles from documents."""
 
-from .bboxes_ext import (
+from .blobboxes_ext import (
     _pdf_init,
     _xlsx_init,
     BBoxesCursor,
     BBoxesXlsxCursor,
     BBoxesTextCursor,
     BBoxesDocxCursor,
+    BBoxesAutoCursor,
+    detect,
+    info,
     doc_json,
     pages_json,
     fonts_json,
@@ -21,3 +24,4 @@ open_pdf  = BBoxesCursor
 open_xlsx = BBoxesXlsxCursor
 open_text = BBoxesTextCursor
 open_docx = BBoxesDocxCursor
+open      = BBoxesAutoCursor

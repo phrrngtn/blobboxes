@@ -15,6 +15,7 @@ class Doc(BaseModel):
     document_id: int
     source_type: str
     filename: Optional[str]
+    checksum: str              # MD5 hex of source bytes
     page_count: int
 
 
@@ -43,7 +44,6 @@ class Style(BaseModel):
 
 class BBox(BaseModel):
     """Base bbox — shared by all backends."""
-    bbox_id: int
     page_id: int
     style_id: int
     x: float

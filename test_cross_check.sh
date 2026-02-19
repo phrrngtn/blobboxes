@@ -40,20 +40,20 @@ echo "=== Python PDF: struct vs JSON ==="
 
 check "pdf/doc" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
 struct = cur.doc()
 cur.close()
 j = json.loads(bboxes.doc_json(data))
-for k in ['document_id','source_type','page_count']:
+for k in ['document_id','source_type','checksum','page_count']:
     assert struct[k] == j[k], f'{k}: {struct[k]!r} vs {j[k]!r}'
 print(f'    doc matches (pages={struct[\"page_count\"]})')
 "
 
 check "pdf/pages" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
 structs = cur.pages()
@@ -70,7 +70,7 @@ print(f'    {len(structs)} page rows match')
 
 check "pdf/fonts" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
 structs = cur.fonts()
@@ -85,7 +85,7 @@ print(f'    {len(structs)} font rows match')
 
 check "pdf/styles" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
 structs = cur.styles()
@@ -102,7 +102,7 @@ print(f'    {len(structs)} style rows match')
 
 check "pdf/bboxes" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$PDF','rb').read()
 cur = bboxes.open_pdf(data)
 structs = cur.bboxes()
@@ -110,7 +110,7 @@ cur.close()
 jsons = json.loads(bboxes.bboxes_json(data))
 assert len(structs) == len(jsons), f'{len(structs)} vs {len(jsons)}'
 for i,(s,j) in enumerate(zip(structs, jsons)):
-    for k in ['bbox_id','page_id','style_id','text']:
+    for k in ['page_id','style_id','text']:
         assert s[k] == j[k], f'bbox {i} {k}: {s[k]!r} vs {j[k]!r}'
     assert 'formula' not in s, f'bbox {i}: formula should not appear for PDF'
     for k in ['x','y','w','h']:
@@ -125,7 +125,7 @@ echo "=== Python XLSX: smoke test ==="
 
 check "xlsx/smoke" "$PYTHON" -c "
 import sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$XLSX','rb').read()
 cur = bboxes.open_xlsx(data)
 d = cur.doc()
@@ -150,7 +150,7 @@ echo "=== Python Text: smoke test ==="
 
 check "text/smoke" "$PYTHON" -c "
 import sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$TXT','rb').read()
 cur = bboxes.open_text(data)
 d = cur.doc()
@@ -171,7 +171,7 @@ echo "=== Python DOCX: smoke test ==="
 
 check "docx/smoke" "$PYTHON" -c "
 import sys; sys.path.insert(0, '$DIR/python')
-import bboxes
+import blobboxes as bboxes
 data = open('$DOCX','rb').read()
 cur = bboxes.open_docx(data)
 d = cur.doc()
@@ -195,10 +195,10 @@ DUCKDB="${DUCKDB:-duckdb}"
 check "duckdb/pdf/doc" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT document_id, source_type, page_count FROM bboxes_doc('$PDF')
+    SELECT document_id, source_type, checksum, page_count FROM bboxes_doc('$PDF')
     EXCEPT
     SELECT CAST(e->>'document_id' AS INTEGER), e->>'source_type',
-           CAST(e->>'page_count' AS INTEGER)
+           e->>'checksum', CAST(e->>'page_count' AS INTEGER)
     FROM (SELECT bboxes_doc_json('$PDF') as e)
 );
 "
@@ -240,9 +240,9 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 check "duckdb/pdf/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT bbox_id, page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
+    SELECT page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
     EXCEPT
-    SELECT CAST(e->>'bbox_id' AS INTEGER), CAST(e->>'page_id' AS INTEGER),
+    SELECT CAST(e->>'page_id' AS INTEGER),
            CAST(e->>'style_id' AS INTEGER),
            CAST(e->>'x' AS DOUBLE), CAST(e->>'y' AS DOUBLE),
            CAST(e->>'w' AS DOUBLE), CAST(e->>'h' AS DOUBLE),
@@ -297,10 +297,11 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT document_id, source_type, page_count FROM bboxes_doc('$PDF')
+    SELECT document_id, source_type, checksum, page_count FROM bboxes_doc('$PDF')
     EXCEPT
     SELECT json_extract(bboxes_doc_json('$PDF'),'\$.document_id'),
            json_extract(bboxes_doc_json('$PDF'),'\$.source_type'),
+           json_extract(bboxes_doc_json('$PDF'),'\$.checksum'),
            json_extract(bboxes_doc_json('$PDF'),'\$.page_count')
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
@@ -359,9 +360,9 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT bbox_id, page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
+    SELECT page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
     EXCEPT
-    SELECT json_extract(value,'\$.bbox_id'), json_extract(value,'\$.page_id'),
+    SELECT json_extract(value,'\$.page_id'),
            json_extract(value,'\$.style_id'),
            json_extract(value,'\$.x'), json_extract(value,'\$.y'),
            json_extract(value,'\$.w'), json_extract(value,'\$.h'),
@@ -414,6 +415,90 @@ db.load_extension('$SQLITE_EXT')
 rows = db.execute(\"SELECT count(*) FROM bboxes_docx('$DOCX')\").fetchone()
 assert rows[0] > 0, f'expected rows, got {rows[0]}'
 print(f'    {rows[0]} docx bbox rows')
+"
+
+# ─── Auto-detect: Python ────────────────────────────────────────
+
+echo ""
+echo "=== Auto-detect: Python ==="
+
+check "python/auto/pdf" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import blobboxes as bboxes
+with open('$PDF', 'rb') as f: data = f.read()
+cur = bboxes.open(data)
+doc = cur.doc()
+assert doc['source_type'] == 'pdf', f'expected pdf, got {doc[\"source_type\"]}'
+assert doc['checksum'], 'missing checksum'
+assert len(cur.bboxes()) > 0
+cur.close()
+print(f'    PDF auto-detect OK, {doc[\"page_count\"]} pages')
+"
+
+check "python/auto/xlsx" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import blobboxes as bboxes
+with open('$XLSX', 'rb') as f: data = f.read()
+cur = bboxes.open(data)
+doc = cur.doc()
+assert doc['source_type'] == 'xlsx', f'expected xlsx, got {doc[\"source_type\"]}'
+cur.close()
+print(f'    XLSX auto-detect OK')
+"
+
+check "python/detect" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import blobboxes as bboxes
+with open('$PDF', 'rb') as f: pdf_data = f.read()
+with open('$XLSX', 'rb') as f: xlsx_data = f.read()
+with open('$TXT', 'rb') as f: txt_data = f.read()
+assert bboxes.detect(pdf_data) == 'pdf'
+assert bboxes.detect(xlsx_data) == 'xlsx'
+assert bboxes.detect(txt_data) == 'text'
+print('    detect() OK')
+"
+
+check "python/info" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import blobboxes as bboxes
+with open('$PDF', 'rb') as f: data = f.read()
+i = bboxes.info(data)
+assert i['source_type'] == 'pdf'
+assert i['checksum']
+assert i['page_count'] >= 1
+print(f'    info() OK: {i[\"source_type\"]}, {i[\"page_count\"]} pages, checksum={i[\"checksum\"][:8]}...')
+"
+
+# ─── Auto-detect: DuckDB bboxes_info ────────────────────────────
+
+echo ""
+echo "=== Auto-detect: DuckDB ==="
+
+check "duckdb/bboxes_info" "$DUCKDB" -unsigned -c "
+LOAD '$DUCKDB_EXT';
+SELECT CASE
+    WHEN bboxes_info('$PDF')::JSON ->> 'source_type' = 'pdf'
+    THEN 'ok'
+    ELSE 'FAIL'
+END;
+"
+
+# ─── Auto-detect: SQLite bboxes_info ────────────────────────────
+
+echo ""
+echo "=== Auto-detect: SQLite ==="
+
+check "sqlite/bboxes_info" "$PYTHON" -c "
+import sys; sys.path.insert(0, '$DIR/python')
+import sqlite3, json
+db = sqlite3.connect(':memory:')
+db.enable_load_extension(True)
+db.load_extension('$SQLITE_EXT')
+result = db.execute(\"SELECT bboxes_info('$PDF')\").fetchone()[0]
+info = json.loads(result)
+assert info['source_type'] == 'pdf', f'expected pdf, got {info[\"source_type\"]}'
+assert info['checksum'], 'missing checksum'
+print(f'    bboxes_info OK: {info[\"source_type\"]}, {info[\"page_count\"]} pages')
 "
 
 echo ""

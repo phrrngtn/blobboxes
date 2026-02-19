@@ -62,7 +62,7 @@ static bool gap_ok(const CharInfo& prev, const CharInfo& cur) {
 
 static void extract_page(FPDF_DOCUMENT doc, int pi,
                           FontTable& fonts, StyleTable& styles,
-                          Page& out_page, uint32_t& bbox_counter) {
+                          Page& out_page) {
     FPDF_PAGE page = FPDF_LoadPage(doc, pi);
     if (!page) return;
 
@@ -138,7 +138,6 @@ static void extract_page(FPDF_DOCUMENT doc, int pi,
 
         if (!text.empty()) {
             BBox bb;
-            bb.bbox_id  = bbox_counter++;
             bb.page_id  = out_page.page_id;
             bb.style_id = first.style_id;
             bb.x = run_left;
@@ -179,7 +178,6 @@ BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
     int ep = (end_page   >= 1 ? end_page : total) - 1;
     if (ep >= total) ep = total - 1;
 
-    uint32_t bbox_counter = 0;
     for (int pi = sp; pi <= ep; ++pi) {
         Page page;
         page.page_id     = static_cast<uint32_t>(result.pages.size());
@@ -187,7 +185,7 @@ BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
         page.page_number = pi + 1;
         page.width       = 0;
         page.height      = 0;
-        extract_page(doc, pi, result.fonts, result.styles, page, bbox_counter);
+        extract_page(doc, pi, result.fonts, result.styles, page);
         result.pages.push_back(std::move(page));
     }
 

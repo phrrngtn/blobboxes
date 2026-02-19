@@ -22,6 +22,7 @@ typedef struct {
     uint32_t    document_id;
     const char* source_type;   /* "pdf", "xlsx", "text", "docx", ... */
     const char* filename;      /* NULL for buffer-based open  */
+    const char* checksum;      /* MD5 hex of source bytes */
     int         page_count;
 } bboxes_doc;
 
@@ -48,7 +49,6 @@ typedef struct {
 } bboxes_style;
 
 typedef struct {
-    uint32_t    bbox_id;
     uint32_t    page_id;
     uint32_t    style_id;
     double      x, y, w, h;
@@ -65,7 +65,17 @@ typedef struct {
  *                  Pass 0,0 for all pages. Returns NULL on bad PDF.
  */
 
+/* ── format detection ────────────────────────────────────────────── */
+
+/* Returns "pdf", "xlsx", "docx", or "text" based on magic bytes. */
+const char* bboxes_detect(const void* buf, size_t len);
+
+/* ── cursor ──────────────────────────────────────────────────────── */
+
 typedef struct bboxes_cursor bboxes_cursor;
+
+/* Auto-detecting open — inspects magic bytes and dispatches. */
+bboxes_cursor* bboxes_open(const void* buf, size_t len);
 
 bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
                                 const char* password,

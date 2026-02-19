@@ -152,13 +152,13 @@ if(BUILD_PYTHON_BINDINGS)
   list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
   find_package(nanobind CONFIG REQUIRED)
 
-  nanobind_add_module(bboxes_ext NB_STATIC python/bindings.cpp ${BBOXES_SOURCES})
-  target_include_directories(bboxes_ext PRIVATE ${BBOXES_INCLUDES})
-  target_link_libraries(bboxes_ext PRIVATE ${BBOXES_LIBS})
-  bboxes_backend_setup(bboxes_ext)
-  set_target_properties(bboxes_ext PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/bboxes")
-  bboxes_runtime(bboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+  nanobind_add_module(blobboxes_ext NB_STATIC python/bindings.cpp ${BBOXES_SOURCES})
+  target_include_directories(blobboxes_ext PRIVATE ${BBOXES_INCLUDES})
+  target_link_libraries(blobboxes_ext PRIVATE ${BBOXES_LIBS})
+  bboxes_backend_setup(blobboxes_ext)
+  set_target_properties(blobboxes_ext PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/blobboxes")
+  bboxes_runtime(blobboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
 
 # ── DuckDB extension ────────────────────────────────────────────────

@@ -82,7 +82,6 @@ struct StyleTable {
 /* ── Extraction result (produced by backends) ──────────────────── */
 
 struct BBox {
-    uint32_t    bbox_id;
     uint32_t    page_id;
     uint32_t    style_id;
     double      x, y, w, h;
@@ -100,6 +99,7 @@ struct Page {
 
 struct BBoxResult {
     std::string source_type;   /* "pdf", "xlsx", ... */
+    std::string checksum;      /* MD5 hex of source bytes */
     int         page_count;
     FontTable   fonts;
     StyleTable  styles;

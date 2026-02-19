@@ -38,7 +38,7 @@ def main():
     print("\n--- bboxes (first 5) ---")
     for b in cur.bboxes()[:5]:
         print(
-            f"  [{b['bbox_id']}] page={b['page_id']} style={b['style_id']} "
+            f"  page={b['page_id']} style={b['style_id']} "
             f"({b['x']:.1f},{b['y']:.1f} {b['w']:.1f}x{b['h']:.1f}) {b['text']!r}"
         )
 
