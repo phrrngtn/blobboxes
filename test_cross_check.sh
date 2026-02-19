@@ -35,7 +35,7 @@ import json, sys; sys.path.insert(0, '$DIR')
 import pdf_bboxes
 data = open('$PDF','rb').read()
 structs = list(pdf_bboxes.extract(data))
-jsons   = [json.loads(s) for s in pdf_bboxes.extract_json(data)]
+jsons   = json.loads(pdf_bboxes.extract_json(data))
 assert len(structs) == len(jsons), f'{len(structs)} vs {len(jsons)}'
 for i,(s,j) in enumerate(zip(structs, jsons)):
     for k in ['font_id','page','text','color','style']:
@@ -50,7 +50,7 @@ import json, sys; sys.path.insert(0, '$DIR')
 import pdf_bboxes
 data = open('$PDF','rb').read()
 structs = list(pdf_bboxes.fonts(data))
-jsons   = [json.loads(s) for s in pdf_bboxes.fonts_json(data)]
+jsons   = json.loads(pdf_bboxes.fonts_json(data))
 assert len(structs) == len(jsons), f'{len(structs)} vs {len(jsons)}'
 for i,(s,j) in enumerate(zip(structs, jsons)):
     for k in ['font_id','name','flags','style']:
