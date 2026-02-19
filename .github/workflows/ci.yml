@@ -46,7 +46,7 @@ jobs:
         run: cmake --build build
 
       - name: Append DuckDB metadata
-        run: python duckdb_ext/append_metadata.py build/duckdb/pdf_bboxes.so build/duckdb/pdf_bboxes.duckdb_extension
+        run: python duckdb_ext/append_metadata.py build/duckdb/bboxes.so build/duckdb/bboxes.duckdb_extension
 
       - name: Run cross-check tests
         env:

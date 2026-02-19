@@ -29,8 +29,8 @@ cmake --build "$BUILD"
 echo ""
 echo "=== 4/5  Append DuckDB metadata ==="
 "$VENV/bin/python" "$DIR/duckdb_ext/append_metadata.py" \
-    "$BUILD/duckdb/pdf_bboxes.so" \
-    "$BUILD/duckdb/pdf_bboxes.duckdb_extension"
+    "$BUILD/duckdb/bboxes.so" \
+    "$BUILD/duckdb/bboxes.duckdb_extension"
 
 echo ""
 echo "=== 5/5  Cross-check tests ==="

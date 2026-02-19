@@ -1,4 +1,4 @@
-#include "pdf_bboxes.h"
+#include "bboxes.h"
 #include <cstdio>
 #include <vector>
 
@@ -21,42 +21,46 @@ int main(int argc, char* argv[]) {
     }
     fclose(f);
 
-    pdf_bboxes_init();
+    bboxes_pdf_init();
 
-    /* struct interface */
-    printf("--- fonts (struct) ---\n");
-    auto* fc = pdf_bboxes_fonts_open(buf.data(), buf.size(), nullptr);
-    while (auto* font = pdf_bboxes_fonts_next(fc))
-        printf("  [%u] %s style=%s flags=%d\n", font->font_id, font->name, font->style, font->flags);
-    pdf_bboxes_fonts_close(fc);
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(), nullptr, 0, 0);
+    if (!cur) {
+        fprintf(stderr, "failed to parse PDF\n");
+        return 1;
+    }
 
-    printf("--- bboxes (struct, first 5) ---\n");
-    auto* ec = pdf_bboxes_extract_open(buf.data(), buf.size(), nullptr, 0, 0);
+    /* doc */
+    printf("--- doc ---\n");
+    auto* doc = bboxes_get_doc(cur);
+    printf("  source=%s pages=%d\n", doc->source_type, doc->page_count);
+
+    /* pages */
+    printf("--- pages ---\n");
+    while (auto* p = bboxes_next_page(cur))
+        printf("  page %d: %.0fx%.0f\n", p->page_number, p->width, p->height);
+
+    /* fonts */
+    printf("--- fonts ---\n");
+    while (auto* font = bboxes_next_font(cur))
+        printf("  [%u] %s\n", font->font_id, font->name);
+
+    /* styles */
+    printf("--- styles ---\n");
+    while (auto* s = bboxes_next_style(cur))
+        printf("  [%u] font=%u size=%.0f %s %s italic=%d\n",
+               s->style_id, s->font_id, s->font_size, s->weight, s->color, s->italic);
+
+    /* bboxes (first 10) */
+    printf("--- bboxes (first 10) ---\n");
     int count = 0;
-    while (auto* r = pdf_bboxes_extract_next(ec)) {
-        printf("  p%d (%.1f,%.1f %.1fx%.1f) font=%u size=%.0f %s %s %s\n",
-               r->page, r->x, r->y, r->w, r->h,
-               r->font_id, r->font_size, r->style, r->color, r->text);
-        if (++count >= 5) break;
+    while (auto* b = bboxes_next_bbox(cur)) {
+        printf("  [%u] page=%u style=%u (%.1f,%.1f %.1fx%.1f) %s\n",
+               b->bbox_id, b->page_id, b->style_id,
+               b->x, b->y, b->w, b->h, b->text);
+        if (++count >= 10) break;
     }
-    pdf_bboxes_extract_close(ec);
 
-    /* JSON interface */
-    printf("--- fonts (json) ---\n");
-    fc = pdf_bboxes_fonts_open(buf.data(), buf.size(), nullptr);
-    while (auto* json = pdf_bboxes_fonts_next_json(fc))
-        puts(json);
-    pdf_bboxes_fonts_close(fc);
-
-    printf("--- bboxes (json, first 5) ---\n");
-    ec = pdf_bboxes_extract_open(buf.data(), buf.size(), nullptr, 0, 0);
-    count = 0;
-    while (auto* json = pdf_bboxes_extract_next_json(ec)) {
-        puts(json);
-        if (++count >= 5) break;
-    }
-    pdf_bboxes_extract_close(ec);
-
-    pdf_bboxes_destroy();
+    bboxes_close(cur);
+    bboxes_pdf_destroy();
     return 0;
 }

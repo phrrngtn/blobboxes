@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Test script for the pdf_bboxes Python bindings."""
+"""Test script for the bboxes Python bindings."""
 
 import json
 import sys
 from pathlib import Path
 
-import pdf_bboxes
+import bboxes
 
 
 def main():
@@ -14,36 +14,43 @@ def main():
         sys.exit(1)
 
     data = Path(sys.argv[1]).read_bytes()
+    cur = bboxes.open_pdf(data)
 
-    print("--- fonts (dict) ---")
-    for f in pdf_bboxes.fonts(data):
-        print(f"  [{f['font_id']}] {f['name']!r} style={f['style']} flags={f['flags']}")
+    print("--- doc ---")
+    d = cur.doc()
+    print(f"  source={d['source_type']} pages={d['page_count']}")
 
-    print("\n--- bboxes (dict, first 5) ---")
-    count = 0
-    for b in pdf_bboxes.extract(data):
+    print("\n--- pages ---")
+    for p in cur.pages():
+        print(f"  page {p['page_number']}: {p['width']:.0f}x{p['height']:.0f}")
+
+    print("\n--- fonts ---")
+    for f in cur.fonts():
+        print(f"  [{f['font_id']}] {f['name']!r}")
+
+    print("\n--- styles ---")
+    for s in cur.styles():
         print(
-            f"  p{b['page']} ({b['x']:.1f},{b['y']:.1f} {b['w']:.1f}x{b['h']:.1f}) "
-            f"font={b['font_id']} size={b['font_size']} {b['style']} "
-            f"{b['color']} {b['text']!r}"
+            f"  [{s['style_id']}] font={s['font_id']} size={s['font_size']:.0f} "
+            f"{s['weight']} {s['color']} italic={s['italic']}"
         )
-        count += 1
-        if count >= 5:
-            break
 
-    print("\n--- fonts (json) ---")
-    fonts = json.loads(pdf_bboxes.fonts_json(data))
+    print("\n--- bboxes (first 5) ---")
+    for b in cur.bboxes()[:5]:
+        print(
+            f"  [{b['bbox_id']}] page={b['page_id']} style={b['style_id']} "
+            f"({b['x']:.1f},{b['y']:.1f} {b['w']:.1f}x{b['h']:.1f}) {b['text']!r}"
+        )
+
+    cur.close()
+
+    print("\n--- JSON: doc ---")
+    print(f"  {bboxes.doc_json(data)}")
+
+    print("\n--- JSON: fonts ---")
+    fonts = json.loads(bboxes.fonts_json(data))
     for f in fonts:
-        print(f"  [{f['font_id']}] {f['name']!r} style={f['style']} flags={f['flags']}")
-
-    print("\n--- bboxes (json, first 5) ---")
-    bboxes = json.loads(pdf_bboxes.extract_json(data))
-    for b in bboxes[:5]:
-        print(
-            f"  p{b['page']} ({b['x']:.1f},{b['y']:.1f} {b['w']:.1f}x{b['h']:.1f}) "
-            f"font={b['font_id']} size={b['font_size']} {b['style']} "
-            f"{b['color']} {b['text']!r}"
-        )
+        print(f"  [{f['font_id']}] {f['name']!r}")
 
 
 if __name__ == "__main__":

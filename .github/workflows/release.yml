@@ -66,7 +66,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Append DuckDB metadata
-        run: python duckdb_ext/append_metadata.py build/duckdb/pdf_bboxes.so build/duckdb/pdf_bboxes.duckdb_extension
+        run: python duckdb_ext/append_metadata.py build/duckdb/bboxes.so build/duckdb/bboxes.duckdb_extension
 
       - name: Run cross-check tests
         env:
@@ -77,23 +77,23 @@ jobs:
       - name: Package shared library
         run: |
           mkdir -p pkg/lib
-          cp build/libpdf_bboxes${{ runner.os == 'Linux' && '.so' || '.dylib' }} pkg/lib/
+          cp build/libbboxes${{ runner.os == 'Linux' && '.so' || '.dylib' }} pkg/lib/
           cp build/libpdfium${{ runner.os == 'Linux' && '.so' || '.dylib' }} pkg/lib/
           cp -r include pkg/
-          tar -czf pdf_bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz -C pkg .
+          tar -czf bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz -C pkg .
           rm -rf pkg
 
       - name: Package DuckDB extension
         run: |
-          cp build/duckdb/pdf_bboxes.duckdb_extension \
-            pdf_bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.duckdb_extension
+          cp build/duckdb/bboxes.duckdb_extension \
+            bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.duckdb_extension
 
       - name: Package SQLite extension
         run: |
           mkdir -p pkg
-          cp build/sqlite/pdf_bboxes.so pkg/
+          cp build/sqlite/bboxes.so pkg/
           cp build/sqlite/libpdfium${{ runner.os == 'Linux' && '.so' || '.dylib' }} pkg/
-          tar -czf pdf_bboxes-sqlite-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz -C pkg .
+          tar -czf bboxes-sqlite-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz -C pkg .
           rm -rf pkg
 
       - name: Build Python wheel
@@ -103,7 +103,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            pdf_bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz
-            pdf_bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.duckdb_extension
-            pdf_bboxes-sqlite-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz
+            bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz
+            bboxes-${{ steps.version.outputs.version }}-${{ matrix.platform }}.duckdb_extension
+            bboxes-sqlite-${{ steps.version.outputs.version }}-${{ matrix.platform }}.tar.gz
             dist/*.whl

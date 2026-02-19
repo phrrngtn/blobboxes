@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pdf_bounding_boxes LANGUAGES CXX)
+project(bboxes LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,12 +42,12 @@ if(APPLE)
 endif()
 
 # ── Sources used by all targets ──────────────────────────────────────
-set(PDF_BBOXES_SOURCES src/pdf_bboxes.cpp)
-set(PDF_BBOXES_INCLUDES include)
-set(PDF_BBOXES_LIBS pdfium nlohmann_json::nlohmann_json)
+set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp)
+set(BBOXES_INCLUDES include)
+set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json)
 
 # Helper: copy libpdfium next to a target and set RPATH
-function(pdf_bboxes_runtime target rpath_origin)
+function(bboxes_runtime target rpath_origin)
   add_custom_command(TARGET ${target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "${pdfium_SOURCE_DIR}/lib/libpdfium${CMAKE_SHARED_LIBRARY_SUFFIX}"
@@ -57,16 +57,16 @@ function(pdf_bboxes_runtime target rpath_origin)
 endfunction()
 
 # ── Shared library ───────────────────────────────────────────────────
-add_library(pdf_bboxes SHARED ${PDF_BBOXES_SOURCES})
-target_include_directories(pdf_bboxes PUBLIC ${PDF_BBOXES_INCLUDES})
-target_link_libraries(pdf_bboxes PRIVATE ${PDF_BBOXES_LIBS})
-pdf_bboxes_runtime(pdf_bboxes "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+add_library(bboxes SHARED ${BBOXES_SOURCES})
+target_include_directories(bboxes PUBLIC ${BBOXES_INCLUDES})
+target_link_libraries(bboxes PRIVATE ${BBOXES_LIBS})
+bboxes_runtime(bboxes "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 
 # ── C++ example ──────────────────────────────────────────────────────
-add_executable(pdf_bboxes_example example/main.cpp ${PDF_BBOXES_SOURCES})
-target_include_directories(pdf_bboxes_example PRIVATE ${PDF_BBOXES_INCLUDES})
-target_link_libraries(pdf_bboxes_example PRIVATE ${PDF_BBOXES_LIBS})
-pdf_bboxes_runtime(pdf_bboxes_example "@executable_path")
+add_executable(bboxes_example example/main.cpp ${BBOXES_SOURCES})
+target_include_directories(bboxes_example PRIVATE ${BBOXES_INCLUDES})
+target_link_libraries(bboxes_example PRIVATE ${BBOXES_LIBS})
+bboxes_runtime(bboxes_example "@executable_path")
 
 # ── Python bindings (nanobind) ───────────────────────────────────────
 option(BUILD_PYTHON_BINDINGS "Build nanobind Python module" OFF)
@@ -77,26 +77,26 @@ if(BUILD_PYTHON_BINDINGS)
   list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
   find_package(nanobind CONFIG REQUIRED)
 
-  nanobind_add_module(pdf_bboxes_ext NB_STATIC python/bindings.cpp ${PDF_BBOXES_SOURCES})
-  target_include_directories(pdf_bboxes_ext PRIVATE ${PDF_BBOXES_INCLUDES})
-  target_link_libraries(pdf_bboxes_ext PRIVATE ${PDF_BBOXES_LIBS})
-  set_target_properties(pdf_bboxes_ext PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/pdf_bboxes")
-  pdf_bboxes_runtime(pdf_bboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+  nanobind_add_module(bboxes_ext NB_STATIC python/bindings.cpp ${BBOXES_SOURCES})
+  target_include_directories(bboxes_ext PRIVATE ${BBOXES_INCLUDES})
+  target_link_libraries(bboxes_ext PRIVATE ${BBOXES_LIBS})
+  set_target_properties(bboxes_ext PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/bboxes")
+  bboxes_runtime(bboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
 
 # ── DuckDB extension ────────────────────────────────────────────────
 option(BUILD_DUCKDB_EXTENSION "Build DuckDB loadable extension" OFF)
 if(BUILD_DUCKDB_EXTENSION)
-  add_library(pdf_bboxes_duckdb MODULE duckdb_ext/src/pdf_bboxes_ext.cpp ${PDF_BBOXES_SOURCES})
-  target_include_directories(pdf_bboxes_duckdb PRIVATE
-    ${PDF_BBOXES_INCLUDES} duckdb_ext/duckdb_capi)
-  target_link_libraries(pdf_bboxes_duckdb PRIVATE ${PDF_BBOXES_LIBS})
-  set_target_properties(pdf_bboxes_duckdb PROPERTIES
-    OUTPUT_NAME "pdf_bboxes"
+  add_library(bboxes_duckdb MODULE duckdb_ext/src/bboxes_ext.cpp ${BBOXES_SOURCES})
+  target_include_directories(bboxes_duckdb PRIVATE
+    ${BBOXES_INCLUDES} duckdb_ext/duckdb_capi)
+  target_link_libraries(bboxes_duckdb PRIVATE ${BBOXES_LIBS})
+  set_target_properties(bboxes_duckdb PROPERTIES
+    OUTPUT_NAME "bboxes"
     PREFIX ""
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/duckdb")
-  pdf_bboxes_runtime(pdf_bboxes_duckdb "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+  bboxes_runtime(bboxes_duckdb "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
 
 # ── SQLite extension ────────────────────────────────────────────────
@@ -107,19 +107,18 @@ if(BUILD_SQLITE_EXTENSION)
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
   FetchContent_MakeAvailable(sqlite3)
 
-  add_library(pdf_bboxes_sqlite MODULE sqlite_ext/src/pdf_bboxes_sqlite.cpp ${PDF_BBOXES_SOURCES})
-  target_include_directories(pdf_bboxes_sqlite PRIVATE ${PDF_BBOXES_INCLUDES} ${sqlite3_SOURCE_DIR})
-  target_link_libraries(pdf_bboxes_sqlite PRIVATE ${PDF_BBOXES_LIBS})
-  set_target_properties(pdf_bboxes_sqlite PROPERTIES
-    OUTPUT_NAME "pdf_bboxes"
+  add_library(bboxes_sqlite MODULE sqlite_ext/src/bboxes_sqlite.cpp ${BBOXES_SOURCES})
+  target_include_directories(bboxes_sqlite PRIVATE ${BBOXES_INCLUDES} ${sqlite3_SOURCE_DIR})
+  target_link_libraries(bboxes_sqlite PRIVATE ${BBOXES_LIBS})
+  set_target_properties(bboxes_sqlite PROPERTIES
+    OUTPUT_NAME "bboxes"
     PREFIX ""
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/sqlite")
   if(APPLE)
-    target_link_options(pdf_bboxes_sqlite PRIVATE -undefined dynamic_lookup)
-    # Python's sqlite3.load_extension() appends .dylib on macOS
-    add_custom_command(TARGET pdf_bboxes_sqlite POST_BUILD
+    target_link_options(bboxes_sqlite PRIVATE -undefined dynamic_lookup)
+    add_custom_command(TARGET bboxes_sqlite POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E create_symlink
-        pdf_bboxes.so "$<TARGET_FILE_DIR:pdf_bboxes_sqlite>/pdf_bboxes.dylib")
+        bboxes.so "$<TARGET_FILE_DIR:bboxes_sqlite>/bboxes.dylib")
   endif()
-  pdf_bboxes_runtime(pdf_bboxes_sqlite "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+  bboxes_runtime(bboxes_sqlite "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
