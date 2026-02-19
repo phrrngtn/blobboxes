@@ -5,9 +5,23 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "blobboxes"
 version = "0.3.0"
-requires-python = ">=3.8"
 description = "Extract text bounding boxes, fonts, and styles from documents"
+readme = "README.md"
+requires-python = ">=3.8"
 license = {text = "MIT"}
+authors = [{name = "Paul Harrington"}]
+keywords = ["pdf", "xlsx", "docx", "bounding-box", "text-extraction", "duckdb", "sqlite"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Topic :: Text Processing",
+]
+
+[project.urls]
+Repository = "https://github.com/phrrngtn/blobboxes"
 
 [tool.scikit-build]
 cmake.args = ["-DBUILD_PYTHON_BINDINGS=ON"]

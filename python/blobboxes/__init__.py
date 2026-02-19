@@ -1,5 +1,7 @@
 """blobboxes — extract text bounding boxes, fonts, and styles from documents."""
 
+__version__ = "0.3.0"
+
 from .blobboxes_ext import (
     _pdf_init,
     _xlsx_init,
