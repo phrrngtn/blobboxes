@@ -84,3 +84,16 @@ if(BUILD_PYTHON_BINDINGS)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/pdf_bboxes")
   pdf_bboxes_runtime(pdf_bboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
+
+# ── DuckDB extension ────────────────────────────────────────────────
+option(BUILD_DUCKDB_EXTENSION "Build DuckDB loadable extension" OFF)
+if(BUILD_DUCKDB_EXTENSION)
+  add_library(pdf_bboxes_duckdb MODULE duckdb_ext/src/pdf_bboxes_ext.cpp ${PDF_BBOXES_SOURCES})
+  target_include_directories(pdf_bboxes_duckdb PRIVATE
+    ${PDF_BBOXES_INCLUDES} duckdb_ext/duckdb_capi)
+  target_link_libraries(pdf_bboxes_duckdb PRIVATE ${PDF_BBOXES_LIBS})
+  set_target_properties(pdf_bboxes_duckdb PROPERTIES
+    OUTPUT_NAME "pdf_bboxes"
+    PREFIX "")
+  pdf_bboxes_runtime(pdf_bboxes_duckdb "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+endif()
