@@ -2,13 +2,10 @@
 SQLITE_EXTENSION_INIT1
 
 #include "pdf_bboxes.h"
-#include <nlohmann/json.hpp>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
-
-using json = nlohmann::json;
 
 static std::vector<char> read_file(const char* path) {
     FILE* f = fopen(path, "rb");
@@ -31,8 +28,7 @@ struct ExtractVtab : sqlite3_vtab {
 struct ExtractCursor : sqlite3_vtab_cursor {
     std::vector<char> buf;
     pdf_bboxes_cursor* cur = nullptr;
-    std::string current_json;
-    json current_obj;
+    const pdf_bboxes_run* current = nullptr;
     bool eof = true;
     int64_t rowid = 0;
 };
@@ -55,7 +51,7 @@ static int extractDisconnect(sqlite3_vtab* pVtab) {
 
 static int extractBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
     for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 10 && // file_path
+        if (info->aConstraint[i].iColumn == 10 &&
             info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
             info->aConstraint[i].usable) {
             info->aConstraintUsage[i].argvIndex = 1;
@@ -95,21 +91,16 @@ static int extractFilter(sqlite3_vtab_cursor* pCursor, int, const char*,
     if (!c->cur) { c->eof = true; return SQLITE_OK; }
 
     c->rowid = 0;
-    const char* s = pdf_bboxes_extract_next(c->cur);
-    if (!s) { c->eof = true; return SQLITE_OK; }
-    c->current_json = s;
-    c->current_obj = json::parse(c->current_json, nullptr, false);
-    c->eof = false;
+    c->current = pdf_bboxes_extract_next(c->cur);
+    c->eof = (c->current == nullptr);
     return SQLITE_OK;
 }
 
 static int extractNext(sqlite3_vtab_cursor* pCursor) {
     auto* c = static_cast<ExtractCursor*>(pCursor);
     c->rowid++;
-    const char* s = pdf_bboxes_extract_next(c->cur);
-    if (!s) { c->eof = true; return SQLITE_OK; }
-    c->current_json = s;
-    c->current_obj = json::parse(c->current_json, nullptr, false);
+    c->current = pdf_bboxes_extract_next(c->cur);
+    c->eof = (c->current == nullptr);
     return SQLITE_OK;
 }
 
@@ -118,22 +109,18 @@ static int extractEof(sqlite3_vtab_cursor* pCursor) {
 }
 
 static int extractColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
-    auto* c = static_cast<ExtractCursor*>(pCursor);
-    auto& o = c->current_obj;
+    auto* r = static_cast<ExtractCursor*>(pCursor)->current;
     switch (col) {
-        case 0: sqlite3_result_int(ctx, o["font_id"].get<int>()); break;
-        case 1: sqlite3_result_int(ctx, o["page"].get<int>()); break;
-        case 2: sqlite3_result_double(ctx, o["x"].get<double>()); break;
-        case 3: sqlite3_result_double(ctx, o["y"].get<double>()); break;
-        case 4: sqlite3_result_double(ctx, o["w"].get<double>()); break;
-        case 5: sqlite3_result_double(ctx, o["h"].get<double>()); break;
-        case 6: { auto s = o["text"].get<std::string>();
-                  sqlite3_result_text(ctx, s.c_str(), s.size(), SQLITE_TRANSIENT); break; }
-        case 7: { auto s = o["color"].get<std::string>();
-                  sqlite3_result_text(ctx, s.c_str(), s.size(), SQLITE_TRANSIENT); break; }
-        case 8: sqlite3_result_double(ctx, o["font_size"].get<double>()); break;
-        case 9: { auto s = o["style"].get<std::string>();
-                  sqlite3_result_text(ctx, s.c_str(), s.size(), SQLITE_TRANSIENT); break; }
+        case 0: sqlite3_result_int(ctx, r->font_id); break;
+        case 1: sqlite3_result_int(ctx, r->page); break;
+        case 2: sqlite3_result_double(ctx, r->x); break;
+        case 3: sqlite3_result_double(ctx, r->y); break;
+        case 4: sqlite3_result_double(ctx, r->w); break;
+        case 5: sqlite3_result_double(ctx, r->h); break;
+        case 6: sqlite3_result_text(ctx, r->text, -1, SQLITE_TRANSIENT); break;
+        case 7: sqlite3_result_text(ctx, r->color, -1, SQLITE_TRANSIENT); break;
+        case 8: sqlite3_result_double(ctx, r->font_size); break;
+        case 9: sqlite3_result_text(ctx, r->style, -1, SQLITE_TRANSIENT); break;
         default: sqlite3_result_null(ctx); break;
     }
     return SQLITE_OK;
@@ -160,8 +147,7 @@ struct FontsVtab : sqlite3_vtab {
 struct FontsCursor : sqlite3_vtab_cursor {
     std::vector<char> buf;
     pdf_bboxes_font_cursor* cur = nullptr;
-    std::string current_json;
-    json current_obj;
+    const pdf_bboxes_font* current = nullptr;
     bool eof = true;
     int64_t rowid = 0;
 };
@@ -178,7 +164,7 @@ static int fontsConnect(sqlite3* db, void*, int, const char* const*,
 
 static int fontsBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
     for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 4 && // file_path
+        if (info->aConstraint[i].iColumn == 4 &&
             info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
             info->aConstraint[i].usable) {
             info->aConstraintUsage[i].argvIndex = 1;
@@ -223,21 +209,16 @@ static int fontsFilter(sqlite3_vtab_cursor* pCursor, int, const char*,
     if (!c->cur) { c->eof = true; return SQLITE_OK; }
 
     c->rowid = 0;
-    const char* s = pdf_bboxes_fonts_next(c->cur);
-    if (!s) { c->eof = true; return SQLITE_OK; }
-    c->current_json = s;
-    c->current_obj = json::parse(c->current_json, nullptr, false);
-    c->eof = false;
+    c->current = pdf_bboxes_fonts_next(c->cur);
+    c->eof = (c->current == nullptr);
     return SQLITE_OK;
 }
 
 static int fontsNext(sqlite3_vtab_cursor* pCursor) {
     auto* c = static_cast<FontsCursor*>(pCursor);
     c->rowid++;
-    const char* s = pdf_bboxes_fonts_next(c->cur);
-    if (!s) { c->eof = true; return SQLITE_OK; }
-    c->current_json = s;
-    c->current_obj = json::parse(c->current_json, nullptr, false);
+    c->current = pdf_bboxes_fonts_next(c->cur);
+    c->eof = (c->current == nullptr);
     return SQLITE_OK;
 }
 
@@ -246,15 +227,12 @@ static int fontsEof(sqlite3_vtab_cursor* pCursor) {
 }
 
 static int fontsColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
-    auto* c = static_cast<FontsCursor*>(pCursor);
-    auto& o = c->current_obj;
+    auto* f = static_cast<FontsCursor*>(pCursor)->current;
     switch (col) {
-        case 0: sqlite3_result_int(ctx, o["font_id"].get<int>()); break;
-        case 1: { auto s = o["name"].get<std::string>();
-                  sqlite3_result_text(ctx, s.c_str(), s.size(), SQLITE_TRANSIENT); break; }
-        case 2: sqlite3_result_int(ctx, o["flags"].get<int>()); break;
-        case 3: { auto s = o["style"].get<std::string>();
-                  sqlite3_result_text(ctx, s.c_str(), s.size(), SQLITE_TRANSIENT); break; }
+        case 0: sqlite3_result_int(ctx, f->font_id); break;
+        case 1: sqlite3_result_text(ctx, f->name, -1, SQLITE_TRANSIENT); break;
+        case 2: sqlite3_result_int(ctx, f->flags); break;
+        case 3: sqlite3_result_text(ctx, f->style, -1, SQLITE_TRANSIENT); break;
         default: sqlite3_result_null(ctx); break;
     }
     return SQLITE_OK;
@@ -273,6 +251,52 @@ static sqlite3_module fontsModule = {
     nullptr, nullptr, nullptr, nullptr, nullptr
 };
 
+/* ── scalar JSON functions ───────────────────────────────────────── */
+
+static void extract_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
+    int sp = (argc > 1) ? sqlite3_value_int(argv[1]) : 0;
+    int ep = (argc > 2) ? sqlite3_value_int(argv[2]) : 0;
+
+    auto buf = read_file(path);
+    if (buf.empty()) { sqlite3_result_null(ctx); return; }
+
+    auto* cur = pdf_bboxes_extract_open(buf.data(), buf.size(), nullptr, sp, ep);
+    if (!cur) { sqlite3_result_null(ctx); return; }
+
+    std::string result = "[";
+    bool first = true;
+    while (const char* json = pdf_bboxes_extract_next_json(cur)) {
+        if (!first) result += ',';
+        result += json;
+        first = false;
+    }
+    pdf_bboxes_extract_close(cur);
+    result += ']';
+    sqlite3_result_text(ctx, result.c_str(), result.size(), SQLITE_TRANSIENT);
+}
+
+static void fonts_json_func(sqlite3_context* ctx, int, sqlite3_value** argv) {
+    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
+
+    auto buf = read_file(path);
+    if (buf.empty()) { sqlite3_result_null(ctx); return; }
+
+    auto* cur = pdf_bboxes_fonts_open(buf.data(), buf.size(), nullptr);
+    if (!cur) { sqlite3_result_null(ctx); return; }
+
+    std::string result = "[";
+    bool first = true;
+    while (const char* json = pdf_bboxes_fonts_next_json(cur)) {
+        if (!first) result += ',';
+        result += json;
+        first = false;
+    }
+    pdf_bboxes_fonts_close(cur);
+    result += ']';
+    sqlite3_result_text(ctx, result.c_str(), result.size(), SQLITE_TRANSIENT);
+}
+
 /* ── extension entry point ───────────────────────────────────────── */
 
 extern "C" {
@@ -283,9 +307,17 @@ int sqlite3_pdfbboxes_init(sqlite3* db, char** pzErrMsg,
                            const sqlite3_api_routines* pApi) {
     SQLITE_EXTENSION_INIT2(pApi);
     pdf_bboxes_init();
+
     int rc = sqlite3_create_module(db, "pdf_extract", &extractModule, nullptr);
     if (rc != SQLITE_OK) return rc;
     rc = sqlite3_create_module(db, "pdf_fonts", &fontsModule, nullptr);
+    if (rc != SQLITE_OK) return rc;
+
+    rc = sqlite3_create_function(db, "pdf_extract_json", -1, SQLITE_UTF8, nullptr,
+                                 extract_json_func, nullptr, nullptr);
+    if (rc != SQLITE_OK) return rc;
+    rc = sqlite3_create_function(db, "pdf_fonts_json", 1, SQLITE_UTF8, nullptr,
+                                 fonts_json_func, nullptr, nullptr);
     return rc;
 }
 }

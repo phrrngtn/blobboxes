@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <unordered_map>
@@ -103,9 +104,21 @@ static bool gap_ok(const CharInfo& prev, const CharInfo& cur) {
     return (cur.left - prev.right) < prev.font_size * 0.35;
 }
 
-/* Extract runs from a single page, appending JSON strings to out. */
+/* ── internal run struct (owns its strings) ─────────────────────────── */
+
+struct Run {
+    uint32_t font_id;
+    int page;
+    double x, y, w, h;
+    std::string text;
+    std::string color;
+    double font_size;
+    std::string style;
+};
+
+/* Extract runs from a single page. */
 static void extract_page_runs(FPDF_DOCUMENT doc, int pi, FontTable& fonts,
-                               std::vector<std::string>& out) {
+                               std::vector<Run>& out) {
     FPDF_PAGE page = FPDF_LoadPage(doc, pi);
     if (!page) return;
 
@@ -170,18 +183,18 @@ static void extract_page_runs(FPDF_DOCUMENT doc, int pi, FontTable& fonts,
             text.pop_back();
 
         if (!text.empty()) {
-            json obj;
-            obj["font_id"]   = first.font_id;
-            obj["page"]      = pi + 1;
-            obj["x"]         = run_left;
-            obj["y"]         = run_top;
-            obj["w"]         = run_right - run_left;
-            obj["h"]         = run_bottom - run_top;
-            obj["text"]      = text;
-            obj["color"]     = color_string(first.color_r, first.color_g, first.color_b, first.color_a);
-            obj["font_size"] = first.font_size;
-            obj["style"]     = style_string(fonts.entries[first.font_id].flags);
-            out.push_back(obj.dump());
+            Run run;
+            run.font_id   = first.font_id;
+            run.page      = pi + 1;
+            run.x         = run_left;
+            run.y         = run_top;
+            run.w         = run_right - run_left;
+            run.h         = run_bottom - run_top;
+            run.text      = std::move(text);
+            run.color     = color_string(first.color_r, first.color_g, first.color_b, first.color_a);
+            run.font_size = first.font_size;
+            run.style     = style_string(fonts.entries[first.font_id].flags);
+            out.push_back(std::move(run));
         }
 
         i = j;
@@ -189,6 +202,21 @@ static void extract_page_runs(FPDF_DOCUMENT doc, int pi, FontTable& fonts,
 
     FPDFText_ClosePage(text_page);
     FPDF_ClosePage(page);
+}
+
+static std::string run_to_json(const Run& r) {
+    json obj;
+    obj["font_id"]   = r.font_id;
+    obj["page"]      = r.page;
+    obj["x"]         = r.x;
+    obj["y"]         = r.y;
+    obj["w"]         = r.w;
+    obj["h"]         = r.h;
+    obj["text"]      = r.text;
+    obj["color"]     = r.color;
+    obj["font_size"] = r.font_size;
+    obj["style"]     = r.style;
+    return obj.dump();
 }
 
 /* ── public API ─────────────────────────────────────────────────────── */
@@ -203,8 +231,10 @@ struct pdf_bboxes_cursor {
     FontTable fonts;
     int current_page;
     int end_page;
-    std::vector<std::string> page_runs;
+    std::vector<Run> page_runs;
     size_t run_index;
+    pdf_bboxes_run current;   // C-visible view of current run
+    std::string current_json; // cached JSON for current run
 
     void advance() {
         while (current_page <= end_page) {
@@ -235,13 +265,34 @@ pdf_bboxes_cursor* pdf_bboxes_extract_open(const void* buf, size_t len,
     return c;
 }
 
-const char* pdf_bboxes_extract_next(pdf_bboxes_cursor* c) {
+const pdf_bboxes_run* pdf_bboxes_extract_next(pdf_bboxes_cursor* c) {
     if (!c) return nullptr;
     while (c->run_index >= c->page_runs.size()) {
         if (c->current_page > c->end_page) return nullptr;
         c->advance();
     }
-    return c->page_runs[c->run_index++].c_str();
+    const Run& r = c->page_runs[c->run_index++];
+    c->current.font_id   = r.font_id;
+    c->current.page      = r.page;
+    c->current.x         = r.x;
+    c->current.y         = r.y;
+    c->current.w         = r.w;
+    c->current.h         = r.h;
+    c->current.text      = r.text.c_str();
+    c->current.color     = r.color.c_str();
+    c->current.font_size = r.font_size;
+    c->current.style     = r.style.c_str();
+    return &c->current;
+}
+
+const char* pdf_bboxes_extract_next_json(pdf_bboxes_cursor* c) {
+    if (!c) return nullptr;
+    while (c->run_index >= c->page_runs.size()) {
+        if (c->current_page > c->end_page) return nullptr;
+        c->advance();
+    }
+    c->current_json = run_to_json(c->page_runs[c->run_index++]);
+    return c->current_json.c_str();
 }
 
 void pdf_bboxes_extract_close(pdf_bboxes_cursor* c) {
@@ -252,9 +303,18 @@ void pdf_bboxes_extract_close(pdf_bboxes_cursor* c) {
 
 /* ── font cursor ───────────────────────────────────────────────────── */
 
+struct FontEntry {
+    uint32_t id;
+    std::string name;
+    int flags;
+    std::string style;
+};
+
 struct pdf_bboxes_font_cursor {
-    std::vector<std::string> entries;
+    std::vector<FontEntry> entries;
     size_t index;
+    pdf_bboxes_font current;  // C-visible view
+    std::string current_json;
 };
 
 pdf_bboxes_font_cursor* pdf_bboxes_fonts_open(const void* buf, size_t len,
@@ -283,20 +343,31 @@ pdf_bboxes_font_cursor* pdf_bboxes_fonts_open(const void* buf, size_t len,
 
     auto* c = new pdf_bboxes_font_cursor{};
     c->index = 0;
-    for (const auto& e : fonts.entries) {
-        json obj;
-        obj["font_id"] = e.id;
-        obj["name"]    = e.name;
-        obj["flags"]   = e.flags;
-        obj["style"]   = style_string(e.flags);
-        c->entries.push_back(obj.dump());
-    }
+    for (const auto& e : fonts.entries)
+        c->entries.push_back({e.id, e.name, e.flags, style_string(e.flags)});
     return c;
 }
 
-const char* pdf_bboxes_fonts_next(pdf_bboxes_font_cursor* c) {
+const pdf_bboxes_font* pdf_bboxes_fonts_next(pdf_bboxes_font_cursor* c) {
     if (!c || c->index >= c->entries.size()) return nullptr;
-    return c->entries[c->index++].c_str();
+    const FontEntry& e = c->entries[c->index++];
+    c->current.font_id = e.id;
+    c->current.name    = e.name.c_str();
+    c->current.flags   = e.flags;
+    c->current.style   = e.style.c_str();
+    return &c->current;
+}
+
+const char* pdf_bboxes_fonts_next_json(pdf_bboxes_font_cursor* c) {
+    if (!c || c->index >= c->entries.size()) return nullptr;
+    const FontEntry& e = c->entries[c->index++];
+    json obj;
+    obj["font_id"] = e.id;
+    obj["name"]    = e.name;
+    obj["flags"]   = e.flags;
+    obj["style"]   = e.style;
+    c->current_json = obj.dump();
+    return c->current_json.c_str();
 }
 
 void pdf_bboxes_fonts_close(pdf_bboxes_font_cursor* c) {

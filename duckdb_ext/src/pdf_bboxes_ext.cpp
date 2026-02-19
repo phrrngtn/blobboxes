@@ -5,12 +5,10 @@
 DUCKDB_EXTENSION_EXTERN
 
 #include "pdf_bboxes.h"
-#include <nlohmann/json.hpp>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <vector>
-
-using json = nlohmann::json;
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 
@@ -118,25 +116,19 @@ static void extract_func(duckdb_function_info info, duckdb_data_chunk output) {
     idx_t row = 0;
     idx_t max_rows = 2048;
     while (row < max_rows) {
-        const char* s = pdf_bboxes_extract_next(data->cursor);
-        if (!s) break;
-        json obj = json::parse(s, nullptr, false);
-        if (obj.is_discarded()) continue;
+        const pdf_bboxes_run* r = pdf_bboxes_extract_next(data->cursor);
+        if (!r) break;
 
-        font_id_data[row]   = obj["font_id"].get<int32_t>();
-        page_data[row]      = obj["page"].get<int32_t>();
-        x_data[row]         = obj["x"].get<double>();
-        y_data[row]         = obj["y"].get<double>();
-        w_data[row]         = obj["w"].get<double>();
-        h_data[row]         = obj["h"].get<double>();
-        font_size_data[row] = obj["font_size"].get<double>();
-
-        std::string text  = obj["text"].get<std::string>();
-        std::string color = obj["color"].get<std::string>();
-        std::string style = obj["style"].get<std::string>();
-        duckdb_vector_assign_string_element(v_text,  row, text.c_str());
-        duckdb_vector_assign_string_element(v_color, row, color.c_str());
-        duckdb_vector_assign_string_element(v_style, row, style.c_str());
+        font_id_data[row]   = static_cast<int32_t>(r->font_id);
+        page_data[row]      = r->page;
+        x_data[row]         = r->x;
+        y_data[row]         = r->y;
+        w_data[row]         = r->w;
+        h_data[row]         = r->h;
+        font_size_data[row] = r->font_size;
+        duckdb_vector_assign_string_element(v_text,  row, r->text);
+        duckdb_vector_assign_string_element(v_color, row, r->color);
+        duckdb_vector_assign_string_element(v_style, row, r->style);
         row++;
     }
     duckdb_data_chunk_set_size(output, row);
@@ -214,21 +206,83 @@ static void fonts_func(duckdb_function_info info, duckdb_data_chunk output) {
     idx_t row = 0;
     idx_t max_rows = 2048;
     while (row < max_rows) {
-        const char* s = pdf_bboxes_fonts_next(data->cursor);
-        if (!s) break;
-        json obj = json::parse(s, nullptr, false);
-        if (obj.is_discarded()) continue;
+        const pdf_bboxes_font* f = pdf_bboxes_fonts_next(data->cursor);
+        if (!f) break;
 
-        font_id_data[row] = obj["font_id"].get<int32_t>();
-        flags_data[row]   = obj["flags"].get<int32_t>();
-
-        std::string name  = obj["name"].get<std::string>();
-        std::string style = obj["style"].get<std::string>();
-        duckdb_vector_assign_string_element(v_name,  row, name.c_str());
-        duckdb_vector_assign_string_element(v_style, row, style.c_str());
+        font_id_data[row] = static_cast<int32_t>(f->font_id);
+        flags_data[row]   = f->flags;
+        duckdb_vector_assign_string_element(v_name,  row, f->name);
+        duckdb_vector_assign_string_element(v_style, row, f->style);
         row++;
     }
     duckdb_data_chunk_set_size(output, row);
+}
+
+/* ── scalar JSON functions ───────────────────────────────────────── */
+
+static const char* get_string(duckdb_vector vec, idx_t i) {
+    auto* s = &static_cast<duckdb_string_t*>(duckdb_vector_get_data(vec))[i];
+    return s->value.inlined.length > 12 ? s->value.pointer.ptr : s->value.inlined.inlined;
+}
+
+static int64_t get_bigint(duckdb_vector vec, idx_t i) {
+    return static_cast<int64_t*>(duckdb_vector_get_data(vec))[i];
+}
+
+static void extract_json_scalar(duckdb_function_info info, duckdb_data_chunk input,
+                                duckdb_vector output) {
+    idx_t count = duckdb_data_chunk_get_size(input);
+    idx_t ncols = duckdb_data_chunk_get_column_count(input);
+    duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
+
+    for (idx_t i = 0; i < count; i++) {
+        const char* path = get_string(v_path, i);
+        int sp = (ncols > 1) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 1), i)) : 0;
+        int ep = (ncols > 2) ? static_cast<int>(get_bigint(duckdb_data_chunk_get_vector(input, 2), i)) : 0;
+
+        auto buf = read_file(path);
+        std::string result = "[";
+        if (!buf.empty()) {
+            auto* cur = pdf_bboxes_extract_open(buf.data(), buf.size(), nullptr, sp, ep);
+            if (cur) {
+                bool first = true;
+                while (const char* json = pdf_bboxes_extract_next_json(cur)) {
+                    if (!first) result += ',';
+                    result += json;
+                    first = false;
+                }
+                pdf_bboxes_extract_close(cur);
+            }
+        }
+        result += ']';
+        duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
+    }
+}
+
+static void fonts_json_scalar(duckdb_function_info info, duckdb_data_chunk input,
+                              duckdb_vector output) {
+    idx_t count = duckdb_data_chunk_get_size(input);
+    duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
+
+    for (idx_t i = 0; i < count; i++) {
+        const char* path = get_string(v_path, i);
+        auto buf = read_file(path);
+        std::string result = "[";
+        if (!buf.empty()) {
+            auto* cur = pdf_bboxes_fonts_open(buf.data(), buf.size(), nullptr);
+            if (cur) {
+                bool first = true;
+                while (const char* json = pdf_bboxes_fonts_next_json(cur)) {
+                    if (!first) result += ',';
+                    result += json;
+                    first = false;
+                }
+                pdf_bboxes_fonts_close(cur);
+            }
+        }
+        result += ']';
+        duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
+    }
 }
 
 /* ── registration ────────────────────────────────────────────────── */
@@ -259,6 +313,37 @@ static void register_fonts(duckdb_connection conn) {
     duckdb_destroy_table_function(&func);
 }
 
+static void register_extract_json(duckdb_connection conn) {
+    duckdb_scalar_function func = duckdb_create_scalar_function();
+    duckdb_scalar_function_set_name(func, "pdf_extract_json");
+
+    duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
+    duckdb_logical_type t_big = duckdb_create_logical_type(DUCKDB_TYPE_BIGINT);
+    duckdb_scalar_function_add_parameter(func, t_str);
+    duckdb_scalar_function_set_varargs(func, t_big);
+    duckdb_scalar_function_set_return_type(func, t_str);
+    duckdb_destroy_logical_type(&t_str);
+    duckdb_destroy_logical_type(&t_big);
+
+    duckdb_scalar_function_set_function(func, extract_json_scalar);
+    duckdb_register_scalar_function(conn, func);
+    duckdb_destroy_scalar_function(&func);
+}
+
+static void register_fonts_json(duckdb_connection conn) {
+    duckdb_scalar_function func = duckdb_create_scalar_function();
+    duckdb_scalar_function_set_name(func, "pdf_fonts_json");
+
+    duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
+    duckdb_scalar_function_add_parameter(func, t_str);
+    duckdb_scalar_function_set_return_type(func, t_str);
+    duckdb_destroy_logical_type(&t_str);
+
+    duckdb_scalar_function_set_function(func, fonts_json_scalar);
+    duckdb_register_scalar_function(conn, func);
+    duckdb_destroy_scalar_function(&func);
+}
+
 /* ── entrypoint ──────────────────────────────────────────────────── */
 
 DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info info,
@@ -266,5 +351,7 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     pdf_bboxes_init();
     register_extract(connection);
     register_fonts(connection);
+    register_extract_json(connection);
+    register_fonts_json(connection);
     return true;
 }
