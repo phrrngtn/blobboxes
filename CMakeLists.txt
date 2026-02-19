@@ -175,12 +175,20 @@ if(BUILD_PYTHON_BINDINGS)
   bboxes_runtime(blobboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
 
+# ── DuckDB C API headers ─────────────────────────────────────────────
+FetchContent_Declare(duckdb_capi
+  GIT_REPOSITORY https://github.com/duckdb/extension-template-c.git
+  GIT_TAG        main
+  GIT_SHALLOW    TRUE)
+FetchContent_Populate(duckdb_capi)
+set(DUCKDB_CAPI_INCLUDE "${duckdb_capi_SOURCE_DIR}/duckdb_capi")
+
 # ── DuckDB extension ────────────────────────────────────────────────
 option(BUILD_DUCKDB_EXTENSION "Build DuckDB loadable extension" OFF)
 if(BUILD_DUCKDB_EXTENSION)
   add_library(bboxes_duckdb MODULE duckdb_ext/src/bboxes_ext.cpp ${BBOXES_SOURCES})
   target_include_directories(bboxes_duckdb PRIVATE
-    ${BBOXES_INCLUDES} duckdb_ext/duckdb_capi)
+    ${BBOXES_INCLUDES} ${DUCKDB_CAPI_INCLUDE})
   target_link_libraries(bboxes_duckdb PRIVATE ${BBOXES_LIBS})
   bboxes_backend_setup(bboxes_duckdb)
   set_target_properties(bboxes_duckdb PROPERTIES
