@@ -5,13 +5,13 @@
 # Usage:
 #   ./test_cross_check.sh [file.pdf]
 #
-# Defaults to glavel_receipt.pdf if no argument given.
+# Defaults to test_data/sample.pdf if no argument given.
 # Exit code 0 = all checks pass, non-zero = failure.
 
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-PDF="${1:-$DIR/glavel_receipt.pdf}"
+PDF="${1:-$DIR/test_data/sample.pdf}"
 PDF="$(cd "$(dirname "$PDF")" && pwd)/$(basename "$PDF")"
 
 XLSX="$DIR/test_data/sample.xlsx"

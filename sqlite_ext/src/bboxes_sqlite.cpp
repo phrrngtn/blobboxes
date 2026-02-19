@@ -41,25 +41,11 @@ static std::vector<char> read_file(const char* path) {
 
 /* ══════════════════════════════════════════════════════════════════════
  * Format-aware pAux helper
- *
- * Each sqlite3_module instance stores a Format* in pAux.  The Connect,
- * BestIndex, Column callbacks are shared; only the Filter dispatches
- * to the right bboxes_open_* via open_by_format().
  * ══════════════════════════════════════════════════════════════════════ */
 
 static Format* make_fmt(Format f) {
-    /* Allocated once, freed when the module is unregistered via
-       sqlite3_create_module_v2's xDestroy, or lives for the
-       lifetime of the connection.  We use static storage per-format. */
     static Format fmts[5] = { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX, FMT_AUTO };
     return &fmts[f];
-}
-
-static Format get_fmt(sqlite3_vtab* pVtab) {
-    /* The pAux pointer was stashed by sqlite3_create_module; but SQLite
-       does not expose it on the vtab.  We use a custom vtab struct. */
-    (void)pVtab;
-    return FMT_PDF; /* fallback -- not used; see FmtVtab */
 }
 
 /* ── Generic vtab struct that carries the Format ─────────────────── */
@@ -69,78 +55,130 @@ struct FmtVtab : sqlite3_vtab {
 };
 
 /* ══════════════════════════════════════════════════════════════════════
- * bboxes_{fmt}_doc  virtual table  (single row per file)
+ * DEFINE_VTAB macro — generates Connect, Open, Close, Disconnect,
+ * Filter, Next, Eof, Rowid, BestIndex, and the sqlite3_module struct.
+ * Only the Column function is written manually per type.
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct DocCursor : sqlite3_vtab_cursor {
-    std::vector<char> buf;
-    bboxes_cursor* cur = nullptr;
-    const bboxes_doc* current = nullptr;
-    bool eof = true;
-    int64_t rowid = 0;
+#define DEFINE_VTAB(Name, DDL, CursorType, current_type, next_fn, hidden_col, est_cost) \
+                                                                                        \
+struct Name##Cursor : sqlite3_vtab_cursor {                                             \
+    std::vector<char> buf;                                                              \
+    bboxes_cursor* cur = nullptr;                                                       \
+    current_type const* current = nullptr;                                              \
+    bool eof = true;                                                                    \
+    int64_t rowid = 0;                                                                  \
+};                                                                                      \
+                                                                                        \
+static int Name##Connect(sqlite3* db, void* pAux, int, const char* const*,              \
+                         sqlite3_vtab** ppVtab, char**) {                               \
+    int rc = sqlite3_declare_vtab(db, DDL);                                             \
+    if (rc != SQLITE_OK) return rc;                                                     \
+    auto* v = new FmtVtab{};                                                            \
+    v->fmt = *static_cast<Format*>(pAux);                                               \
+    *ppVtab = v;                                                                        \
+    return SQLITE_OK;                                                                   \
+}                                                                                       \
+                                                                                        \
+static int Name##BestIndex(sqlite3_vtab*, sqlite3_index_info* info) {                   \
+    for (int i = 0; i < info->nConstraint; i++) {                                       \
+        if (info->aConstraint[i].iColumn == hidden_col &&                               \
+            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&                    \
+            info->aConstraint[i].usable) {                                              \
+            info->aConstraintUsage[i].argvIndex = 1;                                    \
+            info->aConstraintUsage[i].omit = 1;                                         \
+            info->estimatedCost = est_cost;                                             \
+            return SQLITE_OK;                                                           \
+        }                                                                               \
+    }                                                                                   \
+    return SQLITE_CONSTRAINT;                                                           \
+}                                                                                       \
+                                                                                        \
+static int Name##Disconnect(sqlite3_vtab* pVtab) {                                     \
+    delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK;                             \
+}                                                                                       \
+static int Name##Open(sqlite3_vtab*, sqlite3_vtab_cursor** pp) {                        \
+    *pp = new Name##Cursor{}; return SQLITE_OK;                                         \
+}                                                                                       \
+                                                                                        \
+static int Name##Close(sqlite3_vtab_cursor* pCursor) {                                  \
+    auto* c = static_cast<Name##Cursor*>(pCursor);                                      \
+    if (c->cur) bboxes_close(c->cur);                                                   \
+    delete c;                                                                           \
+    return SQLITE_OK;                                                                   \
+}                                                                                       \
+                                                                                        \
+static int Name##Filter(sqlite3_vtab_cursor* pCursor, int, const char*,                 \
+                        int argc, sqlite3_value** argv) {                               \
+    auto* c = static_cast<Name##Cursor*>(pCursor);                                      \
+    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;                            \
+    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }                             \
+    if (argc < 1) { c->eof = true; return SQLITE_OK; }                                  \
+    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));       \
+    if (!path) { c->eof = true; return SQLITE_OK; }                                     \
+    c->buf = read_file(path);                                                           \
+    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }                            \
+    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());                         \
+    if (!c->cur) { c->eof = true; return SQLITE_OK; }                                   \
+    c->current = next_fn(c->cur);                                                       \
+    c->eof = (c->current == nullptr);                                                   \
+    c->rowid = 0;                                                                       \
+    return SQLITE_OK;                                                                   \
+}                                                                                       \
+                                                                                        \
+static int Name##Next(sqlite3_vtab_cursor* pCursor) {                                   \
+    auto* c = static_cast<Name##Cursor*>(pCursor);                                      \
+    c->rowid++;                                                                         \
+    c->current = next_fn(c->cur);                                                       \
+    c->eof = (c->current == nullptr);                                                   \
+    return SQLITE_OK;                                                                   \
+}                                                                                       \
+                                                                                        \
+static int Name##Eof(sqlite3_vtab_cursor* pCursor) {                                    \
+    return static_cast<Name##Cursor*>(pCursor)->eof ? 1 : 0;                            \
+}                                                                                       \
+                                                                                        \
+static int Name##Rowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {           \
+    *pRowid = static_cast<Name##Cursor*>(pCursor)->rowid; return SQLITE_OK;             \
+}                                                                                       \
+                                                                                        \
+static int Name##Column(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col);   \
+                                                                                        \
+static sqlite3_module Name##Module = {                                                  \
+    0, nullptr, Name##Connect, Name##BestIndex, Name##Disconnect,                       \
+    Name##Disconnect, Name##Open, Name##Close, Name##Filter,                            \
+    Name##Next, Name##Eof, Name##Column, Name##Rowid,                                   \
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,                      \
+    nullptr, nullptr, nullptr, nullptr, nullptr                                         \
 };
 
-static int docConnect(sqlite3* db, void* pAux, int, const char* const*,
-                      sqlite3_vtab** ppVtab, char**) {
-    int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(document_id INTEGER, source_type TEXT, "
-        "filename TEXT, checksum TEXT, page_count INTEGER, file_path TEXT HIDDEN)");
-    if (rc != SQLITE_OK) return rc;
-    auto* v = new FmtVtab{};
-    v->fmt = *static_cast<Format*>(pAux);
-    *ppVtab = v;
-    return SQLITE_OK;
+/* ══════════════════════════════════════════════════════════════════════
+ * Doc virtual table — special: single row, Next just sets eof
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* Doc uses bboxes_get_doc (not an iterator), so we define it with a
+   small wrapper that matches the next_fn signature for Filter,
+   and override Next to just set eof. */
+
+static const bboxes_doc* doc_get_wrapper(bboxes_cursor* cur) {
+    return bboxes_get_doc(cur);
 }
 
-static int docBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
-    for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 5 &&
-            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
-            info->aConstraint[i].usable) {
-            info->aConstraintUsage[i].argvIndex = 1;
-            info->aConstraintUsage[i].omit = 1;
-            info->estimatedCost = 10.0;
-            return SQLITE_OK;
-        }
-    }
-    return SQLITE_CONSTRAINT;
-}
+DEFINE_VTAB(Doc,
+    "CREATE TABLE x(document_id INTEGER, source_type TEXT, "
+    "filename TEXT, checksum TEXT, page_count INTEGER, file_path TEXT HIDDEN)",
+    DocCursor, bboxes_doc, doc_get_wrapper, 5, 10.0)
 
-static int docDisconnect(sqlite3_vtab* pVtab) { delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK; }
-static int docOpen(sqlite3_vtab*, sqlite3_vtab_cursor** pp) { *pp = new DocCursor{}; return SQLITE_OK; }
-
-static int docClose(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<DocCursor*>(pCursor);
-    if (c->cur) bboxes_close(c->cur);
-    delete c;
-    return SQLITE_OK;
-}
-
-static int docFilter(sqlite3_vtab_cursor* pCursor, int, const char*, int argc, sqlite3_value** argv) {
-    auto* c = static_cast<DocCursor*>(pCursor);
-    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;
-    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }
-    if (argc < 1) { c->eof = true; return SQLITE_OK; }
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { c->eof = true; return SQLITE_OK; }
-    c->buf = read_file(path);
-    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());
-    if (!c->cur) { c->eof = true; return SQLITE_OK; }
-    c->current = bboxes_get_doc(c->cur);
-    c->eof = (c->current == nullptr);
-    c->rowid = 0;
-    return SQLITE_OK;
-}
-
-static int docNext(sqlite3_vtab_cursor* pCursor) {
+/* Doc is single-row: override the macro-generated Next */
+static int DocNextSingleRow(sqlite3_vtab_cursor* pCursor) {
     static_cast<DocCursor*>(pCursor)->eof = true;
     return SQLITE_OK;
 }
+static struct DocModuleFixup {
+    DocModuleFixup() { DocModule.xNext = DocNextSingleRow; }
+} s_doc_module_fixup;
 
-static int docEof(sqlite3_vtab_cursor* pCursor) { return static_cast<DocCursor*>(pCursor)->eof ? 1 : 0; }
-
-static int docColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
+static int DocColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* d = static_cast<DocCursor*>(pCursor)->current;
     switch (col) {
         case 0: sqlite3_result_int(ctx, d->document_id); break;
@@ -154,94 +192,16 @@ static int docColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col
     return SQLITE_OK;
 }
 
-static int docRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {
-    *pRowid = static_cast<DocCursor*>(pCursor)->rowid; return SQLITE_OK;
-}
-
-static sqlite3_module docModule = {
-    0, nullptr, docConnect, docBestIndex, docDisconnect,
-    docDisconnect, docOpen, docClose, docFilter,
-    docNext, docEof, docColumn, docRowid,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr
-};
-
 /* ══════════════════════════════════════════════════════════════════════
- * bboxes_{fmt}_pages  virtual table
+ * Pages virtual table
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct PagesCursor : sqlite3_vtab_cursor {
-    std::vector<char> buf;
-    bboxes_cursor* cur = nullptr;
-    const bboxes_page* current = nullptr;
-    bool eof = true;
-    int64_t rowid = 0;
-};
+DEFINE_VTAB(Pages,
+    "CREATE TABLE x(page_id INTEGER, document_id INTEGER, page_number INTEGER, "
+    "width REAL, height REAL, file_path TEXT HIDDEN)",
+    PagesCursor, bboxes_page, bboxes_next_page, 5, 100.0)
 
-static int pagesConnect(sqlite3* db, void* pAux, int, const char* const*,
-                        sqlite3_vtab** ppVtab, char**) {
-    int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(page_id INTEGER, document_id INTEGER, page_number INTEGER, "
-        "width REAL, height REAL, file_path TEXT HIDDEN)");
-    if (rc != SQLITE_OK) return rc;
-    auto* v = new FmtVtab{};
-    v->fmt = *static_cast<Format*>(pAux);
-    *ppVtab = v;
-    return SQLITE_OK;
-}
-
-static int pagesBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
-    for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 5 &&
-            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
-            info->aConstraint[i].usable) {
-            info->aConstraintUsage[i].argvIndex = 1;
-            info->aConstraintUsage[i].omit = 1;
-            info->estimatedCost = 100.0;
-            return SQLITE_OK;
-        }
-    }
-    return SQLITE_CONSTRAINT;
-}
-
-static int pagesDisconnect(sqlite3_vtab* pVtab) { delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK; }
-static int pagesOpen(sqlite3_vtab*, sqlite3_vtab_cursor** pp) { *pp = new PagesCursor{}; return SQLITE_OK; }
-
-static int pagesClose(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<PagesCursor*>(pCursor);
-    if (c->cur) bboxes_close(c->cur);
-    delete c;
-    return SQLITE_OK;
-}
-
-static int pagesFilter(sqlite3_vtab_cursor* pCursor, int, const char*, int argc, sqlite3_value** argv) {
-    auto* c = static_cast<PagesCursor*>(pCursor);
-    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;
-    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }
-    if (argc < 1) { c->eof = true; return SQLITE_OK; }
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { c->eof = true; return SQLITE_OK; }
-    c->buf = read_file(path);
-    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());
-    if (!c->cur) { c->eof = true; return SQLITE_OK; }
-    c->current = bboxes_next_page(c->cur);
-    c->eof = (c->current == nullptr);
-    c->rowid = 0;
-    return SQLITE_OK;
-}
-
-static int pagesNext(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<PagesCursor*>(pCursor);
-    c->rowid++;
-    c->current = bboxes_next_page(c->cur);
-    c->eof = (c->current == nullptr);
-    return SQLITE_OK;
-}
-
-static int pagesEof(sqlite3_vtab_cursor* pCursor) { return static_cast<PagesCursor*>(pCursor)->eof ? 1 : 0; }
-
-static int pagesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
+static int PagesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* p = static_cast<PagesCursor*>(pCursor)->current;
     switch (col) {
         case 0: sqlite3_result_int(ctx, p->page_id); break;
@@ -254,93 +214,15 @@ static int pagesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int c
     return SQLITE_OK;
 }
 
-static int pagesRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {
-    *pRowid = static_cast<PagesCursor*>(pCursor)->rowid; return SQLITE_OK;
-}
-
-static sqlite3_module pagesModule = {
-    0, nullptr, pagesConnect, pagesBestIndex, pagesDisconnect,
-    pagesDisconnect, pagesOpen, pagesClose, pagesFilter,
-    pagesNext, pagesEof, pagesColumn, pagesRowid,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr
-};
-
 /* ══════════════════════════════════════════════════════════════════════
- * bboxes_{fmt}_fonts  virtual table
+ * Fonts virtual table
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct FontsCursor : sqlite3_vtab_cursor {
-    std::vector<char> buf;
-    bboxes_cursor* cur = nullptr;
-    const bboxes_font* current = nullptr;
-    bool eof = true;
-    int64_t rowid = 0;
-};
+DEFINE_VTAB(Fonts,
+    "CREATE TABLE x(font_id INTEGER, name TEXT, file_path TEXT HIDDEN)",
+    FontsCursor, bboxes_font, bboxes_next_font, 2, 100.0)
 
-static int fontsConnect(sqlite3* db, void* pAux, int, const char* const*,
-                        sqlite3_vtab** ppVtab, char**) {
-    int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(font_id INTEGER, name TEXT, file_path TEXT HIDDEN)");
-    if (rc != SQLITE_OK) return rc;
-    auto* v = new FmtVtab{};
-    v->fmt = *static_cast<Format*>(pAux);
-    *ppVtab = v;
-    return SQLITE_OK;
-}
-
-static int fontsBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
-    for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 2 &&
-            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
-            info->aConstraint[i].usable) {
-            info->aConstraintUsage[i].argvIndex = 1;
-            info->aConstraintUsage[i].omit = 1;
-            info->estimatedCost = 100.0;
-            return SQLITE_OK;
-        }
-    }
-    return SQLITE_CONSTRAINT;
-}
-
-static int fontsDisconnect(sqlite3_vtab* pVtab) { delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK; }
-static int fontsOpen(sqlite3_vtab*, sqlite3_vtab_cursor** pp) { *pp = new FontsCursor{}; return SQLITE_OK; }
-
-static int fontsClose(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<FontsCursor*>(pCursor);
-    if (c->cur) bboxes_close(c->cur);
-    delete c;
-    return SQLITE_OK;
-}
-
-static int fontsFilter(sqlite3_vtab_cursor* pCursor, int, const char*, int argc, sqlite3_value** argv) {
-    auto* c = static_cast<FontsCursor*>(pCursor);
-    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;
-    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }
-    if (argc < 1) { c->eof = true; return SQLITE_OK; }
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { c->eof = true; return SQLITE_OK; }
-    c->buf = read_file(path);
-    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());
-    if (!c->cur) { c->eof = true; return SQLITE_OK; }
-    c->current = bboxes_next_font(c->cur);
-    c->eof = (c->current == nullptr);
-    c->rowid = 0;
-    return SQLITE_OK;
-}
-
-static int fontsNext(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<FontsCursor*>(pCursor);
-    c->rowid++;
-    c->current = bboxes_next_font(c->cur);
-    c->eof = (c->current == nullptr);
-    return SQLITE_OK;
-}
-
-static int fontsEof(sqlite3_vtab_cursor* pCursor) { return static_cast<FontsCursor*>(pCursor)->eof ? 1 : 0; }
-
-static int fontsColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
+static int FontsColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* f = static_cast<FontsCursor*>(pCursor)->current;
     switch (col) {
         case 0: sqlite3_result_int(ctx, f->font_id); break;
@@ -350,95 +232,17 @@ static int fontsColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int c
     return SQLITE_OK;
 }
 
-static int fontsRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {
-    *pRowid = static_cast<FontsCursor*>(pCursor)->rowid; return SQLITE_OK;
-}
-
-static sqlite3_module fontsModule = {
-    0, nullptr, fontsConnect, fontsBestIndex, fontsDisconnect,
-    fontsDisconnect, fontsOpen, fontsClose, fontsFilter,
-    fontsNext, fontsEof, fontsColumn, fontsRowid,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr
-};
-
 /* ══════════════════════════════════════════════════════════════════════
- * bboxes_{fmt}_styles  virtual table
+ * Styles virtual table
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct StylesCursor : sqlite3_vtab_cursor {
-    std::vector<char> buf;
-    bboxes_cursor* cur = nullptr;
-    const bboxes_style* current = nullptr;
-    bool eof = true;
-    int64_t rowid = 0;
-};
+DEFINE_VTAB(Styles,
+    "CREATE TABLE x(style_id INTEGER, font_id INTEGER, font_size REAL, "
+    "color TEXT, weight TEXT, italic INTEGER, underline INTEGER, "
+    "file_path TEXT HIDDEN)",
+    StylesCursor, bboxes_style, bboxes_next_style, 7, 100.0)
 
-static int stylesConnect(sqlite3* db, void* pAux, int, const char* const*,
-                         sqlite3_vtab** ppVtab, char**) {
-    int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(style_id INTEGER, font_id INTEGER, font_size REAL, "
-        "color TEXT, weight TEXT, italic INTEGER, underline INTEGER, "
-        "file_path TEXT HIDDEN)");
-    if (rc != SQLITE_OK) return rc;
-    auto* v = new FmtVtab{};
-    v->fmt = *static_cast<Format*>(pAux);
-    *ppVtab = v;
-    return SQLITE_OK;
-}
-
-static int stylesBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
-    for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 7 &&
-            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
-            info->aConstraint[i].usable) {
-            info->aConstraintUsage[i].argvIndex = 1;
-            info->aConstraintUsage[i].omit = 1;
-            info->estimatedCost = 100.0;
-            return SQLITE_OK;
-        }
-    }
-    return SQLITE_CONSTRAINT;
-}
-
-static int stylesDisconnect(sqlite3_vtab* pVtab) { delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK; }
-static int stylesOpen(sqlite3_vtab*, sqlite3_vtab_cursor** pp) { *pp = new StylesCursor{}; return SQLITE_OK; }
-
-static int stylesClose(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<StylesCursor*>(pCursor);
-    if (c->cur) bboxes_close(c->cur);
-    delete c;
-    return SQLITE_OK;
-}
-
-static int stylesFilter(sqlite3_vtab_cursor* pCursor, int, const char*, int argc, sqlite3_value** argv) {
-    auto* c = static_cast<StylesCursor*>(pCursor);
-    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;
-    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }
-    if (argc < 1) { c->eof = true; return SQLITE_OK; }
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { c->eof = true; return SQLITE_OK; }
-    c->buf = read_file(path);
-    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());
-    if (!c->cur) { c->eof = true; return SQLITE_OK; }
-    c->current = bboxes_next_style(c->cur);
-    c->eof = (c->current == nullptr);
-    c->rowid = 0;
-    return SQLITE_OK;
-}
-
-static int stylesNext(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<StylesCursor*>(pCursor);
-    c->rowid++;
-    c->current = bboxes_next_style(c->cur);
-    c->eof = (c->current == nullptr);
-    return SQLITE_OK;
-}
-
-static int stylesEof(sqlite3_vtab_cursor* pCursor) { return static_cast<StylesCursor*>(pCursor)->eof ? 1 : 0; }
-
-static int stylesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
+static int StylesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* s = static_cast<StylesCursor*>(pCursor)->current;
     switch (col) {
         case 0: sqlite3_result_int(ctx, s->style_id); break;
@@ -453,94 +257,16 @@ static int stylesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
     return SQLITE_OK;
 }
 
-static int stylesRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {
-    *pRowid = static_cast<StylesCursor*>(pCursor)->rowid; return SQLITE_OK;
-}
-
-static sqlite3_module stylesModule = {
-    0, nullptr, stylesConnect, stylesBestIndex, stylesDisconnect,
-    stylesDisconnect, stylesOpen, stylesClose, stylesFilter,
-    stylesNext, stylesEof, stylesColumn, stylesRowid,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr
-};
-
 /* ══════════════════════════════════════════════════════════════════════
- * bboxes_{fmt}  virtual table  (the bbox rows)
+ * Bboxes virtual table
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct BboxesCursor : sqlite3_vtab_cursor {
-    std::vector<char> buf;
-    bboxes_cursor* cur = nullptr;
-    const bboxes_bbox* current = nullptr;
-    bool eof = true;
-    int64_t rowid = 0;
-};
+DEFINE_VTAB(Bboxes,
+    "CREATE TABLE x(page_id INTEGER, style_id INTEGER, "
+    "x REAL, y REAL, w REAL, h REAL, text TEXT, formula TEXT, file_path TEXT HIDDEN)",
+    BboxesCursor, bboxes_bbox, bboxes_next_bbox, 8, 1000.0)
 
-static int bboxesConnect(sqlite3* db, void* pAux, int, const char* const*,
-                         sqlite3_vtab** ppVtab, char**) {
-    int rc = sqlite3_declare_vtab(db,
-        "CREATE TABLE x(page_id INTEGER, style_id INTEGER, "
-        "x REAL, y REAL, w REAL, h REAL, text TEXT, formula TEXT, file_path TEXT HIDDEN)");
-    if (rc != SQLITE_OK) return rc;
-    auto* v = new FmtVtab{};
-    v->fmt = *static_cast<Format*>(pAux);
-    *ppVtab = v;
-    return SQLITE_OK;
-}
-
-static int bboxesBestIndex(sqlite3_vtab*, sqlite3_index_info* info) {
-    for (int i = 0; i < info->nConstraint; i++) {
-        if (info->aConstraint[i].iColumn == 8 &&
-            info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_EQ &&
-            info->aConstraint[i].usable) {
-            info->aConstraintUsage[i].argvIndex = 1;
-            info->aConstraintUsage[i].omit = 1;
-            info->estimatedCost = 1000.0;
-            return SQLITE_OK;
-        }
-    }
-    return SQLITE_CONSTRAINT;
-}
-
-static int bboxesDisconnect(sqlite3_vtab* pVtab) { delete static_cast<FmtVtab*>(pVtab); return SQLITE_OK; }
-static int bboxesOpen(sqlite3_vtab*, sqlite3_vtab_cursor** pp) { *pp = new BboxesCursor{}; return SQLITE_OK; }
-
-static int bboxesClose(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<BboxesCursor*>(pCursor);
-    if (c->cur) bboxes_close(c->cur);
-    delete c;
-    return SQLITE_OK;
-}
-
-static int bboxesFilter(sqlite3_vtab_cursor* pCursor, int, const char*, int argc, sqlite3_value** argv) {
-    auto* c = static_cast<BboxesCursor*>(pCursor);
-    Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;
-    if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }
-    if (argc < 1) { c->eof = true; return SQLITE_OK; }
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { c->eof = true; return SQLITE_OK; }
-    c->buf = read_file(path);
-    if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());
-    if (!c->cur) { c->eof = true; return SQLITE_OK; }
-    c->current = bboxes_next_bbox(c->cur);
-    c->eof = (c->current == nullptr);
-    c->rowid = 0;
-    return SQLITE_OK;
-}
-
-static int bboxesNext(sqlite3_vtab_cursor* pCursor) {
-    auto* c = static_cast<BboxesCursor*>(pCursor);
-    c->rowid++;
-    c->current = bboxes_next_bbox(c->cur);
-    c->eof = (c->current == nullptr);
-    return SQLITE_OK;
-}
-
-static int bboxesEof(sqlite3_vtab_cursor* pCursor) { return static_cast<BboxesCursor*>(pCursor)->eof ? 1 : 0; }
-
-static int bboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
+static int BboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* b = static_cast<BboxesCursor*>(pCursor)->current;
     switch (col) {
         case 0: sqlite3_result_int(ctx, b->page_id); break;
@@ -557,56 +283,26 @@ static int bboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
     return SQLITE_OK;
 }
 
-static int bboxesRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64* pRowid) {
-    *pRowid = static_cast<BboxesCursor*>(pCursor)->rowid; return SQLITE_OK;
-}
-
-static sqlite3_module bboxesModule = {
-    0, nullptr, bboxesConnect, bboxesBestIndex, bboxesDisconnect,
-    bboxesDisconnect, bboxesOpen, bboxesClose, bboxesFilter,
-    bboxesNext, bboxesEof, bboxesColumn, bboxesRowid,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr
-};
-
 /* ══════════════════════════════════════════════════════════════════════
- * Scalar JSON functions  (format-aware)
+ * Generic scalar JSON functions (dispatch via sqlite3_user_data)
  * ══════════════════════════════════════════════════════════════════════ */
 
 typedef const char* (*json_iter_fn)(bboxes_cursor*);
 
-static void json_array_func_fmt(sqlite3_context* ctx, int argc, sqlite3_value** argv,
-                                 json_iter_fn iter_fn, Format fmt) {
+struct ScalarDesc {
+    Format fmt;
+    json_iter_fn iter_fn;
+};
+
+static void generic_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    auto* desc = static_cast<ScalarDesc*>(sqlite3_user_data(ctx));
     const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
     if (!path) { sqlite3_result_null(ctx); return; }
 
     auto buf = read_file(path);
     if (buf.empty()) { sqlite3_result_null(ctx); return; }
 
-    auto* cur = open_by_format(fmt, buf.data(), buf.size());
-    if (!cur) { sqlite3_result_null(ctx); return; }
-
-    std::string result = "[";
-    bool first = true;
-    while (const char* json = iter_fn(cur)) {
-        if (!first) result += ',';
-        result += json;
-        first = false;
-    }
-    bboxes_close(cur);
-    result += ']';
-    sqlite3_result_text(ctx, result.c_str(), result.size(), SQLITE_TRANSIENT);
-}
-
-static void doc_json_func_fmt(sqlite3_context* ctx, int argc, sqlite3_value** argv,
-                               Format fmt) {
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { sqlite3_result_null(ctx); return; }
-
-    auto buf = read_file(path);
-    if (buf.empty()) { sqlite3_result_null(ctx); return; }
-
-    auto* cur = open_by_format(fmt, buf.data(), buf.size());
+    auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
     if (!cur) { sqlite3_result_null(ctx); return; }
 
     const char* json = bboxes_get_doc_json(cur);
@@ -617,162 +313,101 @@ static void doc_json_func_fmt(sqlite3_context* ctx, int argc, sqlite3_value** ar
     bboxes_close(cur);
 }
 
-/* ── Per-format scalar wrappers (PDF) ─────────────────────────────── */
+static void generic_json_array_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+    auto* desc = static_cast<ScalarDesc*>(sqlite3_user_data(ctx));
+    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
+    if (!path) { sqlite3_result_null(ctx); return; }
 
-static void pdf_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_PDF);
-}
-static void pdf_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_PDF);
-}
-static void pdf_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_PDF);
-}
-static void pdf_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_PDF);
-}
-static void pdf_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_PDF);
-}
+    auto buf = read_file(path);
+    if (buf.empty()) { sqlite3_result_null(ctx); return; }
 
-/* ── Per-format scalar wrappers (XLSX) ────────────────────────────── */
+    auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
+    if (!cur) { sqlite3_result_null(ctx); return; }
 
-static void xlsx_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_XLSX);
-}
-static void xlsx_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_XLSX);
-}
-static void xlsx_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_XLSX);
-}
-static void xlsx_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_XLSX);
-}
-static void xlsx_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_XLSX);
-}
-
-/* ── Per-format scalar wrappers (TEXT) ────────────────────────────── */
-
-static void text_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_TEXT);
-}
-static void text_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_TEXT);
-}
-static void text_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_TEXT);
-}
-static void text_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_TEXT);
-}
-static void text_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_TEXT);
-}
-
-/* ── Per-format scalar wrappers (DOCX) ────────────────────────────── */
-
-static void docx_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_DOCX);
-}
-static void docx_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_DOCX);
-}
-static void docx_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_DOCX);
-}
-static void docx_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_DOCX);
-}
-static void docx_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_DOCX);
-}
-
-/* ── Auto-detecting scalar wrappers ──────────────────────────────── */
-
-static void auto_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_AUTO);
-}
-static void auto_pages_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_page_json, FMT_AUTO);
-}
-static void auto_fonts_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_font_json, FMT_AUTO);
-}
-static void auto_styles_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_style_json, FMT_AUTO);
-}
-static void auto_bboxes_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    json_array_func_fmt(ctx, argc, argv, bboxes_next_bbox_json, FMT_AUTO);
-}
-
-/* ── bboxes_info scalar ──────────────────────────────────────────── */
-
-static void bboxes_info_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    doc_json_func_fmt(ctx, argc, argv, FMT_AUTO);
+    std::string result = "[";
+    bool first = true;
+    while (const char* json = desc->iter_fn(cur)) {
+        if (!first) result += ',';
+        result += json;
+        first = false;
+    }
+    bboxes_close(cur);
+    result += ']';
+    sqlite3_result_text(ctx, result.c_str(), result.size(), SQLITE_TRANSIENT);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
- * Helper: register all 5 virtual tables + 5 JSON functions for a format
+ * Static scalar descriptors — one per (format × function) combination
  * ══════════════════════════════════════════════════════════════════════ */
 
-struct JsonFuncs {
-    void (*doc_json)(sqlite3_context*, int, sqlite3_value**);
-    void (*pages_json)(sqlite3_context*, int, sqlite3_value**);
-    void (*fonts_json)(sqlite3_context*, int, sqlite3_value**);
-    void (*styles_json)(sqlite3_context*, int, sqlite3_value**);
-    void (*bboxes_json)(sqlite3_context*, int, sqlite3_value**);
+/* 5 formats × 4 array iterators + 5 formats × 1 doc = 25 descriptors */
+static ScalarDesc s_doc_desc[]    = { {FMT_PDF, nullptr}, {FMT_XLSX, nullptr}, {FMT_TEXT, nullptr}, {FMT_DOCX, nullptr}, {FMT_AUTO, nullptr} };
+static ScalarDesc s_pages_desc[]  = { {FMT_PDF, bboxes_next_page_json},  {FMT_XLSX, bboxes_next_page_json},  {FMT_TEXT, bboxes_next_page_json},  {FMT_DOCX, bboxes_next_page_json},  {FMT_AUTO, bboxes_next_page_json} };
+static ScalarDesc s_fonts_desc[]  = { {FMT_PDF, bboxes_next_font_json},  {FMT_XLSX, bboxes_next_font_json},  {FMT_TEXT, bboxes_next_font_json},  {FMT_DOCX, bboxes_next_font_json},  {FMT_AUTO, bboxes_next_font_json} };
+static ScalarDesc s_styles_desc[] = { {FMT_PDF, bboxes_next_style_json}, {FMT_XLSX, bboxes_next_style_json}, {FMT_TEXT, bboxes_next_style_json}, {FMT_DOCX, bboxes_next_style_json}, {FMT_AUTO, bboxes_next_style_json} };
+static ScalarDesc s_bboxes_desc[] = { {FMT_PDF, bboxes_next_bbox_json},  {FMT_XLSX, bboxes_next_bbox_json},  {FMT_TEXT, bboxes_next_bbox_json},  {FMT_DOCX, bboxes_next_bbox_json},  {FMT_AUTO, bboxes_next_bbox_json} };
+
+/* ══════════════════════════════════════════════════════════════════════
+ * Table-driven registration
+ * ══════════════════════════════════════════════════════════════════════ */
+
+struct FormatInfo {
+    const char* prefix;
+    Format      fmt;
+    int         desc_idx;   /* index into s_*_desc arrays */
 };
 
-static int register_format(sqlite3* db, const char* prefix, Format fmt,
-                            const JsonFuncs& jf) {
-    Format* pFmt = make_fmt(fmt);
+static const FormatInfo s_formats[] = {
+    { "bboxes_pdf",  FMT_PDF,  0 },
+    { "bboxes_xlsx", FMT_XLSX, 1 },
+    { "bboxes_text", FMT_TEXT, 2 },
+    { "bboxes_docx", FMT_DOCX, 3 },
+    { "bboxes",      FMT_AUTO, 4 },   /* auto-detect last so it gets the unqualified names */
+};
+
+static int register_format(sqlite3* db, const FormatInfo& fi) {
+    Format* pFmt = make_fmt(fi.fmt);
     int rc;
     std::string name;
+    int di = fi.desc_idx;
 
     /* Virtual tables */
-    name = std::string(prefix) + "_doc";
-    rc = sqlite3_create_module(db, name.c_str(), &docModule, pFmt);
+    name = std::string(fi.prefix) + "_doc";
+    rc = sqlite3_create_module(db, name.c_str(), &DocModule, pFmt);
     if (rc != SQLITE_OK) return rc;
 
-    name = std::string(prefix) + "_pages";
-    rc = sqlite3_create_module(db, name.c_str(), &pagesModule, pFmt);
+    name = std::string(fi.prefix) + "_pages";
+    rc = sqlite3_create_module(db, name.c_str(), &PagesModule, pFmt);
     if (rc != SQLITE_OK) return rc;
 
-    name = std::string(prefix) + "_fonts";
-    rc = sqlite3_create_module(db, name.c_str(), &fontsModule, pFmt);
+    name = std::string(fi.prefix) + "_fonts";
+    rc = sqlite3_create_module(db, name.c_str(), &FontsModule, pFmt);
     if (rc != SQLITE_OK) return rc;
 
-    name = std::string(prefix) + "_styles";
-    rc = sqlite3_create_module(db, name.c_str(), &stylesModule, pFmt);
+    name = std::string(fi.prefix) + "_styles";
+    rc = sqlite3_create_module(db, name.c_str(), &StylesModule, pFmt);
     if (rc != SQLITE_OK) return rc;
 
-    /* The bare bboxes table for this format */
-    name = std::string(prefix);
-    rc = sqlite3_create_module(db, name.c_str(), &bboxesModule, pFmt);
+    name = std::string(fi.prefix);
+    rc = sqlite3_create_module(db, name.c_str(), &BboxesModule, pFmt);
     if (rc != SQLITE_OK) return rc;
 
     /* Scalar JSON functions */
-    name = std::string(prefix) + "_doc_json";
-    rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, nullptr, jf.doc_json, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
+    struct { const char* suffix; void(*fn)(sqlite3_context*, int, sqlite3_value**); ScalarDesc* desc; } scalars[] = {
+        { "_doc_json",    generic_doc_json_func,    &s_doc_desc[di] },
+        { "_pages_json",  generic_json_array_func,  &s_pages_desc[di] },
+        { "_fonts_json",  generic_json_array_func,  &s_fonts_desc[di] },
+        { "_styles_json", generic_json_array_func,  &s_styles_desc[di] },
+        { "_json",        generic_json_array_func,  &s_bboxes_desc[di] },
+    };
 
-    name = std::string(prefix) + "_pages_json";
-    rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, nullptr, jf.pages_json, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
+    for (auto& s : scalars) {
+        name = std::string(fi.prefix) + s.suffix;
+        rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, s.desc, s.fn, nullptr, nullptr);
+        if (rc != SQLITE_OK) return rc;
+    }
 
-    name = std::string(prefix) + "_fonts_json";
-    rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, nullptr, jf.fonts_json, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-
-    name = std::string(prefix) + "_styles_json";
-    rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, nullptr, jf.styles_json, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-
-    name = std::string(prefix) + "_json";
-    rc = sqlite3_create_function(db, name.c_str(), -1, SQLITE_UTF8, nullptr, jf.bboxes_json, nullptr, nullptr);
-    return rc;
+    return SQLITE_OK;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -790,62 +425,14 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
     bboxes_xlsx_init();
 
     int rc;
-
-    /* ── PDF (bboxes_pdf_doc, bboxes_pdf_pages, ... bboxes_pdf) ──── */
-    rc = register_format(db, "bboxes_pdf", FMT_PDF, {
-        pdf_doc_json_func, pdf_pages_json_func, pdf_fonts_json_func,
-        pdf_styles_json_func, pdf_bboxes_json_func
-    });
-    if (rc != SQLITE_OK) return rc;
-
-    /* ── XLSX (bboxes_xlsx_doc, bboxes_xlsx_pages, ... bboxes_xlsx) ─ */
-    rc = register_format(db, "bboxes_xlsx", FMT_XLSX, {
-        xlsx_doc_json_func, xlsx_pages_json_func, xlsx_fonts_json_func,
-        xlsx_styles_json_func, xlsx_bboxes_json_func
-    });
-    if (rc != SQLITE_OK) return rc;
-
-    /* ── TEXT (bboxes_text_doc, bboxes_text_pages, ... bboxes_text) ─ */
-    rc = register_format(db, "bboxes_text", FMT_TEXT, {
-        text_doc_json_func, text_pages_json_func, text_fonts_json_func,
-        text_styles_json_func, text_bboxes_json_func
-    });
-    if (rc != SQLITE_OK) return rc;
-
-    /* ── DOCX (bboxes_docx_doc, bboxes_docx_pages, ... bboxes_docx) ─ */
-    rc = register_format(db, "bboxes_docx", FMT_DOCX, {
-        docx_doc_json_func, docx_pages_json_func, docx_fonts_json_func,
-        docx_styles_json_func, docx_bboxes_json_func
-    });
-    if (rc != SQLITE_OK) return rc;
-
-    /* ── Generic aliases (bboxes_doc, bboxes_pages, ... bboxes) ──── */
-    /* Auto-detecting — inspect magic bytes to pick the right backend. */
-    Format* pAuto = make_fmt(FMT_AUTO);
-    rc = sqlite3_create_module(db, "bboxes_doc",    &docModule,    pAuto);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_pages",  &pagesModule,  pAuto);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_fonts",  &fontsModule,  pAuto);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes_styles", &stylesModule, pAuto);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_module(db, "bboxes",        &bboxesModule, pAuto);
-    if (rc != SQLITE_OK) return rc;
-
-    rc = sqlite3_create_function(db, "bboxes_doc_json",    -1, SQLITE_UTF8, nullptr, auto_doc_json_func,    nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_pages_json",  -1, SQLITE_UTF8, nullptr, auto_pages_json_func,  nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_fonts_json",  -1, SQLITE_UTF8, nullptr, auto_fonts_json_func,  nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_styles_json", -1, SQLITE_UTF8, nullptr, auto_styles_json_func, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
-    rc = sqlite3_create_function(db, "bboxes_json",        -1, SQLITE_UTF8, nullptr, auto_bboxes_json_func, nullptr, nullptr);
-    if (rc != SQLITE_OK) return rc;
+    for (const auto& fi : s_formats) {
+        rc = register_format(db, fi);
+        if (rc != SQLITE_OK) return rc;
+    }
 
     /* bboxes_info — auto-detecting doc info scalar */
-    rc = sqlite3_create_function(db, "bboxes_info", 1, SQLITE_UTF8, nullptr, bboxes_info_func, nullptr, nullptr);
+    rc = sqlite3_create_function(db, "bboxes_info", 1, SQLITE_UTF8,
+                                  &s_doc_desc[4], generic_doc_json_func, nullptr, nullptr);
     return rc;
 }
 }
