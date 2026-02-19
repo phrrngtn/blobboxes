@@ -3,6 +3,7 @@
 #include <nanobind/stl/string.h>
 #include "bboxes.h"
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace nb = nanobind;
@@ -176,7 +177,7 @@ struct BBoxesAutoCursor {
     BBoxesAutoCursor(nb::bytes data)
         : buf(data.c_str(), data.c_str() + data.size()) {
         const char* fmt = bboxes_detect(buf.data(), buf.size());
-        is_xlsx = (fmt[0] == 'x');
+        is_xlsx = (std::string_view(fmt) == "xlsx");
         cur = bboxes_open(buf.data(), buf.size());
         if (!cur) throw nb::value_error("failed to parse document");
     }

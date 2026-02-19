@@ -5,6 +5,7 @@
 #include "md5.h"
 
 #include <string>
+#include <string_view>
 
 using json = nlohmann::json;
 
@@ -81,10 +82,10 @@ const char* bboxes_detect(const void* buf, size_t len) {
 /* ── auto-detecting open ──────────────────────────────────────────── */
 
 bboxes_cursor* bboxes_open(const void* buf, size_t len) {
-    const char* fmt = bboxes_detect(buf, len);
-    if (fmt[0] == 'p') return bboxes_open_pdf(buf, len, nullptr, 0, 0);
-    if (fmt[0] == 'x') return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
-    if (fmt[0] == 'd') return bboxes_open_docx(buf, len);
+    std::string_view fmt = bboxes_detect(buf, len);
+    if (fmt == "pdf")  return bboxes_open_pdf(buf, len, nullptr, 0, 0);
+    if (fmt == "xlsx") return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
+    if (fmt == "docx") return bboxes_open_docx(buf, len);
     return bboxes_open_text(buf, len);
 }
 
