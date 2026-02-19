@@ -30,7 +30,9 @@ check() {
 
 echo "=== Python: struct vs JSON ==="
 
-check "extract" "$DIR/.venv/bin/python" -c "
+PYTHON="${PYTHON:-$DIR/.venv/bin/python}"
+
+check "extract" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR')
 import pdf_bboxes
 data = open('$PDF','rb').read()
@@ -45,7 +47,7 @@ for i,(s,j) in enumerate(zip(structs, jsons)):
 print(f'    {len(structs)} extract rows match')
 "
 
-check "fonts" "$DIR/.venv/bin/python" -c "
+check "fonts" "$PYTHON" -c "
 import json, sys; sys.path.insert(0, '$DIR')
 import pdf_bboxes
 data = open('$PDF','rb').read()
@@ -63,7 +65,9 @@ echo "=== DuckDB: table function EXCEPT scalar JSON ==="
 
 DUCKDB_EXT="$DIR/build/duckdb/pdf_bboxes.duckdb_extension"
 
-check "extract" duckdb -unsigned -c "
+DUCKDB="${DUCKDB:-duckdb}"
+
+check "extract" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM pdf_extract('$PDF')
@@ -77,7 +81,7 @@ SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
 );
 "
 
-check "fonts" duckdb -unsigned -c "
+check "fonts" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
     SELECT * FROM pdf_fonts('$PDF')
@@ -93,7 +97,7 @@ echo "=== SQLite: virtual table EXCEPT scalar JSON ==="
 
 SQLITE_EXT="$DIR/build/sqlite/pdf_bboxes"
 
-check "extract" "$DIR/.venv/bin/python" -c "
+check "extract" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
@@ -111,7 +115,7 @@ rows = db.execute('''
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
 
-check "fonts" "$DIR/.venv/bin/python" -c "
+check "fonts" "$PYTHON" -c "
 import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)

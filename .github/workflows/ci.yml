@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install nanobind scikit-build-core
+
+      - name: Install DuckDB CLI
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            curl -fsSL https://github.com/duckdb/duckdb/releases/download/v1.2.0/duckdb_cli-linux-amd64.zip -o duckdb.zip
+          else
+            curl -fsSL https://github.com/duckdb/duckdb/releases/download/v1.2.0/duckdb_cli-osx-universal.zip -o duckdb.zip
+          fi
+          unzip -o duckdb.zip
+          chmod +x duckdb
+          sudo mv duckdb /usr/local/bin/
+
+      - name: CMake configure
+        run: |
+          cmake -B build \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_DUCKDB_EXTENSION=ON \
+            -DBUILD_SQLITE_EXTENSION=ON \
+            -DPython_FIND_VIRTUALENV=ONLY
+
+      - name: CMake build
+        run: cmake --build build
+
+      - name: Append DuckDB metadata
+        run: python duckdb_ext/append_metadata.py build/duckdb/pdf_bboxes.so build/duckdb/pdf_bboxes.duckdb_extension
+
+      - name: Run cross-check tests
+        env:
+          DUCKDB: duckdb
+          PYTHON: python
+        run: ./test_cross_check.sh
