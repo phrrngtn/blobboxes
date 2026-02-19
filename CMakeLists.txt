@@ -94,6 +94,32 @@ if(BUILD_DUCKDB_EXTENSION)
   target_link_libraries(pdf_bboxes_duckdb PRIVATE ${PDF_BBOXES_LIBS})
   set_target_properties(pdf_bboxes_duckdb PROPERTIES
     OUTPUT_NAME "pdf_bboxes"
-    PREFIX "")
+    PREFIX ""
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/duckdb")
   pdf_bboxes_runtime(pdf_bboxes_duckdb "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+endif()
+
+# ── SQLite extension ────────────────────────────────────────────────
+option(BUILD_SQLITE_EXTENSION "Build SQLite loadable extension" OFF)
+if(BUILD_SQLITE_EXTENSION)
+  FetchContent_Declare(sqlite3
+    URL "https://www.sqlite.org/2026/sqlite-amalgamation-3510200.zip"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  FetchContent_MakeAvailable(sqlite3)
+
+  add_library(pdf_bboxes_sqlite MODULE sqlite_ext/src/pdf_bboxes_sqlite.cpp ${PDF_BBOXES_SOURCES})
+  target_include_directories(pdf_bboxes_sqlite PRIVATE ${PDF_BBOXES_INCLUDES} ${sqlite3_SOURCE_DIR})
+  target_link_libraries(pdf_bboxes_sqlite PRIVATE ${PDF_BBOXES_LIBS})
+  set_target_properties(pdf_bboxes_sqlite PROPERTIES
+    OUTPUT_NAME "pdf_bboxes"
+    PREFIX ""
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/sqlite")
+  if(APPLE)
+    target_link_options(pdf_bboxes_sqlite PRIVATE -undefined dynamic_lookup)
+    # Python's sqlite3.load_extension() appends .dylib on macOS
+    add_custom_command(TARGET pdf_bboxes_sqlite POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink
+        pdf_bboxes.so "$<TARGET_FILE_DIR:pdf_bboxes_sqlite>/pdf_bboxes.dylib")
+  endif()
+  pdf_bboxes_runtime(pdf_bboxes_sqlite "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
 endif()
