@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Test script for the pdf_bboxes Python bindings."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -14,14 +15,14 @@ def main():
 
     data = Path(sys.argv[1]).read_bytes()
 
-    fonts = pdf_bboxes.fonts(data)
-    print(f"--- fonts ({len(fonts)}) ---")
-    for f in fonts:
+    print("--- fonts ---")
+    for line in pdf_bboxes.fonts(data):
+        f = json.loads(line)
         print(f"  [{f['font_id']}] {f['name']!r} style={f['style']} flags={f['flags']}")
 
-    bboxes = pdf_bboxes.extract(data)
-    print(f"\n--- bboxes ({len(bboxes)} runs) ---")
-    for b in bboxes:
+    print("\n--- bboxes ---")
+    for line in pdf_bboxes.extract(data):
+        b = json.loads(line)
         print(
             f"  p{b['page']} ({b['x']:.1f},{b['y']:.1f} {b['w']:.1f}x{b['h']:.1f}) "
             f"font={b['font_id']} size={b['font_size']} {b['style']} "

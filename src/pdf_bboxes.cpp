@@ -16,8 +16,8 @@ using json = nlohmann::json;
 /* ── helpers ────────────────────────────────────────────────────────── */
 
 static const char* style_string(int flags) {
-    bool italic = (flags >> 6) & 1;   /* bit 7 (0-indexed bit 6) */
-    bool bold   = (flags >> 18) & 1;  /* bit 19 (0-indexed bit 18) */
+    bool italic = (flags >> 6) & 1;
+    bool bold   = (flags >> 18) & 1;
     if (bold && italic) return "bold-italic";
     if (bold)           return "bold";
     if (italic)         return "italic";
@@ -96,186 +96,209 @@ static bool same_style(const CharInfo& a, const CharInfo& b) {
 static bool same_line(const CharInfo& a, const CharInfo& b) {
     double line_height = a.bottom - a.top;
     if (line_height <= 0) line_height = a.font_size;
-    double dy = std::fabs(a.top - b.top);
-    return dy < line_height * 0.5;
+    return std::fabs(a.top - b.top) < line_height * 0.5;
 }
 
 static bool gap_ok(const CharInfo& prev, const CharInfo& cur) {
-    double gap = cur.left - prev.right;
-    return gap < prev.font_size * 0.35;
+    return (cur.left - prev.right) < prev.font_size * 0.35;
+}
+
+/* Extract runs from a single page, appending JSON strings to out. */
+static void extract_page_runs(FPDF_DOCUMENT doc, int pi, FontTable& fonts,
+                               std::vector<std::string>& out) {
+    FPDF_PAGE page = FPDF_LoadPage(doc, pi);
+    if (!page) return;
+
+    double page_height = FPDF_GetPageHeight(page);
+    FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
+    if (!text_page) { FPDF_ClosePage(page); return; }
+
+    int char_count = FPDFText_CountChars(text_page);
+    std::vector<CharInfo> chars;
+    chars.reserve(char_count);
+
+    for (int ci = 0; ci < char_count; ++ci) {
+        unsigned int cp = FPDFText_GetUnicode(text_page, ci);
+        if (cp == 0 || cp == 0xFFFE || cp == 0xFFFF) continue;
+
+        double left, right, bottom, top;
+        if (!FPDFText_GetCharBox(text_page, ci, &left, &right, &bottom, &top)) continue;
+
+        double tl_y = page_height - top;
+        double br_y = page_height - bottom;
+
+        char font_name_buf[256] = {};
+        int font_flags = 0;
+        FPDFText_GetFontInfo(text_page, ci, font_name_buf, sizeof(font_name_buf), &font_flags);
+        double font_size = FPDFText_GetFontSize(text_page, ci);
+
+        unsigned int r = 0, g = 0, b = 0, a = 255;
+        FPDFText_GetFillColor(text_page, ci, &r, &g, &b, &a);
+
+        uint32_t fid = fonts.intern(font_name_buf, font_flags);
+        chars.push_back({fid, font_size, r, g, b, a, left, tl_y, right, br_y, cp});
+    }
+
+    for (size_t i = 0; i < chars.size(); ) {
+        const CharInfo& first = chars[i];
+
+        if (first.codepoint == ' ' || first.codepoint == '\t' ||
+            first.codepoint == '\r' || first.codepoint == '\n') {
+            ++i;
+            continue;
+        }
+
+        double run_left = first.left, run_top = first.top;
+        double run_right = first.right, run_bottom = first.bottom;
+        std::string text;
+        append_codepoint(text, first.codepoint);
+
+        size_t j = i + 1;
+        while (j < chars.size()) {
+            const CharInfo& cur = chars[j];
+            if (!same_style(first, cur) || !same_line(first, cur)) break;
+            if (!gap_ok(chars[j - 1], cur)) break;
+            append_codepoint(text, cur.codepoint);
+            if (cur.right  > run_right)  run_right  = cur.right;
+            if (cur.bottom > run_bottom) run_bottom = cur.bottom;
+            if (cur.left   < run_left)   run_left   = cur.left;
+            if (cur.top    < run_top)    run_top    = cur.top;
+            ++j;
+        }
+
+        while (!text.empty() && (text.back() == ' ' || text.back() == '\t'))
+            text.pop_back();
+
+        if (!text.empty()) {
+            json obj;
+            obj["font_id"]   = first.font_id;
+            obj["page"]      = pi + 1;
+            obj["x"]         = run_left;
+            obj["y"]         = run_top;
+            obj["w"]         = run_right - run_left;
+            obj["h"]         = run_bottom - run_top;
+            obj["text"]      = text;
+            obj["color"]     = color_string(first.color_r, first.color_g, first.color_b, first.color_a);
+            obj["font_size"] = first.font_size;
+            obj["style"]     = style_string(fonts.entries[first.font_id].flags);
+            out.push_back(obj.dump());
+        }
+
+        i = j;
+    }
+
+    FPDFText_ClosePage(text_page);
+    FPDF_ClosePage(page);
 }
 
 /* ── public API ─────────────────────────────────────────────────────── */
 
-void pdf_bboxes_init(void) {
-    FPDF_InitLibrary();
-}
+void pdf_bboxes_init(void)    { FPDF_InitLibrary(); }
+void pdf_bboxes_destroy(void) { FPDF_DestroyLibrary(); }
 
-void pdf_bboxes_destroy(void) {
-    FPDF_DestroyLibrary();
-}
+/* ── extract cursor ────────────────────────────────────────────────── */
 
-int pdf_bboxes_extract(const void* buf, size_t len, const char* password,
-                       pdf_bbox_callback cb, void* user_data) {
+struct pdf_bboxes_cursor {
+    FPDF_DOCUMENT doc;
+    FontTable fonts;
+    int current_page;
+    int end_page;
+    std::vector<std::string> page_runs;
+    size_t run_index;
+
+    void advance() {
+        while (current_page <= end_page) {
+            page_runs.clear();
+            run_index = 0;
+            extract_page_runs(doc, current_page++, fonts, page_runs);
+            if (!page_runs.empty()) return;
+        }
+        page_runs.clear();
+        run_index = 0;
+    }
+};
+
+pdf_bboxes_cursor* pdf_bboxes_extract_open(const void* buf, size_t len,
+                                            const char* password,
+                                            int start_page, int end_page) {
     FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
-    if (!doc) return -1;
+    if (!doc) return nullptr;
+
+    int total = FPDF_GetPageCount(doc);
+    auto* c = new pdf_bboxes_cursor{};
+    c->doc = doc;
+    c->run_index = 0;
+    c->current_page = (start_page >= 1 ? start_page : 1) - 1;
+    c->end_page     = (end_page   >= 1 ? end_page : total) - 1;
+    if (c->end_page >= total) c->end_page = total - 1;
+    c->advance();
+    return c;
+}
+
+const char* pdf_bboxes_extract_next(pdf_bboxes_cursor* c) {
+    if (!c) return nullptr;
+    while (c->run_index >= c->page_runs.size()) {
+        if (c->current_page > c->end_page) return nullptr;
+        c->advance();
+    }
+    return c->page_runs[c->run_index++].c_str();
+}
+
+void pdf_bboxes_extract_close(pdf_bboxes_cursor* c) {
+    if (!c) return;
+    FPDF_CloseDocument(c->doc);
+    delete c;
+}
+
+/* ── font cursor ───────────────────────────────────────────────────── */
+
+struct pdf_bboxes_font_cursor {
+    std::vector<std::string> entries;
+    size_t index;
+};
+
+pdf_bboxes_font_cursor* pdf_bboxes_fonts_open(const void* buf, size_t len,
+                                               const char* password) {
+    FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
+    if (!doc) return nullptr;
 
     FontTable fonts;
     int page_count = FPDF_GetPageCount(doc);
-
     for (int pi = 0; pi < page_count; ++pi) {
         FPDF_PAGE page = FPDF_LoadPage(doc, pi);
         if (!page) continue;
-
-        double page_height = FPDF_GetPageHeight(page);
-        FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
-        if (!text_page) { FPDF_ClosePage(page); continue; }
-
-        int char_count = FPDFText_CountChars(text_page);
-
-        /* Collect char info */
-        std::vector<CharInfo> chars;
-        chars.reserve(char_count);
-
-        for (int ci = 0; ci < char_count; ++ci) {
-            unsigned int cp = FPDFText_GetUnicode(text_page, ci);
-            if (cp == 0 || cp == 0xFFFE || cp == 0xFFFF) continue;
-            /* Skip whitespace-only chars (space, tab, CR, LF) for bbox purposes,
-               but we will use spaces to decide about gaps. */
-
-            double left, right, bottom, top;
-            if (!FPDFText_GetCharBox(text_page, ci, &left, &right, &bottom, &top)) continue;
-
-            /* PDFium gives bottom-up coordinates; convert to top-down */
-            double tl_y = page_height - top;
-            double br_y = page_height - bottom;
-
-            char font_name_buf[256] = {};
-            int font_flags = 0;
-            FPDFText_GetFontInfo(text_page, ci, font_name_buf, sizeof(font_name_buf), &font_flags);
-            double font_size = FPDFText_GetFontSize(text_page, ci);
-
-            unsigned int r = 0, g = 0, b = 0, a = 255;
-            FPDFText_GetFillColor(text_page, ci, &r, &g, &b, &a);
-
-            uint32_t fid = fonts.intern(font_name_buf, font_flags);
-
-            chars.push_back({fid, font_size, r, g, b, a, left, tl_y, right, br_y, cp});
+        FPDF_TEXTPAGE tp = FPDFText_LoadPage(page);
+        if (!tp) { FPDF_ClosePage(page); continue; }
+        int cc = FPDFText_CountChars(tp);
+        for (int ci = 0; ci < cc; ++ci) {
+            char name[256] = {};
+            int flags = 0;
+            FPDFText_GetFontInfo(tp, ci, name, sizeof(name), &flags);
+            fonts.intern(name, flags);
         }
-
-        /* Group into runs */
-        for (size_t i = 0; i < chars.size(); ) {
-            const CharInfo& first = chars[i];
-
-            /* Skip lone whitespace that starts a run */
-            if (first.codepoint == ' ' || first.codepoint == '\t' ||
-                first.codepoint == '\r' || first.codepoint == '\n') {
-                ++i;
-                continue;
-            }
-
-            double run_left   = first.left;
-            double run_top    = first.top;
-            double run_right  = first.right;
-            double run_bottom = first.bottom;
-            std::string text;
-            append_codepoint(text, first.codepoint);
-
-            size_t j = i + 1;
-            while (j < chars.size()) {
-                const CharInfo& cur = chars[j];
-                /* Break on style change or line change */
-                if (!same_style(first, cur) || !same_line(first, cur)) break;
-                /* Break on large horizontal gap */
-                if (!gap_ok(chars[j - 1], cur)) break;
-
-                append_codepoint(text, cur.codepoint);
-                if (cur.right  > run_right)  run_right  = cur.right;
-                if (cur.bottom > run_bottom) run_bottom = cur.bottom;
-                if (cur.left   < run_left)   run_left   = cur.left;
-                if (cur.top    < run_top)    run_top    = cur.top;
-                ++j;
-            }
-
-            /* Trim trailing whitespace from text */
-            while (!text.empty() && (text.back() == ' ' || text.back() == '\t'))
-                text.pop_back();
-
-            if (!text.empty()) {
-                json obj;
-                obj["font_id"]   = first.font_id;
-                obj["page"]      = pi + 1;
-                obj["x"]         = run_left;
-                obj["y"]         = run_top;
-                obj["w"]         = run_right - run_left;
-                obj["h"]         = run_bottom - run_top;
-                obj["text"]      = text;
-                obj["color"]     = color_string(first.color_r, first.color_g, first.color_b, first.color_a);
-                obj["font_size"] = first.font_size;
-                obj["style"]     = style_string(fonts.entries[first.font_id].flags);
-
-                std::string s = obj.dump();
-                int rc = cb(s.c_str(), user_data);
-                if (rc != 0) {
-                    FPDFText_ClosePage(text_page);
-                    FPDF_ClosePage(page);
-                    FPDF_CloseDocument(doc);
-                    return rc;
-                }
-            }
-
-            i = j;
-        }
-
-        FPDFText_ClosePage(text_page);
+        FPDFText_ClosePage(tp);
         FPDF_ClosePage(page);
     }
-
-    FPDF_CloseDocument(doc);
-    return 0;
-}
-
-int pdf_bboxes_fonts(const void* buf, size_t len, const char* password,
-                     pdf_bbox_callback cb, void* user_data) {
-    FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
-    if (!doc) return -1;
-
-    FontTable fonts;
-    int page_count = FPDF_GetPageCount(doc);
-
-    /* Scan all chars to discover fonts */
-    for (int pi = 0; pi < page_count; ++pi) {
-        FPDF_PAGE page = FPDF_LoadPage(doc, pi);
-        if (!page) continue;
-        FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
-        if (!text_page) { FPDF_ClosePage(page); continue; }
-
-        int char_count = FPDFText_CountChars(text_page);
-        for (int ci = 0; ci < char_count; ++ci) {
-            char font_name_buf[256] = {};
-            int font_flags = 0;
-            FPDFText_GetFontInfo(text_page, ci, font_name_buf, sizeof(font_name_buf), &font_flags);
-            fonts.intern(font_name_buf, font_flags);
-        }
-
-        FPDFText_ClosePage(text_page);
-        FPDF_ClosePage(page);
-    }
-
     FPDF_CloseDocument(doc);
 
-    /* Emit font entries */
+    auto* c = new pdf_bboxes_font_cursor{};
+    c->index = 0;
     for (const auto& e : fonts.entries) {
         json obj;
         obj["font_id"] = e.id;
         obj["name"]    = e.name;
         obj["flags"]   = e.flags;
         obj["style"]   = style_string(e.flags);
-
-        std::string s = obj.dump();
-        int rc = cb(s.c_str(), user_data);
-        if (rc != 0) return rc;
+        c->entries.push_back(obj.dump());
     }
+    return c;
+}
 
-    return 0;
+const char* pdf_bboxes_fonts_next(pdf_bboxes_font_cursor* c) {
+    if (!c || c->index >= c->entries.size()) return nullptr;
+    return c->entries[c->index++].c_str();
+}
+
+void pdf_bboxes_fonts_close(pdf_bboxes_font_cursor* c) {
+    delete c;
 }

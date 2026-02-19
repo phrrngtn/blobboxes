@@ -1,12 +1,6 @@
 #include "pdf_bboxes.h"
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
-
-static int print_json(const char* json, void* /*user_data*/) {
-    puts(json);
-    return 0;
-}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -15,14 +9,10 @@ int main(int argc, char* argv[]) {
     }
 
     FILE* f = fopen(argv[1], "rb");
-    if (!f) {
-        perror(argv[1]);
-        return 1;
-    }
+    if (!f) { perror(argv[1]); return 1; }
     fseek(f, 0, SEEK_END);
     long sz = ftell(f);
     rewind(f);
-
     std::vector<char> buf(sz);
     if (fread(buf.data(), 1, sz, f) != static_cast<size_t>(sz)) {
         fclose(f);
@@ -34,10 +24,16 @@ int main(int argc, char* argv[]) {
     pdf_bboxes_init();
 
     printf("--- fonts ---\n");
-    pdf_bboxes_fonts(buf.data(), buf.size(), nullptr, print_json, nullptr);
+    auto* fc = pdf_bboxes_fonts_open(buf.data(), buf.size(), nullptr);
+    while (auto* json = pdf_bboxes_fonts_next(fc))
+        puts(json);
+    pdf_bboxes_fonts_close(fc);
 
     printf("--- bboxes ---\n");
-    pdf_bboxes_extract(buf.data(), buf.size(), nullptr, print_json, nullptr);
+    auto* ec = pdf_bboxes_extract_open(buf.data(), buf.size(), nullptr, 0, 0);
+    while (auto* json = pdf_bboxes_extract_next(ec))
+        puts(json);
+    pdf_bboxes_extract_close(ec);
 
     pdf_bboxes_destroy();
     return 0;

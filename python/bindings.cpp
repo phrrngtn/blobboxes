@@ -1,56 +1,67 @@
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
-#include <nanobind/stl/vector.h>
 #include <nanobind/stl/optional.h>
-
+#include <nanobind/stl/string.h>
 #include "pdf_bboxes.h"
-
-#include <string>
 #include <vector>
 
 namespace nb = nanobind;
 
-static int collect_callback(const char* json, void* user_data) {
-    auto* results = static_cast<std::vector<std::string>*>(user_data);
-    results->push_back(json);
-    return 0;
-}
+struct ExtractCursor {
+    pdf_bboxes_cursor* cur;
+    std::vector<char> buf;
 
-static nb::object call_and_parse(
-    int (*api_fn)(const void*, size_t, const char*, pdf_bbox_callback, void*),
-    nb::bytes data,
-    std::optional<std::string> password
-) {
-    std::vector<std::string> json_strings;
-
-    const char* pw = password ? password->c_str() : nullptr;
-
-    int rc = api_fn(data.c_str(), data.size(), pw, collect_callback, &json_strings);
-    if (rc == -1) {
-        throw nb::value_error("Failed to process PDF (invalid file or password)");
+    ExtractCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep)
+        : buf(data.c_str(), data.c_str() + data.size()) {
+        cur = pdf_bboxes_extract_open(buf.data(), buf.size(),
+                                       pw ? pw->c_str() : nullptr, sp, ep);
+        if (!cur) throw nb::value_error("bad PDF");
     }
-
-    nb::module_ json_mod = nb::module_::import_("json");
-    nb::object loads = json_mod.attr("loads");
-
-    nb::list result;
-    for (const auto& s : json_strings) {
-        result.append(loads(nb::str(s.c_str(), s.size())));
+    ExtractCursor& iter() { return *this; }
+    nb::str next() {
+        auto* s = pdf_bboxes_extract_next(cur);
+        if (!s) throw nb::stop_iteration();
+        return nb::str(s);
     }
-    return result;
-}
+    void close() { if (cur) { pdf_bboxes_extract_close(cur); cur = nullptr; } }
+    ~ExtractCursor() { close(); }
+};
+
+struct FontCursor {
+    pdf_bboxes_font_cursor* cur;
+    std::vector<char> buf;
+
+    FontCursor(nb::bytes data, std::optional<std::string> pw)
+        : buf(data.c_str(), data.c_str() + data.size()) {
+        cur = pdf_bboxes_fonts_open(buf.data(), buf.size(),
+                                     pw ? pw->c_str() : nullptr);
+        if (!cur) throw nb::value_error("bad PDF");
+    }
+    FontCursor& iter() { return *this; }
+    nb::str next() {
+        auto* s = pdf_bboxes_fonts_next(cur);
+        if (!s) throw nb::stop_iteration();
+        return nb::str(s);
+    }
+    void close() { if (cur) { pdf_bboxes_fonts_close(cur); cur = nullptr; } }
+    ~FontCursor() { close(); }
+};
 
 NB_MODULE(pdf_bboxes_ext, m) {
-    m.def("_init", &pdf_bboxes_init, "Initialize the PDF library");
-    m.def("_destroy", &pdf_bboxes_destroy, "Destroy the PDF library");
+    m.def("_init", &pdf_bboxes_init);
+    m.def("_destroy", &pdf_bboxes_destroy);
 
-    m.def("_extract", [](nb::bytes data, std::optional<std::string> password) {
-        return call_and_parse(pdf_bboxes_extract, data, password);
-    }, nb::arg("data"), nb::arg("password") = nb::none(),
-       "Extract text bounding boxes from PDF bytes");
+    nb::class_<ExtractCursor>(m, "ExtractCursor")
+        .def(nb::init<nb::bytes, std::optional<std::string>, int, int>(),
+             nb::arg("data"), nb::arg("password") = nb::none(),
+             nb::arg("start_page") = 0, nb::arg("end_page") = 0)
+        .def("__iter__", &ExtractCursor::iter, nb::rv_policy::reference)
+        .def("__next__", &ExtractCursor::next)
+        .def("close", &ExtractCursor::close);
 
-    m.def("_fonts", [](nb::bytes data, std::optional<std::string> password) {
-        return call_and_parse(pdf_bboxes_fonts, data, password);
-    }, nb::arg("data"), nb::arg("password") = nb::none(),
-       "Extract font table from PDF bytes");
+    nb::class_<FontCursor>(m, "FontCursor")
+        .def(nb::init<nb::bytes, std::optional<std::string>>(),
+             nb::arg("data"), nb::arg("password") = nb::none())
+        .def("__iter__", &FontCursor::iter, nb::rv_policy::reference)
+        .def("__next__", &FontCursor::next)
+        .def("close", &FontCursor::close);
 }

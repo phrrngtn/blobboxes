@@ -2,42 +2,50 @@
 #define PDF_BBOXES_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Callback receives a JSON string per entry. Return 0 to continue, non-zero to abort. */
-typedef int (*pdf_bbox_callback)(const char* json, void* user_data);
-
-/* Initialize / destroy the underlying PDF library. Call once per process. */
 void pdf_bboxes_init(void);
 void pdf_bboxes_destroy(void);
 
 /*
- * Extract text bounding boxes from a PDF loaded from memory.
- *   buf / len   — raw PDF bytes
- *   password    — document password, or NULL
- *   cb          — called once per text run with a JSON string
- *   user_data   — forwarded to cb
+ * Cursor-based extraction — open, pull JSON strings one at a time, close.
  *
- * Returns 0 on success, -1 on error (bad PDF, etc.).
- * If the callback returns non-zero, extraction stops and that value is returned.
+ *   cursor = pdf_bboxes_extract_open(buf, len, NULL, 0, 0);
+ *   while ((json = pdf_bboxes_extract_next(cursor)))
+ *       process(json);
+ *   pdf_bboxes_extract_close(cursor);
+ *
+ * start_page / end_page are 1-based inclusive. Pass 0,0 for all pages.
+ * Returns NULL on bad PDF.
  */
-int pdf_bboxes_extract(const void* buf, size_t len, const char* password,
-                       pdf_bbox_callback cb, void* user_data);
+typedef struct pdf_bboxes_cursor pdf_bboxes_cursor;
+
+pdf_bboxes_cursor* pdf_bboxes_extract_open(const void* buf, size_t len,
+                                            const char* password,
+                                            int start_page, int end_page);
+const char* pdf_bboxes_extract_next(pdf_bboxes_cursor* cursor);
+void        pdf_bboxes_extract_close(pdf_bboxes_cursor* cursor);
 
 /*
- * Extract the font table from a PDF loaded from memory.
- * Callback receives one JSON object per unique font.
- * Same return semantics as pdf_bboxes_extract.
+ * Font table — same cursor pattern but no page range (scans whole doc).
+ *
+ *   cursor = pdf_bboxes_fonts_open(buf, len, NULL);
+ *   while ((json = pdf_bboxes_fonts_next(cursor)))
+ *       process(json);
+ *   pdf_bboxes_fonts_close(cursor);
  */
-int pdf_bboxes_fonts(const void* buf, size_t len, const char* password,
-                     pdf_bbox_callback cb, void* user_data);
+typedef struct pdf_bboxes_font_cursor pdf_bboxes_font_cursor;
+
+pdf_bboxes_font_cursor* pdf_bboxes_fonts_open(const void* buf, size_t len,
+                                               const char* password);
+const char* pdf_bboxes_fonts_next(pdf_bboxes_font_cursor* cursor);
+void        pdf_bboxes_fonts_close(pdf_bboxes_font_cursor* cursor);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* PDF_BBOXES_H */
+#endif
