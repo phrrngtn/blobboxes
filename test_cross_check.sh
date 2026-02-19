@@ -284,12 +284,29 @@ SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' E
 FROM bboxes_docx('$DOCX');
 "
 
+# ─── SQLite: check if extension loading is available ─────────────
+
+SQLITE_EXT="$DIR/build/sqlite/bboxes"
+CAN_LOAD_EXT=$("$PYTHON" -c "
+import sqlite3
+try:
+    db = sqlite3.connect(':memory:')
+    db.enable_load_extension(True)
+    db.load_extension('$SQLITE_EXT')
+    print('yes')
+except (AttributeError, Exception):
+    print('no')
+" 2>/dev/null)
+
+if [ "$CAN_LOAD_EXT" != "yes" ]; then
+    echo ""
+    echo "=== SQLite: skipping (extension loading not available) ==="
+else
+
 # ─── SQLite: PDF virtual table EXCEPT scalar JSON ────────────────
 
 echo ""
 echo "=== SQLite PDF: virtual table EXCEPT scalar JSON ==="
-
-SQLITE_EXT="$DIR/build/sqlite/bboxes"
 
 check "sqlite/pdf/doc" "$PYTHON" -c "
 import sqlite3, json
@@ -417,6 +434,8 @@ assert rows[0] > 0, f'expected rows, got {rows[0]}'
 print(f'    {rows[0]} docx bbox rows')
 "
 
+fi  # CAN_LOAD_EXT (end of SQLite vtab/scalar tests)
+
 # ─── Auto-detect: Python ────────────────────────────────────────
 
 echo ""
@@ -485,6 +504,8 @@ END;
 
 # ─── Auto-detect: SQLite bboxes_info ────────────────────────────
 
+if [ "$CAN_LOAD_EXT" = "yes" ]; then
+
 echo ""
 echo "=== Auto-detect: SQLite ==="
 
@@ -500,6 +521,8 @@ assert info['source_type'] == 'pdf', f'expected pdf, got {info[\"source_type\"]}
 assert info['checksum'], 'missing checksum'
 print(f'    bboxes_info OK: {info[\"source_type\"]}, {info[\"page_count\"]} pages')
 "
+
+fi  # CAN_LOAD_EXT
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="

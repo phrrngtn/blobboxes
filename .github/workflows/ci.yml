@@ -40,6 +40,9 @@ jobs:
             -DBUILD_PYTHON_BINDINGS=ON \
             -DBUILD_DUCKDB_EXTENSION=ON \
             -DBUILD_SQLITE_EXTENSION=ON \
+            -DBUILD_XLSX_BACKEND=ON \
+            -DBUILD_TEXT_BACKEND=ON \
+            -DBUILD_DOCX_BACKEND=ON \
             -DPython_FIND_VIRTUALENV=ONLY
 
       - name: CMake build
