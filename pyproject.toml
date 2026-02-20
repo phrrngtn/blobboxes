@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [{name = "Paul Harrington"}]
+dependencies = ["shapely>=2.0"]
 keywords = ["pdf", "xlsx", "docx", "bounding-box", "text-extraction", "duckdb", "sqlite"]
 classifiers = [
     "Development Status :: 4 - Beta",
