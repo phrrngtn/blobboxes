@@ -348,12 +348,11 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
 
 /* ── generic JSON scalar dispatch ────────────────────────────────── */
 
-typedef const char* (*json_iter_fn)(bboxes_cursor*);
+typedef const char* (*json_fn)(bboxes_cursor*);
 
 struct ScalarDesc {
     Format fmt;
-    json_iter_fn iter_fn;
-    bool is_single;   /* true = bboxes_get_doc_json (single object), false = array */
+    json_fn fn;
 };
 
 static void generic_json_scalar(duckdb_function_info info, duckdb_data_chunk input,
@@ -366,34 +365,16 @@ static void generic_json_scalar(duckdb_function_info info, duckdb_data_chunk inp
         const char* path = get_string(v_path, i);
         auto buf = read_file(path);
 
-        if (desc->is_single) {
-            std::string result = "null";
-            if (!buf.empty()) {
-                auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
-                if (cur) {
-                    const char* json = desc->iter_fn(cur);
-                    if (json) result = json;
-                    bboxes_close(cur);
-                }
+        std::string result = "null";
+        if (!buf.empty()) {
+            auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
+            if (cur) {
+                const char* json = desc->fn(cur);
+                if (json) result = json;
+                bboxes_close(cur);
             }
-            duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
-        } else {
-            std::string result = "[";
-            if (!buf.empty()) {
-                auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
-                if (cur) {
-                    bool first = true;
-                    while (const char* json = desc->iter_fn(cur)) {
-                        if (!first) result += ',';
-                        result += json;
-                        first = false;
-                    }
-                    bboxes_close(cur);
-                }
-            }
-            result += ']';
-            duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
         }
+        duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
     }
 }
 
@@ -452,35 +433,35 @@ static Format s_fmts[] = {
 
 static ScalarDesc s_scalars[][5] = {
     /* AUTO */
-    { {Format::AUTO, bboxes_get_doc_json,   true},
-      {Format::AUTO, bboxes_next_page_json, false},
-      {Format::AUTO, bboxes_next_font_json, false},
-      {Format::AUTO, bboxes_next_style_json,false},
-      {Format::AUTO, bboxes_next_bbox_json, false} },
+    { {Format::AUTO, bboxes_get_doc_json},
+      {Format::AUTO, bboxes_get_pages_json},
+      {Format::AUTO, bboxes_get_fonts_json},
+      {Format::AUTO, bboxes_get_styles_json},
+      {Format::AUTO, bboxes_get_bboxes_json} },
     /* PDF */
-    { {Format::PDF, bboxes_get_doc_json,   true},
-      {Format::PDF, bboxes_next_page_json, false},
-      {Format::PDF, bboxes_next_font_json, false},
-      {Format::PDF, bboxes_next_style_json,false},
-      {Format::PDF, bboxes_next_bbox_json, false} },
+    { {Format::PDF, bboxes_get_doc_json},
+      {Format::PDF, bboxes_get_pages_json},
+      {Format::PDF, bboxes_get_fonts_json},
+      {Format::PDF, bboxes_get_styles_json},
+      {Format::PDF, bboxes_get_bboxes_json} },
     /* XLSX */
-    { {Format::XLSX, bboxes_get_doc_json,   true},
-      {Format::XLSX, bboxes_next_page_json, false},
-      {Format::XLSX, bboxes_next_font_json, false},
-      {Format::XLSX, bboxes_next_style_json,false},
-      {Format::XLSX, bboxes_next_bbox_json, false} },
+    { {Format::XLSX, bboxes_get_doc_json},
+      {Format::XLSX, bboxes_get_pages_json},
+      {Format::XLSX, bboxes_get_fonts_json},
+      {Format::XLSX, bboxes_get_styles_json},
+      {Format::XLSX, bboxes_get_bboxes_json} },
     /* TEXT */
-    { {Format::TEXT, bboxes_get_doc_json,   true},
-      {Format::TEXT, bboxes_next_page_json, false},
-      {Format::TEXT, bboxes_next_font_json, false},
-      {Format::TEXT, bboxes_next_style_json,false},
-      {Format::TEXT, bboxes_next_bbox_json, false} },
+    { {Format::TEXT, bboxes_get_doc_json},
+      {Format::TEXT, bboxes_get_pages_json},
+      {Format::TEXT, bboxes_get_fonts_json},
+      {Format::TEXT, bboxes_get_styles_json},
+      {Format::TEXT, bboxes_get_bboxes_json} },
     /* DOCX */
-    { {Format::DOCX, bboxes_get_doc_json,   true},
-      {Format::DOCX, bboxes_next_page_json, false},
-      {Format::DOCX, bboxes_next_font_json, false},
-      {Format::DOCX, bboxes_next_style_json,false},
-      {Format::DOCX, bboxes_next_bbox_json, false} },
+    { {Format::DOCX, bboxes_get_doc_json},
+      {Format::DOCX, bboxes_get_pages_json},
+      {Format::DOCX, bboxes_get_fonts_json},
+      {Format::DOCX, bboxes_get_styles_json},
+      {Format::DOCX, bboxes_get_bboxes_json} },
 };
 
 static const FormatInfo s_formats[] = {

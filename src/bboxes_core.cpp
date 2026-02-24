@@ -39,6 +39,12 @@ struct bboxes_cursor {
     size_t      bbox_within;  /* index within that page's bboxes */
     bboxes_bbox bbox_view;
     std::string bbox_json;
+
+    /* array-level JSON (built once, returned as const char*) */
+    std::string pages_array_json;
+    std::string fonts_array_json;
+    std::string styles_array_json;
+    std::string bboxes_array_json;
 };
 
 /* ── helper: wrap a BBoxResult into a cursor ───────────────────────── */
@@ -281,6 +287,77 @@ const char* bboxes_next_bbox_json(bboxes_cursor* c) {
         c->bbox_within = 0;
     }
     return nullptr;
+}
+
+/* ── array-level JSON ───────────────────────────────────────────────── */
+
+const char* bboxes_get_pages_json(bboxes_cursor* c) {
+    if (!c) return nullptr;
+    json arr = json::array();
+    for (const auto& p : c->result.pages) {
+        json obj;
+        obj["page_id"]     = p.page_id;
+        obj["document_id"] = p.document_id;
+        obj["page_number"] = p.page_number;
+        obj["width"]       = p.width;
+        obj["height"]      = p.height;
+        arr.push_back(std::move(obj));
+    }
+    c->pages_array_json = arr.dump();
+    return c->pages_array_json.c_str();
+}
+
+const char* bboxes_get_fonts_json(bboxes_cursor* c) {
+    if (!c) return nullptr;
+    json arr = json::array();
+    for (const auto& e : c->result.fonts.entries) {
+        json obj;
+        obj["font_id"] = e.id;
+        obj["name"]    = e.name;
+        arr.push_back(std::move(obj));
+    }
+    c->fonts_array_json = arr.dump();
+    return c->fonts_array_json.c_str();
+}
+
+const char* bboxes_get_styles_json(bboxes_cursor* c) {
+    if (!c) return nullptr;
+    json arr = json::array();
+    for (const auto& e : c->result.styles.entries) {
+        json obj;
+        obj["style_id"]  = e.id;
+        obj["font_id"]   = e.font_id;
+        obj["font_size"] = e.font_size;
+        obj["color"]     = e.color;
+        obj["weight"]    = e.weight;
+        obj["italic"]    = e.italic ? 1 : 0;
+        obj["underline"] = e.underline ? 1 : 0;
+        arr.push_back(std::move(obj));
+    }
+    c->styles_array_json = arr.dump();
+    return c->styles_array_json.c_str();
+}
+
+const char* bboxes_get_bboxes_json(bboxes_cursor* c) {
+    if (!c) return nullptr;
+    json arr = json::array();
+    for (const auto& page : c->result.pages) {
+        for (const auto& b : page.bboxes) {
+            json obj;
+            obj["page_id"]  = b.page_id;
+            obj["style_id"] = b.style_id;
+            obj["x"] = b.x;
+            obj["y"] = b.y;
+            obj["w"] = b.w;
+            obj["h"] = b.h;
+            obj["text"] = b.text;
+            if (c->result.source_type == "xlsx")
+                obj["formula"] = b.formula.empty() ? json(nullptr) : json(b.formula);
+            arr.push_back(std::move(obj));
+        }
+    }
+    c->bboxes_array_json = arr.dump();
+    return c->bboxes_array_json.c_str();
 }
 
 /* ── close ──────────────────────────────────────────────────────────── */

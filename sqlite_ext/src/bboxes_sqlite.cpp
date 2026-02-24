@@ -287,14 +287,14 @@ static int BboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
  * Generic scalar JSON functions (dispatch via sqlite3_user_data)
  * ══════════════════════════════════════════════════════════════════════ */
 
-typedef const char* (*json_iter_fn)(bboxes_cursor*);
+typedef const char* (*json_fn)(bboxes_cursor*);
 
 struct ScalarDesc {
     Format fmt;
-    json_iter_fn iter_fn;
+    json_fn fn;
 };
 
-static void generic_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
     auto* desc = static_cast<ScalarDesc*>(sqlite3_user_data(ctx));
     const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
     if (!path) { sqlite3_result_null(ctx); return; }
@@ -305,7 +305,7 @@ static void generic_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value*
     auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
     if (!cur) { sqlite3_result_null(ctx); return; }
 
-    const char* json = bboxes_get_doc_json(cur);
+    const char* json = desc->fn(cur);
     if (json)
         sqlite3_result_text(ctx, json, -1, SQLITE_TRANSIENT);
     else
@@ -313,39 +313,16 @@ static void generic_doc_json_func(sqlite3_context* ctx, int argc, sqlite3_value*
     bboxes_close(cur);
 }
 
-static void generic_json_array_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    auto* desc = static_cast<ScalarDesc*>(sqlite3_user_data(ctx));
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { sqlite3_result_null(ctx); return; }
-
-    auto buf = read_file(path);
-    if (buf.empty()) { sqlite3_result_null(ctx); return; }
-
-    auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
-    if (!cur) { sqlite3_result_null(ctx); return; }
-
-    std::string result = "[";
-    bool first = true;
-    while (const char* json = desc->iter_fn(cur)) {
-        if (!first) result += ',';
-        result += json;
-        first = false;
-    }
-    bboxes_close(cur);
-    result += ']';
-    sqlite3_result_text(ctx, result.c_str(), result.size(), SQLITE_TRANSIENT);
-}
-
 /* ══════════════════════════════════════════════════════════════════════
  * Static scalar descriptors — one per (format × function) combination
  * ══════════════════════════════════════════════════════════════════════ */
 
 /* 5 formats × 4 array iterators + 5 formats × 1 doc = 25 descriptors */
-static ScalarDesc s_doc_desc[]    = { {FMT_PDF, nullptr}, {FMT_XLSX, nullptr}, {FMT_TEXT, nullptr}, {FMT_DOCX, nullptr}, {FMT_AUTO, nullptr} };
-static ScalarDesc s_pages_desc[]  = { {FMT_PDF, bboxes_next_page_json},  {FMT_XLSX, bboxes_next_page_json},  {FMT_TEXT, bboxes_next_page_json},  {FMT_DOCX, bboxes_next_page_json},  {FMT_AUTO, bboxes_next_page_json} };
-static ScalarDesc s_fonts_desc[]  = { {FMT_PDF, bboxes_next_font_json},  {FMT_XLSX, bboxes_next_font_json},  {FMT_TEXT, bboxes_next_font_json},  {FMT_DOCX, bboxes_next_font_json},  {FMT_AUTO, bboxes_next_font_json} };
-static ScalarDesc s_styles_desc[] = { {FMT_PDF, bboxes_next_style_json}, {FMT_XLSX, bboxes_next_style_json}, {FMT_TEXT, bboxes_next_style_json}, {FMT_DOCX, bboxes_next_style_json}, {FMT_AUTO, bboxes_next_style_json} };
-static ScalarDesc s_bboxes_desc[] = { {FMT_PDF, bboxes_next_bbox_json},  {FMT_XLSX, bboxes_next_bbox_json},  {FMT_TEXT, bboxes_next_bbox_json},  {FMT_DOCX, bboxes_next_bbox_json},  {FMT_AUTO, bboxes_next_bbox_json} };
+static ScalarDesc s_doc_desc[]    = { {FMT_PDF, bboxes_get_doc_json}, {FMT_XLSX, bboxes_get_doc_json}, {FMT_TEXT, bboxes_get_doc_json}, {FMT_DOCX, bboxes_get_doc_json}, {FMT_AUTO, bboxes_get_doc_json} };
+static ScalarDesc s_pages_desc[]  = { {FMT_PDF, bboxes_get_pages_json},  {FMT_XLSX, bboxes_get_pages_json},  {FMT_TEXT, bboxes_get_pages_json},  {FMT_DOCX, bboxes_get_pages_json},  {FMT_AUTO, bboxes_get_pages_json} };
+static ScalarDesc s_fonts_desc[]  = { {FMT_PDF, bboxes_get_fonts_json},  {FMT_XLSX, bboxes_get_fonts_json},  {FMT_TEXT, bboxes_get_fonts_json},  {FMT_DOCX, bboxes_get_fonts_json},  {FMT_AUTO, bboxes_get_fonts_json} };
+static ScalarDesc s_styles_desc[] = { {FMT_PDF, bboxes_get_styles_json}, {FMT_XLSX, bboxes_get_styles_json}, {FMT_TEXT, bboxes_get_styles_json}, {FMT_DOCX, bboxes_get_styles_json}, {FMT_AUTO, bboxes_get_styles_json} };
+static ScalarDesc s_bboxes_desc[] = { {FMT_PDF, bboxes_get_bboxes_json},  {FMT_XLSX, bboxes_get_bboxes_json},  {FMT_TEXT, bboxes_get_bboxes_json},  {FMT_DOCX, bboxes_get_bboxes_json},  {FMT_AUTO, bboxes_get_bboxes_json} };
 
 /* ══════════════════════════════════════════════════════════════════════
  * Table-driven registration
@@ -394,11 +371,11 @@ static int register_format(sqlite3* db, const FormatInfo& fi) {
 
     /* Scalar JSON functions */
     struct { const char* suffix; void(*fn)(sqlite3_context*, int, sqlite3_value**); ScalarDesc* desc; } scalars[] = {
-        { "_doc_json",    generic_doc_json_func,    &s_doc_desc[di] },
-        { "_pages_json",  generic_json_array_func,  &s_pages_desc[di] },
-        { "_fonts_json",  generic_json_array_func,  &s_fonts_desc[di] },
-        { "_styles_json", generic_json_array_func,  &s_styles_desc[di] },
-        { "_json",        generic_json_array_func,  &s_bboxes_desc[di] },
+        { "_doc_json",    generic_json_func,  &s_doc_desc[di] },
+        { "_pages_json",  generic_json_func,  &s_pages_desc[di] },
+        { "_fonts_json",  generic_json_func,  &s_fonts_desc[di] },
+        { "_styles_json", generic_json_func,  &s_styles_desc[di] },
+        { "_json",        generic_json_func,  &s_bboxes_desc[di] },
     };
 
     for (auto& s : scalars) {
@@ -432,7 +409,7 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
 
     /* bboxes_info — auto-detecting doc info scalar */
     rc = sqlite3_create_function(db, "bboxes_info", 1, SQLITE_UTF8,
-                                  &s_doc_desc[4], generic_doc_json_func, nullptr, nullptr);
+                                  &s_doc_desc[4], generic_json_func, nullptr, nullptr);
     return rc;
 }
 }

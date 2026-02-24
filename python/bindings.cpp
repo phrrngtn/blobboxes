@@ -209,28 +209,6 @@ static nb::dict info(nb::bytes data) {
 
 /* ── JSON convenience functions ─────────────────────────────────────── */
 
-/* helper: build JSON array from an iterator */
-typedef bboxes_cursor* (*open_buf_fn)(const void*, size_t, const char*, int, int);
-
-static nb::str json_array_pdf(nb::bytes data, std::optional<std::string> pw,
-                               int sp, int ep,
-                               const char* (*iter_fn)(bboxes_cursor*)) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    std::string result = "[";
-    bool first = true;
-    while (const char* json = iter_fn(cur)) {
-        if (!first) result += ',';
-        result += json;
-        first = false;
-    }
-    bboxes_close(cur);
-    result += ']';
-    return nb::str(result.c_str(), result.size());
-}
-
 static nb::str doc_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
     std::vector<char> buf(data.c_str(), data.c_str() + data.size());
     auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
@@ -243,19 +221,47 @@ static nb::str doc_json(nb::bytes data, std::optional<std::string> pw, int sp, i
 }
 
 static nb::str pages_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    return json_array_pdf(data, pw, sp, ep, bboxes_next_page_json);
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
+                                 pw ? pw->c_str() : nullptr, sp, ep);
+    if (!cur) throw nb::value_error("bad PDF");
+    const char* json = bboxes_get_pages_json(cur);
+    std::string result = json ? json : "[]";
+    bboxes_close(cur);
+    return nb::str(result.c_str(), result.size());
 }
 
 static nb::str fonts_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    return json_array_pdf(data, pw, sp, ep, bboxes_next_font_json);
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
+                                 pw ? pw->c_str() : nullptr, sp, ep);
+    if (!cur) throw nb::value_error("bad PDF");
+    const char* json = bboxes_get_fonts_json(cur);
+    std::string result = json ? json : "[]";
+    bboxes_close(cur);
+    return nb::str(result.c_str(), result.size());
 }
 
 static nb::str styles_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    return json_array_pdf(data, pw, sp, ep, bboxes_next_style_json);
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
+                                 pw ? pw->c_str() : nullptr, sp, ep);
+    if (!cur) throw nb::value_error("bad PDF");
+    const char* json = bboxes_get_styles_json(cur);
+    std::string result = json ? json : "[]";
+    bboxes_close(cur);
+    return nb::str(result.c_str(), result.size());
 }
 
 static nb::str bboxes_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    return json_array_pdf(data, pw, sp, ep, bboxes_next_bbox_json);
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
+                                 pw ? pw->c_str() : nullptr, sp, ep);
+    if (!cur) throw nb::value_error("bad PDF");
+    const char* json = bboxes_get_bboxes_json(cur);
+    std::string result = json ? json : "[]";
+    bboxes_close(cur);
+    return nb::str(result.c_str(), result.size());
 }
 
 /* ── module definition ──────────────────────────────────────────────── */

@@ -109,6 +109,12 @@ const char*         bboxes_next_style_json(bboxes_cursor* cursor);
 const bboxes_bbox*  bboxes_next_bbox(bboxes_cursor* cursor);
 const char*         bboxes_next_bbox_json(bboxes_cursor* cursor);
 
+/* array-level JSON (returns entire array as a single string) */
+const char* bboxes_get_pages_json(bboxes_cursor* cursor);
+const char* bboxes_get_fonts_json(bboxes_cursor* cursor);
+const char* bboxes_get_styles_json(bboxes_cursor* cursor);
+const char* bboxes_get_bboxes_json(bboxes_cursor* cursor);
+
 void bboxes_close(bboxes_cursor* cursor);
 
 #ifdef __cplusplus
