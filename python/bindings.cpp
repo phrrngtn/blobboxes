@@ -80,115 +80,65 @@ static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false) 
     return out;
 }
 
-/* ── BBoxesCursor — wraps any backend cursor ─────────────────────── */
+/* ── CursorBase — shared methods for all cursor types ────────────── */
 
-struct BBoxesCursor {
-    bboxes_cursor* cur;
+struct CursorBase {
+    bboxes_cursor* cur = nullptr;
     std::vector<char> buf;
+    bool include_formula = false;
 
-    /* PDF constructor */
-    BBoxesCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep)
-        : buf(data.c_str(), data.c_str() + data.size()) {
+    nb::dict doc()      { return cursor_doc(cur); }
+    nb::list pages()    { return cursor_pages(cur); }
+    nb::list fonts()    { return cursor_fonts(cur); }
+    nb::list styles()   { return cursor_styles(cur); }
+    nb::list bboxes()   { return cursor_bboxes(cur, include_formula); }
+    void close()        { if (cur) { bboxes_close(cur); cur = nullptr; } }
+    ~CursorBase()       { close(); }
+};
+
+struct BBoxesCursor : CursorBase {
+    BBoxesCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
         cur = bboxes_open_pdf(buf.data(), buf.size(),
                                pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad PDF");
     }
-
-    nb::dict doc()      { return cursor_doc(cur); }
-    nb::list pages()    { return cursor_pages(cur); }
-    nb::list fonts()    { return cursor_fonts(cur); }
-    nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur); }
-    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
-    ~BBoxesCursor() { close(); }
 };
 
-/* ── XLSX cursor ─────────────────────────────────────────────────── */
-
-struct BBoxesXlsxCursor {
-    bboxes_cursor* cur;
-    std::vector<char> buf;
-
-    BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep)
-        : buf(data.c_str(), data.c_str() + data.size()) {
+struct BBoxesXlsxCursor : CursorBase {
+    BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
+        include_formula = true;
         cur = bboxes_open_xlsx(buf.data(), buf.size(),
                                 pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad XLSX");
     }
-
-    nb::dict doc()      { return cursor_doc(cur); }
-    nb::list pages()    { return cursor_pages(cur); }
-    nb::list fonts()    { return cursor_fonts(cur); }
-    nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur, true); }
-    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
-    ~BBoxesXlsxCursor() { close(); }
 };
 
-/* ── Text cursor ─────────────────────────────────────────────────── */
-
-struct BBoxesTextCursor {
-    bboxes_cursor* cur;
-    std::vector<char> buf;
-
-    BBoxesTextCursor(nb::bytes data)
-        : buf(data.c_str(), data.c_str() + data.size()) {
+struct BBoxesTextCursor : CursorBase {
+    BBoxesTextCursor(nb::bytes data) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
         cur = bboxes_open_text(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad text");
     }
-
-    nb::dict doc()      { return cursor_doc(cur); }
-    nb::list pages()    { return cursor_pages(cur); }
-    nb::list fonts()    { return cursor_fonts(cur); }
-    nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur); }
-    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
-    ~BBoxesTextCursor() { close(); }
 };
 
-/* ── DOCX cursor ─────────────────────────────────────────────────── */
-
-struct BBoxesDocxCursor {
-    bboxes_cursor* cur;
-    std::vector<char> buf;
-
-    BBoxesDocxCursor(nb::bytes data)
-        : buf(data.c_str(), data.c_str() + data.size()) {
+struct BBoxesDocxCursor : CursorBase {
+    BBoxesDocxCursor(nb::bytes data) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
         cur = bboxes_open_docx(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad DOCX");
     }
-
-    nb::dict doc()      { return cursor_doc(cur); }
-    nb::list pages()    { return cursor_pages(cur); }
-    nb::list fonts()    { return cursor_fonts(cur); }
-    nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur); }
-    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
-    ~BBoxesDocxCursor() { close(); }
 };
 
-/* ── Auto-detecting cursor ───────────────────────────────────────── */
-
-struct BBoxesAutoCursor {
-    bboxes_cursor* cur;
-    std::vector<char> buf;
-    bool is_xlsx;
-
-    BBoxesAutoCursor(nb::bytes data)
-        : buf(data.c_str(), data.c_str() + data.size()) {
+struct BBoxesAutoCursor : CursorBase {
+    BBoxesAutoCursor(nb::bytes data) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
         const char* fmt = bboxes_detect(buf.data(), buf.size());
-        is_xlsx = (std::string_view(fmt) == "xlsx");
+        include_formula = (std::string_view(fmt) == "xlsx");
         cur = bboxes_open(buf.data(), buf.size());
         if (!cur) throw nb::value_error("failed to parse document");
     }
-
-    nb::dict doc()      { return cursor_doc(cur); }
-    nb::list pages()    { return cursor_pages(cur); }
-    nb::list fonts()    { return cursor_fonts(cur); }
-    nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur, is_xlsx); }
-    void close() { if (cur) { bboxes_close(cur); cur = nullptr; } }
-    ~BBoxesAutoCursor() { close(); }
 };
 
 /* ── detect + info convenience functions ─────────────────────────── */
@@ -207,61 +157,34 @@ static nb::dict info(nb::bytes data) {
     return out;
 }
 
-/* ── JSON convenience functions ─────────────────────────────────────── */
+/* ── JSON convenience helper ───────────────────────────────────────── */
+
+static nb::str get_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep,
+                         const char* (*fn)(bboxes_cursor*), const char* fallback) {
+    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
+    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
+                                 pw ? pw->c_str() : nullptr, sp, ep);
+    if (!cur) throw nb::value_error("bad PDF");
+    const char* json = fn(cur);
+    std::string result = json ? json : fallback;
+    bboxes_close(cur);
+    return nb::str(result.c_str(), result.size());
+}
 
 static nb::str doc_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    const char* json = bboxes_get_doc_json(cur);
-    std::string result = json ? json : "null";
-    bboxes_close(cur);
-    return nb::str(result.c_str(), result.size());
+    return get_json(data, pw, sp, ep, bboxes_get_doc_json, "null");
 }
-
 static nb::str pages_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    const char* json = bboxes_get_pages_json(cur);
-    std::string result = json ? json : "[]";
-    bboxes_close(cur);
-    return nb::str(result.c_str(), result.size());
+    return get_json(data, pw, sp, ep, bboxes_get_pages_json, "[]");
 }
-
 static nb::str fonts_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    const char* json = bboxes_get_fonts_json(cur);
-    std::string result = json ? json : "[]";
-    bboxes_close(cur);
-    return nb::str(result.c_str(), result.size());
+    return get_json(data, pw, sp, ep, bboxes_get_fonts_json, "[]");
 }
-
 static nb::str styles_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    const char* json = bboxes_get_styles_json(cur);
-    std::string result = json ? json : "[]";
-    bboxes_close(cur);
-    return nb::str(result.c_str(), result.size());
+    return get_json(data, pw, sp, ep, bboxes_get_styles_json, "[]");
 }
-
 static nb::str bboxes_json(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
-    std::vector<char> buf(data.c_str(), data.c_str() + data.size());
-    auto* cur = bboxes_open_pdf(buf.data(), buf.size(),
-                                 pw ? pw->c_str() : nullptr, sp, ep);
-    if (!cur) throw nb::value_error("bad PDF");
-    const char* json = bboxes_get_bboxes_json(cur);
-    std::string result = json ? json : "[]";
-    bboxes_close(cur);
-    return nb::str(result.c_str(), result.size());
+    return get_json(data, pw, sp, ep, bboxes_get_bboxes_json, "[]");
 }
 
 /* ── module definition ──────────────────────────────────────────────── */

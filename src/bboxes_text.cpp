@@ -10,7 +10,8 @@ BBoxResult extract_text(const void* buf, size_t len) {
     /* single font and style for plain text */
     uint32_t font_id = result.fonts.intern("monospace");
     uint32_t style_id = result.styles.intern(
-        font_id, 12.0, "rgba(0,0,0,255)", "normal", false, false);
+        font_id, BBOXES_DEFAULT_FONT_SIZE, BBOXES_DEFAULT_COLOR,
+        BBOXES_DEFAULT_WEIGHT, false, false);
 
     const char* data = static_cast<const char*>(buf);
     const char* end = data + len;

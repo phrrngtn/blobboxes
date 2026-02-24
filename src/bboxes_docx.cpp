@@ -102,7 +102,8 @@ BBoxResult extract_docx(const void* buf, size_t len) {
     /* default font + style */
     uint32_t font_id = result.fonts.intern("default");
     uint32_t style_id = result.styles.intern(
-        font_id, 12.0, "rgba(0,0,0,255)", "normal", false, false);
+        font_id, BBOXES_DEFAULT_FONT_SIZE, BBOXES_DEFAULT_COLOR,
+        BBOXES_DEFAULT_WEIGHT, false, false);
 
     /* find all <w:tbl> elements in the document body */
     auto body = doc.child("w:document").child("w:body");

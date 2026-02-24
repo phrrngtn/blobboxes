@@ -30,28 +30,17 @@ static const char* get_string(duckdb_vector vec, idx_t i) {
     return s->value.inlined.length > 12 ? s->value.pointer.ptr : s->value.inlined.inlined;
 }
 
-/* ── Format enum and dispatch ────────────────────────────────────── */
+/* ── Format constants (use BBOXES_FORMAT_* from bboxes.h) ────────── */
 
-enum class Format { AUTO, PDF, XLSX, TEXT, DOCX };
-
-static bboxes_cursor* open_by_format(Format fmt, const void* buf, size_t len) {
-    switch (fmt) {
-        case Format::AUTO:  return bboxes_open(buf, len);
-        case Format::PDF:   return bboxes_open_pdf(buf, len, nullptr, 0, 0);
-        case Format::XLSX:  return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
-        case Format::TEXT:  return bboxes_open_text(buf, len);
-        case Format::DOCX:  return bboxes_open_docx(buf, len);
-    }
-    return nullptr;
-}
+using Format = int;
 
 static const char* format_name(Format fmt) {
     switch (fmt) {
-        case Format::AUTO:  return "file";
-        case Format::PDF:   return "PDF";
-        case Format::XLSX:  return "XLSX";
-        case Format::TEXT:  return "text";
-        case Format::DOCX:  return "DOCX";
+        case BBOXES_FORMAT_AUTO:  return "file";
+        case BBOXES_FORMAT_PDF:   return "PDF";
+        case BBOXES_FORMAT_XLSX:  return "XLSX";
+        case BBOXES_FORMAT_TEXT:  return "text";
+        case BBOXES_FORMAT_DOCX:  return "DOCX";
     }
     return "unknown";
 }
@@ -84,7 +73,7 @@ static void shared_bind_path(duckdb_bind_info info, BindData** out) {
 static void generic_init(duckdb_init_info info) {
     auto* bind = static_cast<BindData*>(duckdb_init_get_bind_data(info));
     auto* fmt_ptr = static_cast<Format*>(duckdb_init_get_extra_info(info));
-    Format fmt = fmt_ptr ? *fmt_ptr : Format::AUTO;
+    Format fmt = fmt_ptr ? *fmt_ptr : BBOXES_FORMAT_AUTO;
 
     auto* data = new InitData{};
     data->fmt = fmt;
@@ -94,7 +83,7 @@ static void generic_init(duckdb_init_info info) {
         delete data;
         return;
     }
-    data->cursor = open_by_format(fmt, data->buf.data(), data->buf.size());
+    data->cursor = bboxes_open_format(fmt, data->buf.data(), data->buf.size());
     if (!data->cursor) {
         std::string msg = std::string("failed to parse ") + format_name(fmt);
         duckdb_init_set_error(info, msg.c_str());
@@ -367,7 +356,7 @@ static void generic_json_scalar(duckdb_function_info info, duckdb_data_chunk inp
 
         std::string result = "null";
         if (!buf.empty()) {
-            auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
+            auto* cur = bboxes_open_format(desc->fmt, buf.data(), buf.size());
             if (cur) {
                 const char* json = desc->fn(cur);
                 if (json) result = json;
@@ -428,48 +417,49 @@ struct FormatInfo {
 };
 
 static Format s_fmts[] = {
-    Format::AUTO, Format::PDF, Format::XLSX, Format::TEXT, Format::DOCX
+    BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
+    BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX
 };
 
 static ScalarDesc s_scalars[][5] = {
     /* AUTO */
-    { {Format::AUTO, bboxes_get_doc_json},
-      {Format::AUTO, bboxes_get_pages_json},
-      {Format::AUTO, bboxes_get_fonts_json},
-      {Format::AUTO, bboxes_get_styles_json},
-      {Format::AUTO, bboxes_get_bboxes_json} },
+    { {BBOXES_FORMAT_AUTO, bboxes_get_doc_json},
+      {BBOXES_FORMAT_AUTO, bboxes_get_pages_json},
+      {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_AUTO, bboxes_get_styles_json},
+      {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json} },
     /* PDF */
-    { {Format::PDF, bboxes_get_doc_json},
-      {Format::PDF, bboxes_get_pages_json},
-      {Format::PDF, bboxes_get_fonts_json},
-      {Format::PDF, bboxes_get_styles_json},
-      {Format::PDF, bboxes_get_bboxes_json} },
+    { {BBOXES_FORMAT_PDF, bboxes_get_doc_json},
+      {BBOXES_FORMAT_PDF, bboxes_get_pages_json},
+      {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_PDF, bboxes_get_styles_json},
+      {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json} },
     /* XLSX */
-    { {Format::XLSX, bboxes_get_doc_json},
-      {Format::XLSX, bboxes_get_pages_json},
-      {Format::XLSX, bboxes_get_fonts_json},
-      {Format::XLSX, bboxes_get_styles_json},
-      {Format::XLSX, bboxes_get_bboxes_json} },
+    { {BBOXES_FORMAT_XLSX, bboxes_get_doc_json},
+      {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},
+      {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_XLSX, bboxes_get_styles_json},
+      {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json} },
     /* TEXT */
-    { {Format::TEXT, bboxes_get_doc_json},
-      {Format::TEXT, bboxes_get_pages_json},
-      {Format::TEXT, bboxes_get_fonts_json},
-      {Format::TEXT, bboxes_get_styles_json},
-      {Format::TEXT, bboxes_get_bboxes_json} },
+    { {BBOXES_FORMAT_TEXT, bboxes_get_doc_json},
+      {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},
+      {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_TEXT, bboxes_get_styles_json},
+      {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json} },
     /* DOCX */
-    { {Format::DOCX, bboxes_get_doc_json},
-      {Format::DOCX, bboxes_get_pages_json},
-      {Format::DOCX, bboxes_get_fonts_json},
-      {Format::DOCX, bboxes_get_styles_json},
-      {Format::DOCX, bboxes_get_bboxes_json} },
+    { {BBOXES_FORMAT_DOCX, bboxes_get_doc_json},
+      {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},
+      {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_DOCX, bboxes_get_styles_json},
+      {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json} },
 };
 
 static const FormatInfo s_formats[] = {
-    { "bboxes",      Format::AUTO, true  },
-    { "bboxes_pdf",  Format::PDF,  false },   /* PDF uses same names as auto for table fns */
-    { "bboxes_xlsx", Format::XLSX, false },
-    { "bboxes_text", Format::TEXT, false },
-    { "bboxes_docx", Format::DOCX, false },
+    { "bboxes",      BBOXES_FORMAT_AUTO, true  },
+    { "bboxes_pdf",  BBOXES_FORMAT_PDF,  false },
+    { "bboxes_xlsx", BBOXES_FORMAT_XLSX, false },
+    { "bboxes_text", BBOXES_FORMAT_TEXT, false },
+    { "bboxes_docx", BBOXES_FORMAT_DOCX, false },
 };
 
 static const char* s_table_suffixes[] = { "_doc", "_pages", "_fonts", "_styles", "" };

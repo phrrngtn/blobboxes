@@ -1,5 +1,7 @@
 # blobboxes
 
+> **Note:** This codebase was generated entirely by Claude (Anthropic) under close human supervision. It is intended as a **development aid for experimentation** — useful for getting something up and running quickly — but should not be used directly in production. There may be flaws in both the design and implementation.
+
 A normalized relational view of document content — PDF, Excel, Word, and plain text — exposed through Python, DuckDB, SQLite, and a C API.
 
 Every source produces the same five tables: **doc**, **pages**, **fonts**, **styles**, and **bboxes**. This uniform schema lets you query and join across formats as if they were database tables.

@@ -117,6 +117,15 @@ const char* bboxes_get_bboxes_json(bboxes_cursor* cursor);
 
 void bboxes_close(bboxes_cursor* cursor);
 
+/* ── format codes for bboxes_open_format() ──────────────────────── */
+#define BBOXES_FORMAT_AUTO  0
+#define BBOXES_FORMAT_PDF   1
+#define BBOXES_FORMAT_XLSX  2
+#define BBOXES_FORMAT_TEXT  3
+#define BBOXES_FORMAT_DOCX  4
+
+bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
+
 #ifdef __cplusplus
 }
 #endif

@@ -71,7 +71,7 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                     /* font / style */
                     std::string font_name = "default";
                     double font_size = 11.0;
-                    std::string color = "rgba(0,0,0,255)";
+                    std::string color = BBOXES_DEFAULT_COLOR;
                     std::string weight = "normal";
                     bool italic = false;
                     bool underline = false;
@@ -98,10 +98,7 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                                         unsigned r = std::stoul(hex.substr(2, 2), nullptr, 16);
                                         unsigned g = std::stoul(hex.substr(4, 2), nullptr, 16);
                                         unsigned b = std::stoul(hex.substr(6, 2), nullptr, 16);
-                                        color = "rgba(" + std::to_string(r) + "," +
-                                                std::to_string(g) + "," +
-                                                std::to_string(b) + "," +
-                                                std::to_string(a) + ")";
+                                        color = color_string(r, g, b, a);
                                     }
                                 }
                             }

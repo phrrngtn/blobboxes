@@ -12,12 +12,6 @@
 
 /* ── helpers ────────────────────────────────────────────────────────── */
 
-static std::string color_string(unsigned r, unsigned g, unsigned b, unsigned a) {
-    char buf[40];
-    snprintf(buf, sizeof(buf), "rgba(%u,%u,%u,%u)", r, g, b, a);
-    return buf;
-}
-
 static void append_codepoint(std::string& s, unsigned int cp) {
     if (cp < 0x80) {
         s += static_cast<char>(cp);

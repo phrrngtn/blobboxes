@@ -2,9 +2,21 @@
 #define BBOXES_TYPES_H
 
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+/* ── Shared constants ─────────────────────────────────────────── */
+constexpr double      BBOXES_DEFAULT_FONT_SIZE = 12.0;
+constexpr const char* BBOXES_DEFAULT_COLOR     = "rgba(0,0,0,255)";
+constexpr const char* BBOXES_DEFAULT_WEIGHT    = "normal";
+
+inline std::string color_string(unsigned r, unsigned g, unsigned b, unsigned a) {
+    char buf[40];
+    snprintf(buf, sizeof(buf), "rgba(%u,%u,%u,%u)", r, g, b, a);
+    return buf;
+}
 
 /* ── Font table (intern by name only) ──────────────────────────── */
 

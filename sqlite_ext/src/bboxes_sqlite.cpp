@@ -8,21 +8,10 @@ SQLITE_EXTENSION_INIT1
 #include <vector>
 
 /* ══════════════════════════════════════════════════════════════════════
- * Format enum and dispatch
+ * Format constants (use BBOXES_FORMAT_* from bboxes.h)
  * ══════════════════════════════════════════════════════════════════════ */
 
-enum Format { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX, FMT_AUTO };
-
-static bboxes_cursor* open_by_format(Format fmt, const void* buf, size_t len) {
-    switch (fmt) {
-        case FMT_PDF:   return bboxes_open_pdf(buf, len, nullptr, 0, 0);
-        case FMT_XLSX:  return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
-        case FMT_TEXT:  return bboxes_open_text(buf, len);
-        case FMT_DOCX:  return bboxes_open_docx(buf, len);
-        case FMT_AUTO:  return bboxes_open(buf, len);
-    }
-    return nullptr;
-}
+using Format = int;
 
 /* ── File I/O ────────────────────────────────────────────────────── */
 
@@ -44,8 +33,13 @@ static std::vector<char> read_file(const char* path) {
  * ══════════════════════════════════════════════════════════════════════ */
 
 static Format* make_fmt(Format f) {
-    static Format fmts[5] = { FMT_PDF, FMT_XLSX, FMT_TEXT, FMT_DOCX, FMT_AUTO };
-    return &fmts[f];
+    static Format fmts[5] = {
+        BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX, BBOXES_FORMAT_TEXT,
+        BBOXES_FORMAT_DOCX, BBOXES_FORMAT_AUTO
+    };
+    for (auto& fmt : fmts)
+        if (fmt == f) return &fmt;
+    return &fmts[4]; /* default AUTO */
 }
 
 /* ── Generic vtab struct that carries the Format ─────────────────── */
@@ -118,7 +112,7 @@ static int Name##Filter(sqlite3_vtab_cursor* pCursor, int, const char*,         
     if (!path) { c->eof = true; return SQLITE_OK; }                                     \
     c->buf = read_file(path);                                                           \
     if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }                            \
-    c->cur = open_by_format(fmt, c->buf.data(), c->buf.size());                         \
+    c->cur = bboxes_open_format(fmt, c->buf.data(), c->buf.size());                         \
     if (!c->cur) { c->eof = true; return SQLITE_OK; }                                   \
     c->current = next_fn(c->cur);                                                       \
     c->eof = (c->current == nullptr);                                                   \
@@ -302,7 +296,7 @@ static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** ar
     auto buf = read_file(path);
     if (buf.empty()) { sqlite3_result_null(ctx); return; }
 
-    auto* cur = open_by_format(desc->fmt, buf.data(), buf.size());
+    auto* cur = bboxes_open_format(desc->fmt, buf.data(), buf.size());
     if (!cur) { sqlite3_result_null(ctx); return; }
 
     const char* json = desc->fn(cur);
@@ -318,11 +312,11 @@ static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** ar
  * ══════════════════════════════════════════════════════════════════════ */
 
 /* 5 formats × 4 array iterators + 5 formats × 1 doc = 25 descriptors */
-static ScalarDesc s_doc_desc[]    = { {FMT_PDF, bboxes_get_doc_json}, {FMT_XLSX, bboxes_get_doc_json}, {FMT_TEXT, bboxes_get_doc_json}, {FMT_DOCX, bboxes_get_doc_json}, {FMT_AUTO, bboxes_get_doc_json} };
-static ScalarDesc s_pages_desc[]  = { {FMT_PDF, bboxes_get_pages_json},  {FMT_XLSX, bboxes_get_pages_json},  {FMT_TEXT, bboxes_get_pages_json},  {FMT_DOCX, bboxes_get_pages_json},  {FMT_AUTO, bboxes_get_pages_json} };
-static ScalarDesc s_fonts_desc[]  = { {FMT_PDF, bboxes_get_fonts_json},  {FMT_XLSX, bboxes_get_fonts_json},  {FMT_TEXT, bboxes_get_fonts_json},  {FMT_DOCX, bboxes_get_fonts_json},  {FMT_AUTO, bboxes_get_fonts_json} };
-static ScalarDesc s_styles_desc[] = { {FMT_PDF, bboxes_get_styles_json}, {FMT_XLSX, bboxes_get_styles_json}, {FMT_TEXT, bboxes_get_styles_json}, {FMT_DOCX, bboxes_get_styles_json}, {FMT_AUTO, bboxes_get_styles_json} };
-static ScalarDesc s_bboxes_desc[] = { {FMT_PDF, bboxes_get_bboxes_json},  {FMT_XLSX, bboxes_get_bboxes_json},  {FMT_TEXT, bboxes_get_bboxes_json},  {FMT_DOCX, bboxes_get_bboxes_json},  {FMT_AUTO, bboxes_get_bboxes_json} };
+static ScalarDesc s_doc_desc[]    = { {BBOXES_FORMAT_PDF, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX, bboxes_get_doc_json}, {BBOXES_FORMAT_TEXT, bboxes_get_doc_json}, {BBOXES_FORMAT_DOCX, bboxes_get_doc_json}, {BBOXES_FORMAT_AUTO, bboxes_get_doc_json} };
+static ScalarDesc s_pages_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_pages_json},  {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},  {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},  {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},  {BBOXES_FORMAT_AUTO, bboxes_get_pages_json} };
+static ScalarDesc s_fonts_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},  {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},  {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},  {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},  {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json} };
+static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX, bboxes_get_styles_json}, {BBOXES_FORMAT_TEXT, bboxes_get_styles_json}, {BBOXES_FORMAT_DOCX, bboxes_get_styles_json}, {BBOXES_FORMAT_AUTO, bboxes_get_styles_json} };
+static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json} };
 
 /* ══════════════════════════════════════════════════════════════════════
  * Table-driven registration
@@ -335,11 +329,11 @@ struct FormatInfo {
 };
 
 static const FormatInfo s_formats[] = {
-    { "bboxes_pdf",  FMT_PDF,  0 },
-    { "bboxes_xlsx", FMT_XLSX, 1 },
-    { "bboxes_text", FMT_TEXT, 2 },
-    { "bboxes_docx", FMT_DOCX, 3 },
-    { "bboxes",      FMT_AUTO, 4 },   /* auto-detect last so it gets the unqualified names */
+    { "bboxes_pdf",  BBOXES_FORMAT_PDF,  0 },
+    { "bboxes_xlsx", BBOXES_FORMAT_XLSX, 1 },
+    { "bboxes_text", BBOXES_FORMAT_TEXT, 2 },
+    { "bboxes_docx", BBOXES_FORMAT_DOCX, 3 },
+    { "bboxes",      BBOXES_FORMAT_AUTO, 4 },   /* auto-detect last so it gets the unqualified names */
 };
 
 static int register_format(sqlite3* db, const FormatInfo& fi) {
