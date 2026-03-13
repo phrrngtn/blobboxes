@@ -1,6 +1,6 @@
 # blobboxes
 
-> **Note:** This codebase was generated entirely by Claude (Anthropic) under close human supervision. It is intended as a **development aid for experimentation** — useful for getting something up and running quickly — but should not be used directly in production. There may be flaws in both the design and implementation.
+> **Note:** This code is almost entirely AI-authored (Claude, Anthropic), albeit under close human supervision, and is for research and experimentation purposes. Successful experiments may be re-implemented in a more coordinated and curated manner.
 
 A normalized relational view of document content — PDF, Excel, Word, and plain text — exposed through Python, DuckDB, SQLite, and a C API.
 
