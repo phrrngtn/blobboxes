@@ -329,11 +329,11 @@ struct FormatInfo {
 };
 
 static const FormatInfo s_formats[] = {
-    { "bboxes_pdf",  BBOXES_FORMAT_PDF,  0 },
-    { "bboxes_xlsx", BBOXES_FORMAT_XLSX, 1 },
-    { "bboxes_text", BBOXES_FORMAT_TEXT, 2 },
-    { "bboxes_docx", BBOXES_FORMAT_DOCX, 3 },
-    { "bboxes",      BBOXES_FORMAT_AUTO, 4 },   /* auto-detect last so it gets the unqualified names */
+    { "bb_pdf",  BBOXES_FORMAT_PDF,  0 },
+    { "bb_xlsx", BBOXES_FORMAT_XLSX, 1 },
+    { "bb_text", BBOXES_FORMAT_TEXT, 2 },
+    { "bb_docx", BBOXES_FORMAT_DOCX, 3 },
+    { "bb",      BBOXES_FORMAT_AUTO, 4 },   /* auto-detect last so it gets the unqualified names */
 };
 
 static int register_format(sqlite3* db, const FormatInfo& fi) {
@@ -401,8 +401,8 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
         if (rc != SQLITE_OK) return rc;
     }
 
-    /* bboxes_info — auto-detecting doc info scalar */
-    rc = sqlite3_create_function(db, "bboxes_info", 1, SQLITE_UTF8,
+    /* bb_info — auto-detecting doc info scalar */
+    rc = sqlite3_create_function(db, "bb_info", 1, SQLITE_UTF8,
                                   &s_doc_desc[4], generic_json_func, nullptr, nullptr);
     return rc;
 }

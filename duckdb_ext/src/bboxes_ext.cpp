@@ -455,11 +455,11 @@ static ScalarDesc s_scalars[][5] = {
 };
 
 static const FormatInfo s_formats[] = {
-    { "bboxes",      BBOXES_FORMAT_AUTO, true  },
-    { "bboxes_pdf",  BBOXES_FORMAT_PDF,  false },
-    { "bboxes_xlsx", BBOXES_FORMAT_XLSX, false },
-    { "bboxes_text", BBOXES_FORMAT_TEXT, false },
-    { "bboxes_docx", BBOXES_FORMAT_DOCX, false },
+    { "bb",      BBOXES_FORMAT_AUTO, true  },
+    { "bb_pdf",  BBOXES_FORMAT_PDF,  false },
+    { "bb_xlsx", BBOXES_FORMAT_XLSX, false },
+    { "bb_text", BBOXES_FORMAT_TEXT, false },
+    { "bb_docx", BBOXES_FORMAT_DOCX, false },
 };
 
 static const char* s_table_suffixes[] = { "_doc", "_pages", "_fonts", "_styles", "" };
@@ -489,8 +489,8 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
         }
     }
 
-    /* bboxes_info — auto-detecting doc info scalar (alias of bboxes_doc_json) */
-    register_json_scalar(connection, "bboxes_info", &s_scalars[0][0], false);
+    /* bb_info — auto-detecting doc info scalar (alias of bb_doc_json) */
+    register_json_scalar(connection, "bb_info", &s_scalars[0][0], false);
 
     return true;
 }

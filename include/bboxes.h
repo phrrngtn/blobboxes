@@ -126,6 +126,8 @@ void bboxes_close(bboxes_cursor* cursor);
 
 bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
 
+const char *bboxes_errmsg(void);
+
 #ifdef __cplusplus
 }
 #endif

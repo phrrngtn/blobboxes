@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+static thread_local std::string g_errmsg;
+
 using json = nlohmann::json;
 
 /* ── cursor implementation ──────────────────────────────────────────── */
@@ -371,3 +373,5 @@ const char* bboxes_get_bboxes_json(bboxes_cursor* c) {
 void bboxes_close(bboxes_cursor* c) {
     delete c;
 }
+
+const char *bboxes_errmsg(void) { return g_errmsg.c_str(); }

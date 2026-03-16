@@ -196,6 +196,13 @@ if(BUILD_DUCKDB_EXTENSION)
     PREFIX ""
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/duckdb")
   bboxes_runtime(bboxes_duckdb "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+
+  find_program(PYTHON_EXE NAMES python3 python REQUIRED)
+  add_custom_command(TARGET bboxes_duckdb POST_BUILD
+    COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/duckdb_ext/append_metadata.py"
+      "$<TARGET_FILE:bboxes_duckdb>"
+      "$<TARGET_FILE_DIR:bboxes_duckdb>/blobboxes.duckdb_extension"
+    COMMENT "Appending DuckDB extension metadata")
 endif()
 
 # ── SQLite extension ────────────────────────────────────────────────
