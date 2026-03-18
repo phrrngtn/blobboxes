@@ -112,23 +112,68 @@ bboxes = pool.extract(url="https://mistral.ai/pricing",
                       click_selector="button:has-text('API pricing')")
 ```
 
-Internally: CDP `Page.createIsolatedWorld` → `Runtime.evaluate(bundle_js)`
-→ `blobboxes.init()` → `blobboxes.snapshot()`. Each call creates a new
-browser context (isolated cookies/storage) and tears it down after.
+Internally: the bundle is registered via CDP
+`Page.addScriptToEvaluateOnNewDocument` with `worldName: "blobboxes"`.
+The browser auto-injects it into a named isolated world before page
+scripts run on every navigation. The execution context ID for the world
+is captured via `Runtime.executionContextCreated` events, then used to
+call `blobboxes.init()` → `blobboxes.snapshot()` in that world.
 
-### PySide6 (interactive)
+`BrowserPool` uses a single long-lived browser context. The init script
+is registered per-page CDP session; cookies/storage are cleared between
+requests via `context.clear_cookies()`. The context persists (so the
+browser process stays warm), but each extraction starts clean — like a
+browser extension that survives across navigations but doesn't leak
+state between unrelated pages.
+
+**Why `addScriptToEvaluateOnNewDocument` over `createIsolatedWorld`:**
+- The browser handles injection timing — the bundle is present before
+  any page script runs, surviving React/Angular hydration.
+- On in-page navigations (SPAs, tab clicks that trigger navigation),
+  the bundle auto-reinjects without manual intervention.
+- Eliminates the `getFrameTree` → `createIsolatedWorld` → `evaluate`
+  round-trip sequence. The init script registration is a single CDP call.
+
+**Getting the execution context ID:** The `worldName` parameter causes
+Chrome to create a named isolated world at navigation time. To call
+functions in that world, we listen for `Runtime.executionContextCreated`
+events and capture the context ID where `context.name == "blobboxes"`.
+
+### PySide6 / QWebEngineView (interactive, Excel CTP)
 
 ```python
+from PySide6.QtWebEngineCore import QWebEngineScript
+
 script = QWebEngineScript()
+script.setName("blobboxes-bundle")
 script.setSourceCode(bundle_js)
+script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentCreation)
 script.setWorldId(QWebEngineScript.ScriptWorldId.ApplicationWorld)
-script.setInjectionPoint(QWebEngineScript.InjectionPoint.DocumentReady)
-page.scripts().insert(script)
+script.setRunsOnSubFrames(True)
+
+# Profile-level: applies to every page in this profile
+profile.scripts().insert(script)
 ```
 
 The bundle persists across navigations. `QWebChannel` bridges JS→Python
-for live MutationObserver callbacks. `DocumentCreation` injection point
-survives framework hydration (React/Next.js replacing the main world).
+for live MutationObserver callbacks.
+
+**Key points for Excel CTP reliability:**
+
+- **`DocumentCreation`** ensures the bundle is present before React/Angular
+  hydration replaces the DOM. This is the Qt equivalent of CDP's
+  `addScriptToEvaluateOnNewDocument`.
+- **`ApplicationWorld`** isolates blobboxes globals from page scripts
+  (equivalent to CDP isolated world). Page scripts cannot interfere with
+  or detect the injection.
+- **Profile-level injection** means the script survives page
+  creation/destruction and is automatically present in any new
+  `QWebEnginePage` using that profile. No per-page setup needed.
+- **The bundle must be synchronous** — `DocumentCreation` scripts that
+  return promises don't block page execution. The lite bundle (no WASM)
+  is fully synchronous. The full bundle's WASM init is async — it must
+  be triggered explicitly via `blobboxes.init()` after the page loads,
+  not in the init script itself.
 
 ### Chrome extension (future)
 
@@ -394,6 +439,19 @@ is stateless and safe to retry, schedule, or call from any context.
    TTL ensures auto-deletion. OpenBao ACLs restrict who can read
    `secret/data/filters/*`. Audit log records every access.
 
+5. **Cross-request state leakage.** A persistent browser context could
+   leak cookies, localStorage, or tracking state from site A to site B.
+   Mitigation: `context.clear_cookies()` is called between every
+   extraction. Each page sees an empty cookie jar and fresh storage —
+   no session tokens, tracking cookies, or cached auth can leak across
+   requests. The only thing that persists is the init script
+   registration (the "tampermonkey" world), which has no network access
+   and no state of its own. This stateless model is strictly better
+   than per-request context teardown: it's a positive assertion ("we
+   clear cookies") rather than an implementation detail ("we destroy
+   the context") that may or may not cover all storage types in every
+   Chromium version.
+
 ## Deployment
 
 ### Option A: separate process (current)
@@ -462,17 +520,175 @@ function fnv1a(str) {
 - PySide6 shim wires `QWebChannel` for push delivery
 - Playwright shim uses `expose_function` for async delivery
 
-### Phase 3: roaring-wasm domain classification
+### Phase 3: roaring-wasm domain classification (done)
 - Add roaring-wasm dependency, build full bundle with inlined WASM
 - `browser/src/classify.js` with FNV-1a + bitmap probing (implemented)
 - Filter loading by name (from local blobfilters DB) and by GUID
   (from OpenBao, with TTL)
 
-### Phase 4: Proxy integration
-- mitmproxy addon dispatching on `X-BLOBTASTIC-EXTRA-INFO` header
+### Phase 3.5: Persistent bundle injection (done)
+- `BrowserPool` uses `addScriptToEvaluateOnNewDocument` with
+  `worldName: "blobboxes"` — browser auto-injects bundle on navigation
+- `Page.enable` + `Runtime.enable` required before registration
+- Execution context ID captured via `Runtime.executionContextCreated`
+- Long-lived browser context with `clear_cookies()` after each
+  extraction — stateless from the page's perspective, persistent
+  from the bundle's perspective
+- Cookie clearing after extraction, not before navigation — page
+  sub-resource requests may depend on cookies set during load
+
+### Phase 4: Proxy integration (done)
+- mitmproxy addon (`proxy_addon.py`) dispatching on `X-BLOBTASTIC-EXTRA-INFO` header
 - `BrowserPool` inside the addon with `--proxy-server` pointing to self
   (sub-resource requests flow through normal proxy pipeline)
-- Reified function wrapping the full pipeline as a SQL call
+- Re-entrancy guard: Chromium requests carry `X-BLOBBOXES-INTERNAL`,
+  addon passes them through without triggering extraction
+- Bounded concurrency: `asyncio.Semaphore(max_pages)`, 503 on timeout
+- Cookie injection via `context.add_cookies()` for pre-flighted auth
+- Columnar JSON response format via `to_columnar()` (keys once, parallel arrays of length n)
+- `extract()` returns `(bboxes, extraction_ms)` tuple for timing visibility
+- SQL macro (`blobboxes_extract`) wrapping the full pipeline as a DuckDB call
+
+### Phase 5: Interactive decoration (CTP)
+- `decorate()` replacing `highlight()` — span-wrapping for token
+  highlights, positioned divs for table halos
+- CSS injection via `<style>` element with custom properties for
+  per-domain coloring
+- Hover inspector for domain match details
+- Live reclassification via MutationObserver on dynamic content
+- `QWebChannel` bridge for Python↔JS communication in QWebEngineView
+
+## Headless vs interactive: same bundle, different last step
+
+The bundle runs in a CDP isolated world (Playwright) or a Qt
+`ApplicationWorld` (QWebEngineView). In both cases, the isolated world
+shares the DOM with the page — it can read *and write* elements,
+styles, and event listeners. Page scripts cannot see the isolated
+world's globals, but they can see DOM mutations made by it.
+
+The core pipeline is identical in both contexts:
+
+```
+snapshot() → classify() → results
+```
+
+What differs is what happens with the results:
+
+| | Playwright (headless) | QWebEngineView (interactive/CTP) |
+|---|---|---|
+| Results go to | Python via CDP `Runtime.evaluate` → JSON | Stay in the browser, drive DOM decoration |
+| User sees | Nothing (headless) | Halos, highlights, tooltips on the live page |
+| Lifetime | Page created, extracted, closed | Page lives as long as the user is browsing |
+| MutationObserver | Not needed (single snapshot) | Essential — page content changes as user scrolls, clicks tabs |
+| Controller | Python `BrowserPool` | Python `QWebChannel` bridge + PyXLL |
+
+### DOM decoration from the isolated world
+
+The isolated world can inject CSS and HTML into the page. This is the
+same mechanism Tampermonkey, uBlock Origin, and every browser extension
+uses. The page's own scripts see the injected elements as part of the
+DOM but cannot trace them back to the isolated world.
+
+What the interactive bundle needs to do that the headless path doesn't:
+
+1. **Table halo** — detect a rectangular cluster of classified bboxes
+   (a "table candidate") and draw a dashed border around its bounding
+   rectangle. CSS `outline` on a positioned `<div>` overlay, or a
+   `<svg>` rect injected into the page. The halo moves if the page
+   scrolls (attach to `scroll` event, recalculate from live bbox
+   positions).
+
+2. **Token highlights** — wrap matched tokens in `<span>` elements
+   with background color and `title` tooltip (already designed in
+   the token-level classification section below). The span-wrapping
+   approach is critical here — overlay divs drift when the page
+   reflows or when fonts render differently. Spans *are* the text,
+   so they track perfectly.
+
+3. **Hover inspector** — on mouse hover over a highlighted token or
+   table halo, show a tooltip/popover with domain match details
+   (domain name, score, filter source). Event listeners in the
+   isolated world fire normally on page elements.
+
+4. **Live reclassification** — when the MutationObserver detects new
+   or changed text nodes (user clicked a tab, scrolled to reveal
+   lazy-loaded content), re-run `classify()` on the new bboxes and
+   update decorations incrementally. The observer batches mutations
+   and flushes at configurable intervals (already implemented in
+   `observer.js`).
+
+### Bundle API surface: shared core + interactive layer
+
+```javascript
+// === Shared core (both headless and interactive) ===
+blobboxes.init(opts)           // initialize, optionally start observer
+blobboxes.snapshot()           // one-shot bbox extraction
+blobboxes.loadFilters(data)    // load domain filter bitmaps
+blobboxes.classify(bboxes)     // classify bboxes against filters
+blobboxes.dispose()            // cleanup
+
+// === Interactive layer (CTP only — no-ops in headless) ===
+blobboxes.decorate(classified) // draw halos + token highlights on the DOM
+blobboxes.clearDecorations()   // remove all injected decoration elements
+blobboxes.onHover(callback)    // register hover inspector callback
+```
+
+`decorate()` replaces the current `highlight()` (which uses overlay
+divs). It does two things: span-wraps matched tokens (per-word
+highlighting that tracks text reflow) and draws table halos around
+spatial clusters of matches. The halos are `position: absolute` divs
+anchored to the page's coordinate system (not `fixed` — they scroll
+with the content).
+
+### What lives in the isolated world vs. the Python controller
+
+The isolated world handles:
+- DOM reading (snapshot, observer)
+- DOM writing (decoration, highlights, halos)
+- In-browser classification (WASM bitmap probing)
+- Event handling (hover, scroll for halo repositioning)
+
+The Python controller handles:
+- Filter retrieval and caching (from DB, OpenBao, or service)
+- Filter injection into the world (via CDP evaluate or QWebChannel)
+- Session management (cookies, auth, context lifecycle)
+- Coordination with PyXLL (CTP-specific: ribbon commands, task pane)
+
+This split means the JS bundle is self-contained and testable in any
+browser context. The Python controller is the "background service
+worker" that feeds it data and collects results. The bundle never
+makes network requests — it reads the DOM and writes to the DOM,
+nothing else.
+
+### CSS injection
+
+The bundle injects a `<style>` element into the page for decoration
+styles. This is cheaper and more maintainable than inline styles on
+every decorated element:
+
+```javascript
+const style = document.createElement('style');
+style.textContent = `
+  .bb-token-match {
+    border-bottom: 2px solid var(--bb-domain-color, #f0c800);
+    background: var(--bb-domain-color-bg, rgba(240,200,0,0.1));
+    cursor: help;
+  }
+  .bb-table-halo {
+    position: absolute;
+    border: 2px dashed rgba(0,120,255,0.6);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 2147483646;
+  }
+`;
+document.head.appendChild(style);
+```
+
+CSS custom properties (`--bb-domain-color`) allow per-domain coloring
+without generating unique classes per domain. The Python controller
+sets the color mapping; the JS applies it via
+`element.style.setProperty('--bb-domain-color', color)`.
 
 ## Token-Level Classification
 

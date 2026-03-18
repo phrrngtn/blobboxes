@@ -18,7 +18,17 @@ import { extractBBoxes } from './bbox.js';
 import { startObserver } from './observer.js';
 import { fnv1a, classifyAll } from './classify.js';
 import { highlight, clearHighlights } from './highlight.js';
-import { RoaringBitmap32, roaringLibraryInitialize } from 'roaring-wasm';
+
+// Lazy-loaded roaring-wasm — the lite bundle marks it as external,
+// so a top-level import would crash with "Dynamic require not supported".
+// Instead we load it on first use in loadFilters().
+let _roaring = null;
+function _getRoaring() {
+    if (!_roaring) {
+        _roaring = require('roaring-wasm');
+    }
+    return _roaring;
+}
 
 const state = {
     config: null,
@@ -77,8 +87,9 @@ const blobboxes = {
      * @param {Array<{domain: string, bytes: Uint8Array}>} filterData
      */
     async loadFilters(filterData) {
+        const roaring = _getRoaring();
         if (!state.roaringReady) {
-            await roaringLibraryInitialize();
+            await roaring.roaringLibraryInitialize();
             state.roaringReady = true;
         }
 
@@ -89,7 +100,7 @@ const blobboxes = {
 
         state.filters = filterData.map(f => ({
             domain: f.domain,
-            bitmap: RoaringBitmap32.deserialize("portable", f.bytes),
+            bitmap: roaring.RoaringBitmap32.deserialize("portable", f.bytes),
         }));
     },
 
@@ -103,7 +114,7 @@ const blobboxes = {
         if (state.filters.length === 0) {
             return [];
         }
-        return classifyAll(bboxes, state.filters, RoaringBitmap32);
+        return classifyAll(bboxes, state.filters, _getRoaring().RoaringBitmap32);
     },
 
     /**
@@ -137,7 +148,7 @@ const blobboxes = {
 
     // Access internals for token-level classification
     getFilters() { return state.filters; },
-    RoaringBitmap32,
+    get RoaringBitmap32() { return _getRoaring().RoaringBitmap32; },
 };
 
 // Expose as global for injection via evaluate() / runJavaScript()

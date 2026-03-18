@@ -136,10 +136,10 @@
     }
     return hash >>> 0;
   }
-  function classifyBBox(bbox, filters, RoaringBitmap322) {
+  function classifyBBox(bbox, filters, RoaringBitmap32) {
     const tokens = bbox.text.toLowerCase().split(/\s+/).filter((t) => t.length > 0);
     if (tokens.length === 0) return [];
-    const textBitmap = new RoaringBitmap322();
+    const textBitmap = new RoaringBitmap32();
     for (const token of tokens) {
       textBitmap.add(fnv1a(token));
     }
@@ -156,10 +156,10 @@
     textBitmap.dispose();
     return matches;
   }
-  function classifyAll(bboxes, filters, RoaringBitmap322) {
+  function classifyAll(bboxes, filters, RoaringBitmap32) {
     const results = [];
     for (const bbox of bboxes) {
-      const matches = classifyBBox(bbox, filters, RoaringBitmap322);
+      const matches = classifyBBox(bbox, filters, RoaringBitmap32);
       if (matches.length > 0) {
         results.push({ bbox, matches });
       }
@@ -198,7 +198,13 @@
   }
 
   // src/index.js
-  var import_roaring_wasm = __require("roaring-wasm");
+  var _roaring = null;
+  function _getRoaring() {
+    if (!_roaring) {
+      _roaring = __require("roaring-wasm");
+    }
+    return _roaring;
+  }
   var state = {
     config: null,
     disposeObserver: null,
@@ -252,8 +258,9 @@
      * @param {Array<{domain: string, bytes: Uint8Array}>} filterData
      */
     async loadFilters(filterData) {
+      const roaring = _getRoaring();
       if (!state.roaringReady) {
-        await (0, import_roaring_wasm.roaringLibraryInitialize)();
+        await roaring.roaringLibraryInitialize();
         state.roaringReady = true;
       }
       for (const f of state.filters) {
@@ -261,7 +268,7 @@
       }
       state.filters = filterData.map((f) => ({
         domain: f.domain,
-        bitmap: import_roaring_wasm.RoaringBitmap32.deserialize("portable", f.bytes)
+        bitmap: roaring.RoaringBitmap32.deserialize("portable", f.bytes)
       }));
     },
     /**
@@ -274,7 +281,7 @@
       if (state.filters.length === 0) {
         return [];
       }
-      return classifyAll(bboxes, state.filters, import_roaring_wasm.RoaringBitmap32);
+      return classifyAll(bboxes, state.filters, _getRoaring().RoaringBitmap32);
     },
     /**
      * Highlight classified bboxes with CSS overlays.
@@ -306,7 +313,9 @@
     getFilters() {
       return state.filters;
     },
-    RoaringBitmap32: import_roaring_wasm.RoaringBitmap32
+    get RoaringBitmap32() {
+      return _getRoaring().RoaringBitmap32;
+    }
   };
   if (typeof globalThis !== "undefined") {
     globalThis.blobboxes = blobboxes;

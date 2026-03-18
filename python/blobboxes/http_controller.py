@@ -10,7 +10,7 @@ Architecture (option A):
                                                         → [corporate proxy] → internet
 
 Endpoints:
-    GET  /read?url=...&click=...     → bbox JSON array
+    GET  /read?url=...&click=...     → columnar bbox JSON
     GET  /health                     → {"status": "ok"}
 
 Usage:
@@ -25,22 +25,32 @@ Bifrost and OpenBao. Auth and rate-limiting for callers is handled there,
 not here. This service trusts its callers.
 """
 
+import asyncio
 import json
 import logging
-from dataclasses import asdict
+import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-from blobboxes.browser import BrowserPool
+from blobboxes.browser import BrowserPool, to_columnar
 
 log = logging.getLogger(__name__)
 
-# Module-level persistent browser pool, initialized in serve()
+# Module-level persistent browser pool and event loop.
+# The pool's async methods run on _loop (a dedicated asyncio event loop
+# in a background daemon thread). The sync HTTP handler dispatches to it
+# via asyncio.run_coroutine_threadsafe.
 _pool = None
+_loop = None
+
+
+def _run_async(coro):
+    """Run an async coroutine on the background event loop, blocking until done."""
+    return asyncio.run_coroutine_threadsafe(coro, _loop).result(timeout=120)
 
 
 def _handle_read(params):
-    """Handle a /read request, returning bbox JSON."""
+    """Handle a /read request, returning columnar bbox JSON."""
     url = params.get("url", [None])[0]
     if not url:
         return 400, {"error": "url parameter required"}
@@ -50,15 +60,15 @@ def _handle_read(params):
     width = int(params.get("width", ["1440"])[0])
     height = int(params.get("height", ["900"])[0])
 
-    bboxes = _pool.extract(
+    bboxes, extraction_ms = _run_async(_pool.extract(
         url=url,
         click_selector=click,
         click_wait_ms=wait,
         viewport_width=width,
         viewport_height=height,
-    )
+    ))
 
-    return 200, [asdict(b) for b in bboxes]
+    return 200, to_columnar(url, bboxes, extraction_ms)
 
 
 class BBoxHandler(BaseHTTPRequestHandler):
@@ -90,6 +100,9 @@ def serve(host="127.0.0.1", port=8484, proxy=None):
     """
     Run the HTTP server with a persistent browser pool.
 
+    Creates a background asyncio event loop for the async BrowserPool,
+    then runs the sync HTTP server in the main thread.
+
     Args:
         host: Bind address. Default 127.0.0.1 (localhost only — callers
               should come through the reverse proxy, not directly).
@@ -97,13 +110,17 @@ def serve(host="127.0.0.1", port=8484, proxy=None):
         proxy: Proxy URL for all Chromium outbound traffic,
                e.g. "http://localhost:8080". Required in production.
     """
-    global _pool
+    global _pool, _loop
 
     if proxy is None:
         log.warning(
             "No --proxy specified. Chromium will connect directly to the "
             "internet. This is suitable for development only."
         )
+
+    # Start a background event loop for async Playwright operations.
+    _loop = asyncio.new_event_loop()
+    threading.Thread(target=_loop.run_forever, daemon=True).start()
 
     _pool = BrowserPool(proxy=proxy)
 
@@ -114,7 +131,8 @@ def serve(host="127.0.0.1", port=8484, proxy=None):
     try:
         server.serve_forever()
     finally:
-        _pool.close()
+        _run_async(_pool.close())
+        _loop.call_soon_threadsafe(_loop.stop)
 
 
 if __name__ == "__main__":
