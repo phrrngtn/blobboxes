@@ -134,6 +134,10 @@ const blobboxes = {
 
     // Expose for direct use / testing
     fnv1a,
+
+    // Access internals for token-level classification
+    getFilters() { return state.filters; },
+    RoaringBitmap32,
 };
 
 // Expose as global for injection via evaluate() / runJavaScript()

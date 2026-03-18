@@ -1545,7 +1545,12 @@
       state.config = null;
     },
     // Expose for direct use / testing
-    fnv1a
+    fnv1a,
+    // Access internals for token-level classification
+    getFilters() {
+      return state.filters;
+    },
+    RoaringBitmap32
   };
   if (typeof globalThis !== "undefined") {
     globalThis.blobboxes = blobboxes;

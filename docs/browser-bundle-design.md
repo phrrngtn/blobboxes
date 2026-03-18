@@ -474,6 +474,221 @@ function fnv1a(str) {
   (sub-resource requests flow through normal proxy pipeline)
 - Reified function wrapping the full pipeline as a SQL call
 
+## Token-Level Classification
+
+### From bbox-level to token-level
+
+The initial `classify()` operates at the bbox (text node) level: hash all
+tokens in the text, build a bitmap, probe against domain filters, return
+a score. This works but produces coarse results — a paragraph that
+mentions one vegetable gets the whole bbox tagged `vegetable(0.05)`.
+
+Token-level classification uses `Range.setStart(textNode, offset)` /
+`Range.setEnd(textNode, offset + length)` to get the bounding rect of
+each individual token within a text node. Each token is hashed and
+probed independently. The result is per-word highlighting with precise
+spatial coordinates.
+
+### Punctuation stripping
+
+The whitespace tokenizer splits `"eggplant, zucchini, and pepper"` into
+`["eggplant,", "zucchini,", "and", "pepper"]`. The trailing commas mean
+`fnv1a("eggplant,") != fnv1a("eggplant")` — no match. The fix is to
+strip leading/trailing punctuation before hashing:
+
+```javascript
+const stripPunct = (s) => s.replace(/^[^a-zA-Z0-9$€£¥₹+]+/, '')
+                           .replace(/[^a-zA-Z0-9$€£¥₹+]+$/, '');
+```
+
+The punctuation chars `$€£¥₹+` are preserved because they're meaningful
+in currency and telephone code domains.
+
+### Highlighting via span wrapping (not overlay divs)
+
+Overlay divs positioned with absolute coordinates from `getClientRects()`
+drift when the MHTML is rendered in a different browser (Safari vs
+headless Chromium) due to font metric differences. The correct approach
+is to wrap matched tokens in `<span>` elements directly in the DOM:
+
+```javascript
+// Split the text node at the token boundaries
+const before = text.substring(0, match.index);
+const token = text.substring(match.index, match.end);
+const after = text.substring(match.end);
+
+const span = document.createElement('span');
+span.textContent = token;
+span.style.background = domainColor + '18';  // light tint
+span.style.borderBottom = '2px solid ' + domainColor;
+span.title = token + ' → ' + domains.join(', ');
+
+parent.insertBefore(afterNode, currentNode.nextSibling);
+parent.insertBefore(span, afterNode);
+currentNode.textContent = before;
+```
+
+Process nodes in reverse offset order so earlier character positions
+remain valid after DOM mutation. The highlight *is* the text — zero
+alignment drift, works in any browser.
+
+### Stop word filtering
+
+A stop word bitmap (built identically to domain filters — FNV-1a hashes
+in a roaring bitmap) allows pre-filtering before classification. Common
+words ("the", "and", "is", "a", "of", "in", "to", "for") are removed
+before domain probing, improving scores and reducing noise.
+
+The stop word list is just another domain in blobfilters — same build
+pipeline, same portable serialization, same roaring bitmap. In the
+browser:
+
+```javascript
+// Filter tokens before domain classification
+if (stopWordBitmap.has(fnv1a(token))) continue;  // skip
+```
+
+This is cleaner than filtering after classification because it reduces
+the denominator in score calculations. Without stop word filtering,
+"Chop the eggplant and pepper" scores 2/5 = 0.40 for vegetable.
+With stop word filtering ("the" and "and" removed), it scores
+2/3 = 0.67 — a more accurate signal.
+
+### Suffix expansion at build time
+
+Rather than implementing stemming in both C and JS (which must match
+exactly), expand the domain vocabulary at bitmap build time. A DuckDB
+macro can generate common inflections:
+
+```sql
+-- Expand base vocabulary with common suffixes
+SELECT DISTINCT token FROM (
+    SELECT unnest(tokens) AS token FROM domain_vocab
+    UNION ALL
+    SELECT unnest(tokens) || 's' FROM domain_vocab
+    UNION ALL
+    SELECT unnest(tokens) || 'es' FROM domain_vocab
+    UNION ALL
+    SELECT unnest(tokens) || 'ed' FROM domain_vocab
+    UNION ALL
+    SELECT unnest(tokens) || 'ing' FROM domain_vocab
+)
+```
+
+The bitmaps absorb the cost — a few hundred extra hashes per domain
+is negligible for roaring. This is less relevant when domains are driven
+from database tables (where the actual values are already in the
+vocabulary) but useful for natural-language domains like cooking terms.
+
+## Column-Level Classification (Reverse Probe)
+
+### The intuition
+
+Token-level classification asks: "does this token belong to a known
+domain?" But the stronger question is: "does this *column* match a
+domain?" If you build a roaring bitmap from all tokens in a spatial
+column (tokens clustered at the same x-coordinate), you can test
+column-level containment:
+
+```javascript
+// Build bitmap from all tokens in a spatial column
+const columnBitmap = new RoaringBitmap32();
+for (const token of columnTokens) {
+    columnBitmap.add(fnv1a(token.toLowerCase()));
+}
+
+// Test: what fraction of the domain vocabulary appears in this column?
+const coverage = domainBitmap.andCardinality(columnBitmap) / domainBitmap.size;
+
+// Test: what fraction of the column's tokens are in this domain?
+const purity = domainBitmap.andCardinality(columnBitmap) / columnBitmap.size;
+```
+
+**Coverage** answers: "how much of the domain is represented here?"
+A column with 8 vegetable names covers ~15% of the vegetable domain
+vocabulary — but that's enough to be confident.
+
+**Purity** answers: "how much of this column is in the domain?"
+A column where 8 of 10 tokens hit `vegetable` has 80% purity — clearly
+a vegetable column even with 2 noise tokens.
+
+### SQL-side table detection
+
+Once token-level classification results are returned to DuckDB, table
+structure can be detected via set-based SQL:
+
+```sql
+WITH TOKEN_BBOXES AS (
+    SELECT *,
+        ROW_NUMBER() OVER (ORDER BY y, x) AS reading_order
+    FROM token_classifications
+),
+COLUMN_CANDIDATES AS (
+    -- Tokens with domain matches, bucketed by x-coordinate
+    SELECT *,
+        NTILE(20) OVER (ORDER BY x) AS x_bucket
+    FROM TOKEN_BBOXES
+    WHERE domain IS NOT NULL
+),
+GAPS AS (
+    -- Tokens with NO domain match, positioned between domain tokens
+    -- LEFT OUTER JOIN reveals the negative space
+    SELECT t.*,
+        LAG(d.domain) OVER (ORDER BY t.reading_order) AS prev_domain,
+        LEAD(d.domain) OVER (ORDER BY t.reading_order) AS next_domain,
+        LAG(d.x_bucket) OVER (ORDER BY t.reading_order) AS prev_x_bucket,
+        LEAD(d.x_bucket) OVER (ORDER BY t.reading_order) AS next_x_bucket
+    FROM TOKEN_BBOXES AS t
+    LEFT JOIN COLUMN_CANDIDATES AS d
+        ON t.reading_order = d.reading_order
+    WHERE d.domain IS NULL
+)
+SELECT *,
+    CASE
+        WHEN prev_x_bucket = next_x_bucket THEN 'intra-cell noise'
+        WHEN prev_domain != next_domain THEN 'column boundary'
+        ELSE 'unknown'
+    END AS gap_type
+FROM GAPS
+```
+
+The LEFT OUTER JOIN gives you the negative space — tokens that don't
+match any domain. The window functions reveal what's on either side.
+An unmatched token surrounded by `vegetable` tokens in the same x-bucket
+is intra-cell noise ("and", ","). An unmatched token between different
+domains or x-buckets is a structural boundary.
+
+### The reverse probe in the browser
+
+The column-level bitmap can also be built in the browser via
+roaring-wasm. After snapshot + token classification:
+
+1. Cluster tokens by x-coordinate (simple bucketing or DBSCAN)
+2. For each cluster, build a roaring bitmap of all token hashes
+3. Test `andCardinality(clusterBitmap, domainBitmap)` for each domain
+4. The cluster with highest purity for `vegetable` is the vegetable
+   column; the cluster with highest purity for `cooking_term` is the
+   method column
+
+This is O(clusters × domains) bitmap intersections — microseconds.
+The browser does the spatial clustering and column identification;
+DuckDB does the structural analysis and table assembly.
+
+## Verified End-to-End Performance
+
+Measured in the CDP isolated world (headless Chromium):
+
+| Page | Bboxes | Tokens matched | Snapshot | Classify | Total |
+|---|---|---|---|---|---|
+| Test HTML (61 bboxes) | 61 | 95 | 4.7 ms | 4.1 ms | 8.8 ms |
+| Test HTML (61 bboxes, bbox-level) | 61 | 44 | 5.6 ms | 1.1 ms | 6.7 ms |
+| Wikipedia (3,811 bboxes) | 3,811 | 220 | — | — | — |
+
+Token-level classification is slightly slower than bbox-level (more
+`Range.getClientRects()` calls per text node) but still under 10 ms
+for a 61-bbox page. The WASM bitmap operations are negligible — the
+DOM traversal is the bottleneck.
+
 ## Cross-references
 
 - **blobboxes/docs/browser-table-extraction.md** — HTTP service design,
