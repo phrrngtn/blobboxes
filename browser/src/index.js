@@ -18,12 +18,13 @@ import { extractBBoxes } from './bbox.js';
 import { startObserver } from './observer.js';
 import { fnv1a, classifyAll } from './classify.js';
 import { highlight, clearHighlights } from './highlight.js';
+import { RoaringBitmap32, roaringLibraryInitialize } from 'roaring-wasm';
 
 const state = {
     config: null,
     disposeObserver: null,
     filters: [],
-    RoaringBitmap32: null,
+    roaringReady: false,
 };
 
 const blobboxes = {
@@ -76,10 +77,10 @@ const blobboxes = {
      * @param {Array<{domain: string, bytes: Uint8Array}>} filterData
      */
     async loadFilters(filterData) {
-        // Dynamic import — resolved at bundle time by esbuild
-        const roaring = await import('roaring-wasm');
-        await roaring.roaringLibraryInitialize();
-        state.RoaringBitmap32 = roaring.RoaringBitmap32;
+        if (!state.roaringReady) {
+            await roaringLibraryInitialize();
+            state.roaringReady = true;
+        }
 
         // Dispose any previously loaded filters
         for (const f of state.filters) {
@@ -88,7 +89,7 @@ const blobboxes = {
 
         state.filters = filterData.map(f => ({
             domain: f.domain,
-            bitmap: roaring.RoaringBitmap32.deserialize("portable", f.bytes),
+            bitmap: RoaringBitmap32.deserialize("portable", f.bytes),
         }));
     },
 
@@ -99,10 +100,10 @@ const blobboxes = {
      * @returns {Array<{bbox: Object, matches: Array<{domain: string, score: number}>}>}
      */
     classify(bboxes) {
-        if (!state.RoaringBitmap32 || state.filters.length === 0) {
+        if (state.filters.length === 0) {
             return [];
         }
-        return classifyAll(bboxes, state.filters, state.RoaringBitmap32);
+        return classifyAll(bboxes, state.filters, RoaringBitmap32);
     },
 
     /**
@@ -128,7 +129,6 @@ const blobboxes = {
             f.bitmap.dispose();
         }
         state.filters = [];
-        state.RoaringBitmap32 = null;
         state.config = null;
     },
 
