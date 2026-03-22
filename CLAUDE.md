@@ -12,10 +12,22 @@
 - Python dependencies declared in `pyproject.toml` under `[project] dependencies`
 
 ## Project structure
-- C++ source in `src/`
+- C++ source in `src/`, headers in `include/`
 - Python package in `python/blobboxes/`
+- Browser JS bundle in `browser/` (esbuild, roaring-wasm)
+- DuckDB extension in `duckdb_ext/`
+- SQLite extension in `sqlite_ext/`
 - Build artifacts in `build/` (CMake, including fetched deps like xlnt)
-- Tests: TODO
+- Design docs in `docs/`
+- Tests: `test.py` (Python API), `test_cross_check.sh` (30 integration tests across Python/DuckDB/SQLite for all formats)
+
+## Browser extraction subsystem
+- `python/blobboxes/browser.py` — async BrowserPool + Playwright CDP controller
+- `python/blobboxes/proxy_addon.py` — mitmproxy addon dispatching on `X-BLOBTASTIC-EXTRA-INFO` header
+- `python/blobboxes/run_proxy.py` — CLI launcher for mitmdump with blobboxes addon
+- `python/blobboxes/http_controller.py` — Jina-like HTTP server (`/read`, `/health`) over BrowserPool
+- `browser/src/` — JS bundle: DOM bbox extraction, FNV-1a token hashing, roaring-wasm classification, MutationObserver
+- Two build variants: lite (snapshot only, ~12 KB) and full (includes roaring-wasm WASM inlined)
 
 ## Geometry
 - Using **shapely** (>=2.0) for spatial operations (bbox intersection, point-in-polygon, etc.)

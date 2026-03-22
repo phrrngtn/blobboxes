@@ -202,6 +202,44 @@ bboxes_pdf_destroy();
 
 Every struct iterator has a JSON variant (`bboxes_next_page_json`, etc.) that returns a `const char*` JSON string.
 
+### Browser extraction
+
+For web pages, a JS bundle is injected into headless Chromium via CDP to extract visible text bounding boxes from the live DOM. The bundle uses TreeWalker + Range.getClientRects and optionally classifies tokens against domain-specific roaring bitmaps.
+
+Three Python entry points wrap this:
+
+**BrowserPool** (async Playwright controller):
+
+```python
+from blobboxes.browser import BrowserPool
+
+pool = BrowserPool(proxy="http://localhost:8080")
+await pool.start()
+bboxes, ms = await pool.extract("https://example.com", click_selector="button")
+await pool.stop()
+```
+
+**HTTP controller** (Jina-like `/read` endpoint):
+
+```bash
+uv run python -m blobboxes.http_controller --port 8484 --proxy http://localhost:8080
+curl 'http://localhost:8484/read?url=https://example.com'
+```
+
+**mitmproxy addon** (dispatch on `X-BLOBTASTIC-EXTRA-INFO` header):
+
+```bash
+uv run python -m blobboxes.run_proxy --port 8080
+```
+
+Install browser dependencies with:
+
+```bash
+uv pip install "blobboxes[browser]"
+```
+
+See `docs/browser-bundle-design.md` for architecture details.
+
 ## Building
 
 Requires CMake 3.20+ and a C++17 compiler. Dependencies (PDFium, nlohmann/json, hash-library, xlnt, pugixml, miniz) are fetched automatically via CMake FetchContent.
@@ -240,6 +278,14 @@ cmake --build build
 ```
 
 Runs 30 tests verifying that struct and JSON outputs match across all consumers (Python, DuckDB, SQLite) for all formats (PDF, XLSX, DOCX, text). Uses `EXCEPT` queries to ensure exact equivalence.
+
+## Documentation
+
+Design docs live in `docs/`:
+
+- [browser-bundle-design.md](docs/browser-bundle-design.md) — Bundle architecture, controller patterns, isolation semantics
+- [browser-table-extraction.md](docs/browser-table-extraction.md) — Columnar JSON response format, domain classification pipeline
+- [design-critique.md](docs/design-critique.md) — Good faith objections and genuine weaknesses
 
 ## License
 

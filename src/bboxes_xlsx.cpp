@@ -109,13 +109,29 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                     uint32_t style_id = result.styles.intern(
                         font_id, font_size, color, weight, italic, underline);
 
+                    /* For merged cells, set w/h to the span of the merge range
+                       so that downstream spatial clustering sees the true extent.
+                       NB: this seems right for table detection but is unproven —
+                       may need revisiting if merged headers confuse grid alignment. */
+                    double cell_w = 1.0;
+                    double cell_h = 1.0;
+                    for (const auto& mr : merged) {
+                        auto tl = mr.top_left();
+                        if (tl.column() == col && tl.row() == row) {
+                            auto br = mr.bottom_right();
+                            cell_w = static_cast<double>(br.column().index - col.index + 1);
+                            cell_h = static_cast<double>(br.row() - row + 1);
+                            break;
+                        }
+                    }
+
                     BBox bb;
                     bb.page_id  = page.page_id;
                     bb.style_id = style_id;
                     bb.x = static_cast<double>(col.index);
                     bb.y = static_cast<double>(row);
-                    bb.w = 1.0;
-                    bb.h = 1.0;
+                    bb.w = cell_w;
+                    bb.h = cell_h;
                     bb.text = cell.to_string();
                     if (cell.has_formula())
                         bb.formula = "=" + cell.formula();
