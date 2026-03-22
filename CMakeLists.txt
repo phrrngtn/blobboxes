@@ -173,6 +173,7 @@ if(BUILD_PYTHON_BINDINGS)
   set_target_properties(blobboxes_ext PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/blobboxes")
   bboxes_runtime(blobboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+  install(TARGETS blobboxes_ext LIBRARY DESTINATION blobboxes)
 endif()
 
 # ── DuckDB C API headers ─────────────────────────────────────────────
