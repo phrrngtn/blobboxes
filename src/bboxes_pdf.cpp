@@ -42,14 +42,72 @@ static bool same_style(const CharInfo& a, const CharInfo& b) {
     return a.style_id == b.style_id;
 }
 
+/* Determine whether two characters are on the same visual line.
+   Compares top-edge positions with a tolerance of half the line height.
+
+   The line_height estimate prefers the character's bbox height (bottom - top),
+   falling back to font_size.  When font_size is reliable (> 1.0) and larger
+   than the bbox height, we use font_size instead — this handles cases where
+   the bbox is a partial glyph (e.g. a period or comma whose rendered height
+   is much smaller than the font's line height).
+
+   FRAGILE: the 0.5× tolerance assumes single-spaced text.  Superscripts and
+   subscripts whose top offset exceeds half the line height will be treated as
+   separate lines.  This is usually correct (footnote markers, exponents) but
+   will break for PDFs that render fractions as stacked inline glyphs. */
 static bool same_line(const CharInfo& a, const CharInfo& b) {
     double line_height = a.bottom - a.top;
     if (line_height <= 0) line_height = a.font_size;
+    double fs = a.font_size;
+    if (fs > 1.0 && fs > line_height) line_height = fs;
     return std::fabs(a.top - b.top) < line_height * 0.5;
 }
 
+/* Conservative character-gap test: should these two adjacent characters
+   be part of the same bbox?
+
+   Design decision: this layer is deliberately conservative.  It only
+   merges characters that are unambiguously part of the same glyph run
+   (inter-character gaps typical of kerning and proportional spacing).
+   Anything wider — including normal inter-word spaces — breaks the run
+   and starts a new bbox.
+
+   The rationale: too many bboxes is a better failure mode than too few.
+   Downstream SQL/Python can always merge adjacent bboxes on the same
+   line (it's a linear window-function scan over sorted coordinates).
+   But if the C++ layer merges two table cells into one bbox, the column
+   boundary is destroyed and can't be recovered without re-parsing text.
+
+   The 0.35× font_size threshold is the original value and matches the
+   typical inter-character gap in proportional fonts (0.05–0.25× em).
+   Inter-word gaps are typically 0.3–0.5× em, so they will produce a
+   new bbox.  This means every word becomes its own bbox — that's fine,
+   the downstream coalescing layer has the full spatial context (column
+   alignment, row structure) to decide which words belong together.
+
+   FPDFText_GetFontSize returns the raw font dictionary size, which is
+   often 1.0 when the actual rendered size comes from the text matrix
+   (Tm) rather than the font resource.  This is common in government
+   forms (IRS W-4), Adobe InDesign exports, and some LaTeX-generated
+   PDFs.  When font_size is 1.0, the 0.35× threshold collapses to
+   0.35 points and nothing coalesces — every character becomes its own
+   bbox.  Fix: fall back to the character's bbox height (bottom - top),
+   which always reflects the rendered size.  We also fall back when
+   char_h drastically exceeds font_size (> 1.5×), which happens when
+   font_size is a small "design unit" and the text matrix scales it up.
+
+   FRAGILE: if a PDF genuinely has 1pt text (fine-print footnotes), this
+   heuristic uses bbox height instead, which should be similar.  But if
+   bbox height is inflated by a large descender/ascender on a particular
+   glyph, the threshold will be too generous and may merge characters
+   that should be separate.  We haven't seen this in practice. */
 static bool gap_ok(const CharInfo& prev, const CharInfo& cur) {
-    return (cur.left - prev.right) < prev.font_size * 0.35;
+    double gap = cur.left - prev.right;
+    double fs = prev.font_size;
+    double char_h = prev.bottom - prev.top;
+    if (char_h > 0 && (fs <= 1.0 || char_h > fs * 1.5))
+        fs = char_h;
+    return gap < fs * 0.35;
 }
 
 /* ── extract one page ───────────────────────────────────────────────── */

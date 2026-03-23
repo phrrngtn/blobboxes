@@ -203,7 +203,7 @@ if(BUILD_DUCKDB_EXTENSION)
   add_custom_command(TARGET bboxes_duckdb POST_BUILD
     COMMAND ${PYTHON_EXE} "${CMAKE_SOURCE_DIR}/duckdb_ext/append_metadata.py"
       "$<TARGET_FILE:bboxes_duckdb>"
-      "$<TARGET_FILE_DIR:bboxes_duckdb>/blobboxes.duckdb_extension"
+      "$<TARGET_FILE_DIR:bboxes_duckdb>/bboxes.duckdb_extension"
     COMMENT "Appending DuckDB extension metadata")
 endif()
 

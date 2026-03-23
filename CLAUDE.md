@@ -8,8 +8,22 @@
 
 ## Build system
 - Uses scikit-build-core with nanobind (C++ extensions)
+- CMake configure: `cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_XLSX_BACKEND=ON -DBUILD_PYTHON_BINDINGS=ON -DBUILD_DUCKDB_EXTENSION=ON`
 - CMake build: `cmake --build build`
 - Python dependencies declared in `pyproject.toml` under `[project] dependencies`
+
+## DuckDB extension
+- Load with: `duckdb -unsigned` then `LOAD 'build/duckdb/bboxes.duckdb_extension';`
+- **Always use `-unsigned`** — the extension is locally built and not signed
+- Function naming: `bb_*` for auto-detect, `bb_pdf_*`, `bb_xlsx_*`, `bb_text_*`, `bb_docx_*` for explicit format
+- Table functions (return rows):
+  - `bb(path)` / `bb_pdf(path)` / `bb_xlsx(path)` / ... — bounding boxes: `(page_id, style_id, x, y, w, h, text, formula)`
+  - `bb_doc(path)` — document metadata: `(document_id, source_type, filename, checksum, page_count)`
+  - `bb_pages(path)` — page dimensions: `(page_id, document_id, page_number, width, height)`
+  - `bb_fonts(path)` — font table: `(font_id, name)`
+  - `bb_styles(path)` — style table: `(style_id, font_id, font_size, color, weight, italic, underline)`
+- JSON scalar functions: `bb_json(path)`, `bb_doc_json(path)`, etc. — return JSON strings
+- Coordinate semantics vary by format (see `docs/bbox-as-universal-ir.md`)
 
 ## Project structure
 - C++ source in `src/`, headers in `include/`

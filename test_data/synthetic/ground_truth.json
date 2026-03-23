@@ -1,0 +1,296 @@
+{
+  "01_sales_simple.pdf": [
+    {
+      "table_id": "sales_simple",
+      "description": "Simple sales table with clear headers and uniform data",
+      "header_row": 0,
+      "num_data_rows": 8,
+      "num_cols": 6,
+      "columns": [
+        {
+          "name": "Region",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Product",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Q1 Sales",
+          "col_index": 2,
+          "dtype": "currency"
+        },
+        {
+          "name": "Q2 Sales",
+          "col_index": 3,
+          "dtype": "currency"
+        },
+        {
+          "name": "Q3 Sales",
+          "col_index": 4,
+          "dtype": "currency"
+        },
+        {
+          "name": "Total",
+          "col_index": 5,
+          "dtype": "currency"
+        }
+      ],
+      "difficulty": "easy"
+    }
+  ],
+  "02_employee_simple.pdf": [
+    {
+      "table_id": "employee_directory",
+      "description": "Employee directory with mixed types",
+      "header_row": 0,
+      "num_data_rows": 6,
+      "num_cols": 5,
+      "columns": [
+        {
+          "name": "ID",
+          "col_index": 0,
+          "dtype": "numeric"
+        },
+        {
+          "name": "Name",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Department",
+          "col_index": 2,
+          "dtype": "string"
+        },
+        {
+          "name": "Start Date",
+          "col_index": 3,
+          "dtype": "date"
+        },
+        {
+          "name": "Salary",
+          "col_index": 4,
+          "dtype": "currency"
+        }
+      ],
+      "difficulty": "easy"
+    }
+  ],
+  "03_inventory_titled.pdf": [
+    {
+      "table_id": "inventory_with_title",
+      "description": "Table preceded by a title and subtitle \u2014 headers are NOT row 0",
+      "header_row": 0,
+      "num_data_rows": 5,
+      "num_cols": 6,
+      "columns": [
+        {
+          "name": "SKU",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Description",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Location",
+          "col_index": 2,
+          "dtype": "string"
+        },
+        {
+          "name": "Qty On Hand",
+          "col_index": 3,
+          "dtype": "numeric"
+        },
+        {
+          "name": "Reorder Point",
+          "col_index": 4,
+          "dtype": "numeric"
+        },
+        {
+          "name": "Unit Cost",
+          "col_index": 5,
+          "dtype": "currency"
+        }
+      ],
+      "difficulty": "medium"
+    }
+  ],
+  "04_multi_table.pdf": [
+    {
+      "table_id": "summary_metrics",
+      "description": "Summary Metrics",
+      "header_row": 0,
+      "num_data_rows": 5,
+      "num_cols": 2,
+      "columns": [
+        {
+          "name": "Metric",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Value",
+          "col_index": 1,
+          "dtype": "numeric"
+        }
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "table_id": "quarterly_breakdown",
+      "description": "Quarterly Breakdown",
+      "header_row": 0,
+      "num_data_rows": 4,
+      "num_cols": 4,
+      "columns": [
+        {
+          "name": "Quarter",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Revenue",
+          "col_index": 1,
+          "dtype": "currency"
+        },
+        {
+          "name": "Expenses",
+          "col_index": 2,
+          "dtype": "currency"
+        },
+        {
+          "name": "Margin %",
+          "col_index": 3,
+          "dtype": "numeric"
+        }
+      ],
+      "difficulty": "hard"
+    }
+  ],
+  "05_countries_footnotes.pdf": [
+    {
+      "table_id": "sparse_with_notes",
+      "description": "Table with blank cells, footnote markers, and irregular spacing",
+      "header_row": 0,
+      "num_data_rows": 7,
+      "num_cols": 5,
+      "columns": [
+        {
+          "name": "Country",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Capital",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Population (M)",
+          "col_index": 2,
+          "dtype": "numeric"
+        },
+        {
+          "name": "GDP ($B)",
+          "col_index": 3,
+          "dtype": "numeric"
+        },
+        {
+          "name": "HDI",
+          "col_index": 4,
+          "dtype": "numeric"
+        }
+      ],
+      "difficulty": "hard"
+    }
+  ],
+  "06_sales_simple.xlsx": [
+    {
+      "table_id": "sales_simple",
+      "description": "Simple sales table with clear headers and uniform data",
+      "header_row": 0,
+      "num_data_rows": 8,
+      "num_cols": 6,
+      "columns": [
+        {
+          "name": "Region",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Product",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Q1 Sales",
+          "col_index": 2,
+          "dtype": "currency"
+        },
+        {
+          "name": "Q2 Sales",
+          "col_index": 3,
+          "dtype": "currency"
+        },
+        {
+          "name": "Q3 Sales",
+          "col_index": 4,
+          "dtype": "currency"
+        },
+        {
+          "name": "Total",
+          "col_index": 5,
+          "dtype": "currency"
+        }
+      ],
+      "difficulty": "easy"
+    }
+  ],
+  "07_inventory_titled.xlsx": [
+    {
+      "table_id": "inventory_with_title",
+      "description": "Table preceded by a title and subtitle \u2014 headers are NOT row 0",
+      "header_row": 3,
+      "num_data_rows": 5,
+      "num_cols": 6,
+      "columns": [
+        {
+          "name": "SKU",
+          "col_index": 0,
+          "dtype": "string"
+        },
+        {
+          "name": "Description",
+          "col_index": 1,
+          "dtype": "string"
+        },
+        {
+          "name": "Location",
+          "col_index": 2,
+          "dtype": "string"
+        },
+        {
+          "name": "Qty On Hand",
+          "col_index": 3,
+          "dtype": "numeric"
+        },
+        {
+          "name": "Reorder Point",
+          "col_index": 4,
+          "dtype": "numeric"
+        },
+        {
+          "name": "Unit Cost",
+          "col_index": 5,
+          "dtype": "currency"
+        }
+      ],
+      "difficulty": "medium"
+    }
+  ]
+}
