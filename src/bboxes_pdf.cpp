@@ -8,8 +8,16 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 #include <string>
 #include <vector>
+
+/* PDFium is not thread-safe for document operations.  All calls that
+   load/parse/close documents or extract text must be serialized.
+   This mutex protects the entire extract_page / extract_page_objects
+   call chains.  The cost is negligible — PDF extraction is I/O and
+   parse-bound, not contention-bound. */
+static std::mutex g_pdfium_mutex;
 
 /* ── helpers ────────────────────────────────────────────────────────── */
 
@@ -333,6 +341,7 @@ void bboxes_pdf_destroy(void) { FPDF_DestroyLibrary(); }
 
 BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
                         int start_page, int end_page) {
+    std::lock_guard<std::mutex> lock(g_pdfium_mutex);
     BBoxResult result;
     result.source_type = "pdf";
 
@@ -367,6 +376,7 @@ BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
 /* Object-level variant — uses FPDFPage_GetObject instead of char-by-char */
 BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password,
                                 int start_page, int end_page) {
+    std::lock_guard<std::mutex> lock(g_pdfium_mutex);
     BBoxResult result;
     result.source_type = "pdf";
 
