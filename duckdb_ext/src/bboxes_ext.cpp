@@ -40,7 +40,8 @@ static const char* format_name(Format fmt) {
         case BBOXES_FORMAT_PDF:   return "PDF";
         case BBOXES_FORMAT_XLSX:  return "XLSX";
         case BBOXES_FORMAT_TEXT:  return "text";
-        case BBOXES_FORMAT_DOCX:  return "DOCX";
+        case BBOXES_FORMAT_DOCX:         return "DOCX";
+        case BBOXES_FORMAT_PDF_OBJECTS:  return "PDF (objects)";
     }
     return "unknown";
 }
@@ -418,7 +419,7 @@ struct FormatInfo {
 
 static Format s_fmts[] = {
     BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
-    BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX
+    BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS
 };
 
 static ScalarDesc s_scalars[][5] = {
@@ -452,14 +453,21 @@ static ScalarDesc s_scalars[][5] = {
       {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},
       {BBOXES_FORMAT_DOCX, bboxes_get_styles_json},
       {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json} },
+    /* PDF_OBJECTS */
+    { {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_doc_json},
+      {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_pages_json},
+      {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json},
+      {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json} },
 };
 
 static const FormatInfo s_formats[] = {
-    { "bb",      BBOXES_FORMAT_AUTO, true  },
-    { "bb_pdf",  BBOXES_FORMAT_PDF,  false },
-    { "bb_xlsx", BBOXES_FORMAT_XLSX, false },
-    { "bb_text", BBOXES_FORMAT_TEXT, false },
-    { "bb_docx", BBOXES_FORMAT_DOCX, false },
+    { "bb",      BBOXES_FORMAT_AUTO,        true  },
+    { "bb_pdf",  BBOXES_FORMAT_PDF,         false },
+    { "bb_xlsx", BBOXES_FORMAT_XLSX,        false },
+    { "bb_text", BBOXES_FORMAT_TEXT,        false },
+    { "bb_docx", BBOXES_FORMAT_DOCX,        false },
+    { "bb_objs", BBOXES_FORMAT_PDF_OBJECTS, false },
 };
 
 static const char* s_table_suffixes[] = { "_doc", "_pages", "_fonts", "_styles", "" };
@@ -474,7 +482,7 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     bboxes_pdf_init();
     bboxes_xlsx_init();
 
-    for (int fi = 0; fi < 5; fi++) {
+    for (int fi = 0; fi < 6; fi++) {
         const FormatInfo& f = s_formats[fi];
         Format* fmt_ptr = &s_fmts[fi];
 

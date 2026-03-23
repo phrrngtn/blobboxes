@@ -3,6 +3,7 @@
 
 #include <fpdfview.h>
 #include <fpdf_text.h>
+#include <fpdf_edit.h>
 
 #include <cmath>
 #include <cstdio>
@@ -207,6 +208,124 @@ static void extract_page(FPDF_DOCUMENT doc, int pi,
     FPDF_ClosePage(page);
 }
 
+/* ── Object-level page extraction ──────────────────────────────────────
+   Uses FPDFPage_GetObject / FPDFTextObj_GetText instead of iterating
+   characters one at a time.  Each PDF text object is typically a word
+   or short phrase — the PDF's own text runs.  This avoids the per-char
+   GetCharBox/GetFontInfo/GetFillColor calls and the coalescing loop.
+
+   Trade-off: no sub-word positioning (can't split "Q1Sales" if the PDF
+   encodes it as one text object).  But for born-digital PDFs, text
+   objects almost always correspond to natural word boundaries. */
+
+static void extract_page_objects(FPDF_DOCUMENT doc, int pi,
+                                  FontTable& fonts, StyleTable& styles,
+                                  Page& out_page) {
+    FPDF_PAGE page = FPDF_LoadPage(doc, pi);
+    if (!page) return;
+
+    out_page.width  = FPDF_GetPageWidth(page);
+    out_page.height = FPDF_GetPageHeight(page);
+    double page_height = out_page.height;
+
+    /* Need a TEXTPAGE for FPDFTextObj_GetText */
+    FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
+
+    int obj_count = FPDFPage_CountObjects(page);
+
+    for (int oi = 0; oi < obj_count; ++oi) {
+        FPDF_PAGEOBJECT obj = FPDFPage_GetObject(page, oi);
+        if (FPDFPageObj_GetType(obj) != FPDF_PAGEOBJ_TEXT) continue;
+
+        /* ── Text content ── */
+        /* First call with NULL to get required buffer length */
+        unsigned long text_len = FPDFTextObj_GetText(obj, text_page, NULL, 0);
+        if (text_len <= 2) continue;  /* empty or just null terminator (UTF-16) */
+
+        std::vector<unsigned short> utf16(text_len);
+        FPDFTextObj_GetText(obj, text_page, utf16.data(), text_len);
+
+        /* Convert UTF-16 to UTF-8, skip whitespace-only */
+        std::string text;
+        for (unsigned long k = 0; k < text_len - 1; ++k) {
+            unsigned int cp = utf16[k];
+            /* Handle surrogate pairs */
+            if (cp >= 0xD800 && cp <= 0xDBFF && k + 1 < text_len - 1) {
+                unsigned int lo = utf16[k + 1];
+                if (lo >= 0xDC00 && lo <= 0xDFFF) {
+                    cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                    ++k;
+                }
+            }
+            if (cp == 0) break;
+            append_codepoint(text, cp);
+        }
+
+        /* Trim trailing whitespace */
+        while (!text.empty() && (text.back() == ' ' || text.back() == '\t'
+                                 || text.back() == '\r' || text.back() == '\n'))
+            text.pop_back();
+        /* Trim leading whitespace */
+        size_t start = 0;
+        while (start < text.size() && (text[start] == ' ' || text[start] == '\t'))
+            ++start;
+        if (start > 0) text.erase(0, start);
+
+        if (text.empty()) continue;
+
+        /* ── Bounding box ── */
+        float left, bottom, right, top;
+        if (!FPDFPageObj_GetBounds(obj, &left, &bottom, &right, &top)) continue;
+
+        double bb_x = static_cast<double>(left);
+        double bb_y = page_height - static_cast<double>(top);
+        double bb_w = static_cast<double>(right - left);
+        double bb_h = static_cast<double>(top - bottom);
+
+        /* ── Font / style ── */
+        FPDF_FONT font = FPDFTextObj_GetFont(obj);
+        char font_name_buf[256] = {};
+        if (font) {
+            FPDFFont_GetFamilyName(font, font_name_buf, sizeof(font_name_buf));
+        }
+        float font_size_f = 0;
+        FPDFTextObj_GetFontSize(obj, &font_size_f);
+        double font_size = static_cast<double>(font_size_f);
+        /* Font size fallback: use bbox height if reported size is bogus */
+        if (font_size <= 1.0 && bb_h > 1.0) font_size = bb_h;
+
+        int font_flags = font ? FPDFFont_GetFlags(font) : 0;
+        bool bold   = (font_flags >> 18) & 1;
+        /* Also check font weight as a fallback for bold detection */
+        if (!bold && font) {
+            int weight = FPDFFont_GetWeight(font);
+            if (weight >= 700) bold = true;
+        }
+        bool italic = (font_flags >> 6) & 1;
+
+        unsigned int r = 0, g = 0, b = 0, a = 255;
+        FPDFPageObj_GetFillColor(obj, &r, &g, &b, &a);
+
+        uint32_t fid = fonts.intern(font_name_buf);
+        std::string weight = bold ? "bold" : "normal";
+        std::string color  = color_string(r, g, b, a);
+        uint32_t sid = styles.intern(fid, font_size, color, weight, italic, false);
+
+        BBox bb;
+        bb.page_id  = out_page.page_id;
+        bb.style_id = sid;
+        bb.x = bb_x;
+        bb.y = bb_y;
+        bb.w = bb_w;
+        bb.h = bb_h;
+        bb.text = std::move(text);
+        out_page.bboxes.push_back(std::move(bb));
+    }
+
+    if (text_page) FPDFText_ClosePage(text_page);
+    FPDF_ClosePage(page);
+}
+
 /* ── public backend API ─────────────────────────────────────────────── */
 
 void bboxes_pdf_init(void)    { FPDF_InitLibrary(); }
@@ -238,6 +357,40 @@ BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
         page.width       = 0;
         page.height      = 0;
         extract_page(doc, pi, result.fonts, result.styles, page);
+        result.pages.push_back(std::move(page));
+    }
+
+    FPDF_CloseDocument(doc);
+    return result;
+}
+
+/* Object-level variant — uses FPDFPage_GetObject instead of char-by-char */
+BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password,
+                                int start_page, int end_page) {
+    BBoxResult result;
+    result.source_type = "pdf";
+
+    FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
+    if (!doc) {
+        result.page_count = -1;
+        return result;
+    }
+
+    int total = FPDF_GetPageCount(doc);
+    result.page_count = total;
+
+    int sp = (start_page >= 1 ? start_page : 1) - 1;
+    int ep = (end_page   >= 1 ? end_page : total) - 1;
+    if (ep >= total) ep = total - 1;
+
+    for (int pi = sp; pi <= ep; ++pi) {
+        Page page;
+        page.page_id     = static_cast<uint32_t>(result.pages.size());
+        page.document_id = 0;
+        page.page_number = pi + 1;
+        page.width       = 0;
+        page.height      = 0;
+        extract_page_objects(doc, pi, result.fonts, result.styles, page);
         result.pages.push_back(std::move(page));
     }
 

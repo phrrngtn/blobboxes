@@ -105,6 +105,15 @@ struct BBoxesCursor : CursorBase {
     }
 };
 
+struct BBoxesPdfObjCursor : CursorBase {
+    BBoxesPdfObjCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
+        cur = bboxes_open_pdf_objects(buf.data(), buf.size(),
+                                      pw ? pw->c_str() : nullptr, sp, ep);
+        if (!cur) throw nb::value_error("bad PDF");
+    }
+};
+
 struct BBoxesXlsxCursor : CursorBase {
     BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
@@ -206,6 +215,18 @@ NB_MODULE(blobboxes_ext, m) {
         .def("styles", &BBoxesCursor::styles)
         .def("bboxes", &BBoxesCursor::bboxes)
         .def("close", &BBoxesCursor::close);
+
+    /* PDF object-level cursor (for interactive exploration) */
+    nb::class_<BBoxesPdfObjCursor>(m, "BBoxesPdfObjCursor")
+        .def(nb::init<nb::bytes, std::optional<std::string>, int, int>(),
+             nb::arg("data"), nb::arg("password") = nb::none(),
+             nb::arg("start_page") = 0, nb::arg("end_page") = 0)
+        .def("doc", &BBoxesPdfObjCursor::doc)
+        .def("pages", &BBoxesPdfObjCursor::pages)
+        .def("fonts", &BBoxesPdfObjCursor::fonts)
+        .def("styles", &BBoxesPdfObjCursor::styles)
+        .def("bboxes", &BBoxesPdfObjCursor::bboxes)
+        .def("close", &BBoxesPdfObjCursor::close);
 
     /* XLSX cursor */
     nb::class_<BBoxesXlsxCursor>(m, "BBoxesXlsxCursor")

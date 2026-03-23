@@ -123,6 +123,12 @@ struct BBoxResult {
 BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
                         int start_page, int end_page);
 
+/* Object-level PDF extraction: one bbox per PDF text object (word/phrase).
+   Slower than char-by-char but produces clean text without downstream merging.
+   Useful for interactive exploration. */
+BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password,
+                                int start_page, int end_page);
+
 BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                          int start_page, int end_page);
 

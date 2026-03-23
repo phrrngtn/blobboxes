@@ -81,6 +81,12 @@ bboxes_cursor* bboxes_open_pdf(const void* buf, size_t len,
                                 const char* password,
                                 int start_page, int end_page);
 
+/* Object-level PDF: one bbox per text object (word/phrase).
+   Clean text without downstream merging — for interactive exploration. */
+bboxes_cursor* bboxes_open_pdf_objects(const void* buf, size_t len,
+                                        const char* password,
+                                        int start_page, int end_page);
+
 bboxes_cursor* bboxes_open_xlsx(const void* buf, size_t len,
                                  const char* password,
                                  int start_page, int end_page);
@@ -118,11 +124,12 @@ const char* bboxes_get_bboxes_json(bboxes_cursor* cursor);
 void bboxes_close(bboxes_cursor* cursor);
 
 /* ── format codes for bboxes_open_format() ──────────────────────── */
-#define BBOXES_FORMAT_AUTO  0
-#define BBOXES_FORMAT_PDF   1
-#define BBOXES_FORMAT_XLSX  2
-#define BBOXES_FORMAT_TEXT  3
-#define BBOXES_FORMAT_DOCX  4
+#define BBOXES_FORMAT_AUTO         0
+#define BBOXES_FORMAT_PDF          1
+#define BBOXES_FORMAT_XLSX         2
+#define BBOXES_FORMAT_TEXT         3
+#define BBOXES_FORMAT_DOCX         4
+#define BBOXES_FORMAT_PDF_OBJECTS  5  /* object-level PDF: one bbox per text object */
 
 bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
 
