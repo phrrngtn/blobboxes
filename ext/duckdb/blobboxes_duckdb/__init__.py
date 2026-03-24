@@ -11,7 +11,7 @@ def extension_path() -> str:
     Usage:
         LOAD '<path>';  -- in DuckDB with allow_unsigned_extensions
     """
-    ext = _HERE / "blobboxes.duckdb_extension"
+    ext = _HERE / "bboxes.duckdb_extension"
     if not ext.exists():
         raise FileNotFoundError(f"Extension not found at {ext}")
     return str(ext)

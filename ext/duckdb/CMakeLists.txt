@@ -102,12 +102,12 @@ if(Python3_FOUND)
     COMMAND ${Python3_EXECUTABLE}
       "${BB_ROOT}/duckdb_ext/append_metadata.py"
       "$<TARGET_FILE:bboxes_duckdb>"
-      "$<TARGET_FILE_DIR:bboxes_duckdb>/blobboxes.duckdb_extension"
+      "$<TARGET_FILE_DIR:bboxes_duckdb>/bboxes.duckdb_extension"
     COMMENT "Appending DuckDB extension metadata")
 endif()
 
 # Install the .duckdb_extension and libpdfium into the Python package directory
-install(FILES "$<TARGET_FILE_DIR:bboxes_duckdb>/blobboxes.duckdb_extension"
+install(FILES "$<TARGET_FILE_DIR:bboxes_duckdb>/bboxes.duckdb_extension"
   DESTINATION blobboxes_duckdb)
 install(FILES "${pdfium_SOURCE_DIR}/lib/libpdfium${CMAKE_SHARED_LIBRARY_SUFFIX}"
   DESTINATION blobboxes_duckdb)
