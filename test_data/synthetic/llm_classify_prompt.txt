@@ -1,0 +1,344 @@
+I have 304 text tokens extracted from scientific/medical PDF documents
+that were NOT matched by any existing domain filter. These are tokens that appeared
+in table cells and body text after filtering out numbers, dates, codes, and known
+domain members.
+
+Existing domains I already have (do NOT suggest these):
+academic_disciplines, academic_degrees, admin_regions, airports, animals,
+boolean_labels, building_types, canadian_provinces, chemical_elements, colors,
+compass, companies_sp500, continents, countries, country_iso2, country_iso3,
+country_names, crime_categories, currencies, days_long, days_short, diseases,
+ethnic_groups, family_names, file_formats, food_items, gender, given_names,
+government_agencies, http_methods, industries, land_use, legal_forms,
+languages_major, materials, medical_specialties, medical_tests, medications,
+mime_types_common, months_long, months_short, nationalities, occupations,
+plants, programming_languages, quarters, religions, school_types, software,
+sports, status_values, stock_exchanges, symptoms, units_of_measurement,
+universities, us_census_race, us_cities_major, us_counties, us_state_abbrev,
+us_states, utility_types, vehicle_makes, world_cities, world_countries
+
+Here are the unresolved tokens (one per line):
+ABSTRACT
+AFRL
+AMPA
+ARDS
+Abdelmelek
+Abnormal
+Abou
+Absalom
+Absolute
+Absorption
+Academic
+Academy
+Accepted
+Access
+According
+Acknowledgments
+Action
+Activation
+Activities
+Activity
+Acute
+Adang
+Additional
+Adey
+Adjunctive
+Adolescents
+Adult
+Advances
+Adverse
+Aerosp
+Affect
+Affects
+Aggregation
+Airlie
+Aissanou
+Akinosoglou
+Aksen
+Akyel
+Alanazi
+Alanine
+Aldhuwayhi
+Alert
+Alfaro
+Algassim
+Alipov
+Alkis
+Alnahdi
+Altamirano
+Alter
+Although
+Always
+Ambati
+Amlodipine
+Among
+Amplitude
+Anaesthesiol
+Anal
+Analgesia
+Analyzing
+Andermatt
+Anemia
+Anesthesia
+Another
+Ansari
+Anti
+Antioxidants
+Antithrombotic
+Antonakos
+Antoniadou
+Application
+Approximately
+Arbous
+Arrhythmias
+Aschner
+Asghari
+Aspartate
+Aspects
+Assessing
+Assessment
+Associated
+Associations
+Atherothrombosis
+Atmospheric
+Atri
+Atrial
+Attacks
+Attributed
+Attribution
+Atukeren
+Autoimmune
+Autonomic
+Availability
+Avendano
+Aziz
+Azzouz
+BGUIR
+BRH/DBE
+Background
+Badaloo
+Baeza
+Baffling
+Baghdasaryan
+Balmori
+Bandala
+Bandara
+Bank
+Baranski
+Barathwal
+Barends
+Barnabei
+Basis
+Because
+Beddou
+Before
+Behav
+Behavior
+Behavioral
+Behavioural
+Behosh
+Belacy
+Belonoshko
+Belpomme
+Belyaev
+Beneficial
+Bernabei
+Betskii
+Betteridge
+Beverly
+Beyond
+Bidon
+Bikdeli
+Bilgin
+Binds
+BioInitiative
+BioRxiv
+Bioeffects
+Bioelectromagnetic
+Bioelectromagnetics
+Bioinitiative
+Biol
+Biological
+Biologically
+Biomed
+Biophys
+Biosciences
+Biotechnol
+Blackman
+Blockers
+Blood
+Blood?
+Body
+Bohula
+Bonilla
+Borland
+Bortkiewicz
+Boudraham
+Bourboulis
+Boussier
+Boyd
+Brain
+Brazzi
+Briggs
+British
+Broadening
+Brodtkorb
+Brown3
+Bruzzese
+Buchner
+Burgio
+Busana
+Buschmann
+CCBs
+COVID
+Caironi
+Captures
+Cardiac
+Cardiol
+Cardiovasc
+Cardiovascular
+Care
+Carilion
+Carrasco
+Cerebral
+Children
+Clini
+Clinical
+Clinics
+Colin
+Coma
+Commons
+Complete
+Comprehensive
+Conclusion
+Conflicts
+Consent
+Continuous
+Copyright
+Cornell
+Correspondence
+Cortes
+Country
+Crasto
+Crawford
+Creatinine
+Critical
+Culture
+Current
+Dalziel
+Data
+Department
+Dexmede
+Dexmedetomidine
+Discontinuation
+Discussion
+Disorders
+Dobesberger
+Does
+Dose
+Drugs
+Dysfunction
+Eight
+Emergency
+Environmental
+Epilepsy
+Epileptic
+Essays
+Farooq
+Figure
+Following
+Frank
+From
+Frontiers
+Furyk
+GABA
+Gamble
+Giovannitti
+Given
+Glucose
+Hannivoort
+Hematocrit
+Hernández
+High
+Hindawi
+Hospital
+Hyperactive
+Illness
+Improvement
+Infection
+Information
+Initial
+Intensive
+Interest
+Intravenous
+Introduction
+Investigators
+Jaime
+Jesus
+Journal
+Kapur
+Karagianni
+Kaur
+Khalid
+Kingdom
+Kiran
+LMNA
+Laboratory
+Lamin
+Lancet
+Lazopoulou
+Leve
+Leveti
+Levetirace
+Levetiracetam
+License
+Linares
+Loading
+Lymphocytes
+Lyttle
+Maciel
+Mech
+Memorial
+Michelakou
+Micov
+Multiple
+NETT
+Negative
+Neurological
+Never
+Nicole
+Occasions
+Often
+Olmos
+Over
+Oxcarbazepine
+PECARN
+Population
+Prospects
+Report
+States
+Statistics
+UNDP
+United
+World
+current
+
+For each token, classify it as ONE of:
+- An existing domain name from the list above (if I missed it)
+- A NEW domain category that would be useful to add (suggest a name)
+- "common_english" if it's just a regular English word (not a proper noun or domain term)
+- "fragment" if it's a broken/partial word
+- "person_name" if it's a person's name (first or last)
+
+Return your answer as a JSON object where:
+- Keys are the suggested NEW domain names (not existing ones)
+- Values are arrays of the tokens that belong to that domain
+- Include a "common_english" key for regular words
+- Include a "person_name" key for names
+- Include a "fragment" key for broken words
+- Include "already_covered" with sub-keys for existing domains I should have caught
+
+Only suggest new domains that would have at least 3 members from these tokens
+AND would be useful for classifying table column values in general documents.
+
+Return ONLY the JSON, no explanation.
