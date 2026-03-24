@@ -12,8 +12,7 @@ EXPECTED_FUNCTIONS = [
     "bb_info",
 ]
 
-conn = duckdb.connect()
-conn.execute("SET allow_unsigned_extensions = true")
+conn = duckdb.connect(config={"allow_unsigned_extensions": "true"})
 conn.execute(f"LOAD '{extension_path()}'")
 
 # Query duckdb_functions() to verify our functions are registered
