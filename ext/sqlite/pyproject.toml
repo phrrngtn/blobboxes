@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "blobboxes-sqlite"
-version = "0.4.3"
+version = "0.4.5"
 description = "bounding box extraction from documents — Sqlite extension"
 requires-python = ">=3.8"
 license = {text = "MIT"}
