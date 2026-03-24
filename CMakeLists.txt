@@ -175,6 +175,8 @@ if(BUILD_PYTHON_BINDINGS)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python/blobboxes")
   bboxes_runtime(blobboxes_ext "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
   install(TARGETS blobboxes_ext LIBRARY DESTINATION blobboxes)
+  install(FILES "${pdfium_SOURCE_DIR}/lib/libpdfium${CMAKE_SHARED_LIBRARY_SUFFIX}"
+          DESTINATION blobboxes)
 endif()
 
 # ── DuckDB C API headers ─────────────────────────────────────────────
