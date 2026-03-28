@@ -177,8 +177,9 @@ static void pages_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* width_data    = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 3)));
     auto* height_data   = static_cast<double*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 4)));
 
+    const idx_t chunk_size = duckdb_vector_size();
     idx_t row = 0;
-    while (row < 2048) {
+    while (row < chunk_size) {
         const bboxes_page* p = bboxes_next_page(data->cursor);
         if (!p) break;
         page_id_data[row] = static_cast<int32_t>(p->page_id);
@@ -214,8 +215,9 @@ static void fonts_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* font_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
     duckdb_vector v_name = duckdb_data_chunk_get_vector(output, 1);
 
+    const idx_t chunk_size = duckdb_vector_size();
     idx_t row = 0;
-    while (row < 2048) {
+    while (row < chunk_size) {
         const bboxes_font* f = bboxes_next_font(data->cursor);
         if (!f) break;
         font_id_data[row] = static_cast<int32_t>(f->font_id);
@@ -260,8 +262,9 @@ static void styles_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* italic_data    = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 5)));
     auto* underline_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 6)));
 
+    const idx_t chunk_size = duckdb_vector_size();
     idx_t row = 0;
-    while (row < 2048) {
+    while (row < chunk_size) {
         const bboxes_style* s = bboxes_next_style(data->cursor);
         if (!s) break;
         style_id_data[row]  = static_cast<int32_t>(s->style_id);
@@ -313,8 +316,9 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 6);
     duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 7);
 
+    const idx_t chunk_size = duckdb_vector_size();
     idx_t row = 0;
-    while (row < 2048) {
+    while (row < chunk_size) {
         const bboxes_bbox* b = bboxes_next_bbox(data->cursor);
         if (!b) break;
         page_id_data[row]  = static_cast<int32_t>(b->page_id);
