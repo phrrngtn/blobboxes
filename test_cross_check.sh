@@ -195,59 +195,59 @@ DUCKDB="${DUCKDB:-duckdb}"
 check "duckdb/pdf/doc" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT document_id, source_type, checksum, page_count FROM bboxes_doc('$PDF')
+    SELECT document_id, source_type, checksum, page_count FROM bb_pdf_doc('$PDF')
     EXCEPT
     SELECT CAST(e->>'document_id' AS INTEGER), e->>'source_type',
            e->>'checksum', CAST(e->>'page_count' AS INTEGER)
-    FROM (SELECT bboxes_doc_json('$PDF') as e)
+    FROM (SELECT bb_pdf_doc_json('$PDF') as e)
 );
 "
 
 check "duckdb/pdf/pages" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT * FROM bboxes_pages('$PDF')
+    SELECT * FROM bb_pdf_pages('$PDF')
     EXCEPT
     SELECT CAST(e->>'page_id' AS INTEGER), CAST(e->>'document_id' AS INTEGER),
            CAST(e->>'page_number' AS INTEGER),
            CAST(e->>'width' AS DOUBLE), CAST(e->>'height' AS DOUBLE)
-    FROM (SELECT unnest(bboxes_pages_json('$PDF')::JSON[]) as e)
+    FROM (SELECT unnest(bb_pdf_pages_json('$PDF')::JSON[]) as e)
 );
 "
 
 check "duckdb/pdf/fonts" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT * FROM bboxes_fonts('$PDF')
+    SELECT * FROM bb_pdf_fonts('$PDF')
     EXCEPT
     SELECT CAST(e->>'font_id' AS INTEGER), e->>'name'
-    FROM (SELECT unnest(bboxes_fonts_json('$PDF')::JSON[]) as e)
+    FROM (SELECT unnest(bb_pdf_fonts_json('$PDF')::JSON[]) as e)
 );
 "
 
 check "duckdb/pdf/styles" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT * FROM bboxes_styles('$PDF')
+    SELECT * FROM bb_pdf_styles('$PDF')
     EXCEPT
     SELECT CAST(e->>'style_id' AS INTEGER), CAST(e->>'font_id' AS INTEGER),
            CAST(e->>'font_size' AS DOUBLE), e->>'color', e->>'weight',
            CAST(e->>'italic' AS INTEGER), CAST(e->>'underline' AS INTEGER)
-    FROM (SELECT unnest(bboxes_styles_json('$PDF')::JSON[]) as e)
+    FROM (SELECT unnest(bb_pdf_styles_json('$PDF')::JSON[]) as e)
 );
 "
 
 check "duckdb/pdf/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) = 0 THEN 'ok' ELSE 'MISMATCH' END FROM (
-    SELECT page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
+    SELECT page_id, style_id, x, y, w, h, text FROM bb_pdf('$PDF')
     EXCEPT
     SELECT CAST(e->>'page_id' AS INTEGER),
            CAST(e->>'style_id' AS INTEGER),
            CAST(e->>'x' AS DOUBLE), CAST(e->>'y' AS DOUBLE),
            CAST(e->>'w' AS DOUBLE), CAST(e->>'h' AS DOUBLE),
            e->>'text'
-    FROM (SELECT unnest(bboxes_json('$PDF')::JSON[]) as e)
+    FROM (SELECT unnest(bb_pdf_json('$PDF')::JSON[]) as e)
 );
 "
 
@@ -259,7 +259,7 @@ echo "=== DuckDB XLSX: smoke test ==="
 check "duckdb/xlsx/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
-FROM bboxes_xlsx('$XLSX');
+FROM bb_xlsx('$XLSX');
 "
 
 # ─── DuckDB: Text smoke test ─────────────────────────────────────
@@ -270,7 +270,7 @@ echo "=== DuckDB Text: smoke test ==="
 check "duckdb/text/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
-FROM bboxes_text('$TXT');
+FROM bb_text('$TXT');
 "
 
 # ─── DuckDB: DOCX smoke test ─────────────────────────────────────
@@ -281,7 +281,7 @@ echo "=== DuckDB DOCX: smoke test ==="
 check "duckdb/docx/bboxes" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE WHEN count(*) > 0 THEN 'ok (' || count(*) || ' rows)' ELSE 'EMPTY' END
-FROM bboxes_docx('$DOCX');
+FROM bb_docx('$DOCX');
 "
 
 # ─── SQLite: check if extension loading is available ─────────────
@@ -314,12 +314,12 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT document_id, source_type, checksum, page_count FROM bboxes_doc('$PDF')
+    SELECT document_id, source_type, checksum, page_count FROM bb_pdf_doc('$PDF')
     EXCEPT
-    SELECT json_extract(bboxes_doc_json('$PDF'),'\$.document_id'),
-           json_extract(bboxes_doc_json('$PDF'),'\$.source_type'),
-           json_extract(bboxes_doc_json('$PDF'),'\$.checksum'),
-           json_extract(bboxes_doc_json('$PDF'),'\$.page_count')
+    SELECT json_extract(bb_pdf_doc_json('$PDF'),'\$.document_id'),
+           json_extract(bb_pdf_doc_json('$PDF'),'\$.source_type'),
+           json_extract(bb_pdf_doc_json('$PDF'),'\$.checksum'),
+           json_extract(bb_pdf_doc_json('$PDF'),'\$.page_count')
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
@@ -330,12 +330,12 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT * FROM bboxes_pages('$PDF')
+    SELECT * FROM bb_pdf_pages('$PDF')
     EXCEPT
     SELECT json_extract(value,'\$.page_id'), json_extract(value,'\$.document_id'),
            json_extract(value,'\$.page_number'),
            json_extract(value,'\$.width'), json_extract(value,'\$.height')
-    FROM json_each(bboxes_pages_json('$PDF'))
+    FROM json_each(bb_pdf_pages_json('$PDF'))
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
@@ -346,10 +346,10 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT * FROM bboxes_fonts('$PDF')
+    SELECT * FROM bb_pdf_fonts('$PDF')
     EXCEPT
     SELECT json_extract(value,'\$.font_id'), json_extract(value,'\$.name')
-    FROM json_each(bboxes_fonts_json('$PDF'))
+    FROM json_each(bb_pdf_fonts_json('$PDF'))
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
@@ -360,13 +360,13 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT * FROM bboxes_styles('$PDF')
+    SELECT * FROM bb_pdf_styles('$PDF')
     EXCEPT
     SELECT json_extract(value,'\$.style_id'), json_extract(value,'\$.font_id'),
            json_extract(value,'\$.font_size'), json_extract(value,'\$.color'),
            json_extract(value,'\$.weight'), json_extract(value,'\$.italic'),
            json_extract(value,'\$.underline')
-    FROM json_each(bboxes_styles_json('$PDF'))
+    FROM json_each(bb_pdf_styles_json('$PDF'))
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
@@ -377,14 +377,14 @@ db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
 rows = db.execute('''
-    SELECT page_id, style_id, x, y, w, h, text FROM bboxes('$PDF')
+    SELECT page_id, style_id, x, y, w, h, text FROM bb_pdf('$PDF')
     EXCEPT
     SELECT json_extract(value,'\$.page_id'),
            json_extract(value,'\$.style_id'),
            json_extract(value,'\$.x'), json_extract(value,'\$.y'),
            json_extract(value,'\$.w'), json_extract(value,'\$.h'),
            json_extract(value,'\$.text')
-    FROM json_each(bboxes_json('$PDF'))
+    FROM json_each(bb_pdf_json('$PDF'))
 ''').fetchall()
 assert len(rows) == 0, f'{len(rows)} mismatched rows'
 "
@@ -399,7 +399,7 @@ import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
-rows = db.execute(\"SELECT count(*) FROM bboxes_xlsx('$XLSX')\").fetchone()
+rows = db.execute(\"SELECT count(*) FROM bb_xlsx('$XLSX')\").fetchone()
 assert rows[0] > 0, f'expected rows, got {rows[0]}'
 print(f'    {rows[0]} xlsx bbox rows')
 "
@@ -414,7 +414,7 @@ import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
-rows = db.execute(\"SELECT count(*) FROM bboxes_text('$TXT')\").fetchone()
+rows = db.execute(\"SELECT count(*) FROM bb_text('$TXT')\").fetchone()
 assert rows[0] > 0, f'expected rows, got {rows[0]}'
 print(f'    {rows[0]} text bbox rows')
 "
@@ -429,7 +429,7 @@ import sqlite3
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
-rows = db.execute(\"SELECT count(*) FROM bboxes_docx('$DOCX')\").fetchone()
+rows = db.execute(\"SELECT count(*) FROM bb_docx('$DOCX')\").fetchone()
 assert rows[0] > 0, f'expected rows, got {rows[0]}'
 print(f'    {rows[0]} docx bbox rows')
 "
@@ -493,10 +493,10 @@ print(f'    info() OK: {i[\"source_type\"]}, {i[\"page_count\"]} pages, checksum
 echo ""
 echo "=== Auto-detect: DuckDB ==="
 
-check "duckdb/bboxes_info" "$DUCKDB" -unsigned -c "
+check "duckdb/bb_info" "$DUCKDB" -unsigned -c "
 LOAD '$DUCKDB_EXT';
 SELECT CASE
-    WHEN bboxes_info('$PDF')::JSON ->> 'source_type' = 'pdf'
+    WHEN bb_info('$PDF')::JSON ->> 'source_type' = 'pdf'
     THEN 'ok'
     ELSE 'FAIL'
 END;
@@ -509,17 +509,17 @@ if [ "$CAN_LOAD_EXT" = "yes" ]; then
 echo ""
 echo "=== Auto-detect: SQLite ==="
 
-check "sqlite/bboxes_info" "$PYTHON" -c "
+check "sqlite/bb_info" "$PYTHON" -c "
 import sys; sys.path.insert(0, '$DIR/python')
 import sqlite3, json
 db = sqlite3.connect(':memory:')
 db.enable_load_extension(True)
 db.load_extension('$SQLITE_EXT')
-result = db.execute(\"SELECT bboxes_info('$PDF')\").fetchone()[0]
+result = db.execute(\"SELECT bb_info('$PDF')\").fetchone()[0]
 info = json.loads(result)
 assert info['source_type'] == 'pdf', f'expected pdf, got {info[\"source_type\"]}'
 assert info['checksum'], 'missing checksum'
-print(f'    bboxes_info OK: {info[\"source_type\"]}, {info[\"page_count\"]} pages')
+print(f'    bb_info OK: {info[\"source_type\"]}, {info[\"page_count\"]} pages')
 "
 
 fi  # CAN_LOAD_EXT
