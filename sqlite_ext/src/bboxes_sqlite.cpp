@@ -290,10 +290,20 @@ struct ScalarDesc {
 
 static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
     auto* desc = static_cast<ScalarDesc*>(sqlite3_user_data(ctx));
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
-    if (!path) { sqlite3_result_null(ctx); return; }
 
-    auto buf = read_file(path);
+    /* Accept both file path (TEXT) and raw bytes (BLOB). */
+    std::vector<char> buf;
+    if (sqlite3_value_type(argv[0]) == SQLITE_BLOB) {
+        const void* blob = sqlite3_value_blob(argv[0]);
+        int blob_size = sqlite3_value_bytes(argv[0]);
+        if (!blob || blob_size <= 0) { sqlite3_result_null(ctx); return; }
+        buf.assign(static_cast<const char*>(blob),
+                   static_cast<const char*>(blob) + blob_size);
+    } else {
+        const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
+        if (!path) { sqlite3_result_null(ctx); return; }
+        buf = read_file(path);
+    }
     if (buf.empty()) { sqlite3_result_null(ctx); return; }
 
     auto* cur = bboxes_open_format(desc->fmt, buf.data(), buf.size());
