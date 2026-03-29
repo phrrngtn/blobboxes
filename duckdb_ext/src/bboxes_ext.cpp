@@ -353,15 +353,46 @@ static void generic_json_scalar(duckdb_function_info info, duckdb_data_chunk inp
                                  duckdb_vector output) {
     auto* desc = static_cast<ScalarDesc*>(duckdb_scalar_function_get_extra_info(info));
     idx_t count = duckdb_data_chunk_get_size(input);
-    duckdb_vector v_path = duckdb_data_chunk_get_vector(input, 0);
+    duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
 
     for (idx_t i = 0; i < count; i++) {
-        const char* path = get_string(v_path, i);
+        const char* path = get_string(v_input, i);
         auto buf = read_file(path);
 
         std::string result = "null";
         if (!buf.empty()) {
             auto* cur = bboxes_open_format(desc->fmt, buf.data(), buf.size());
+            if (cur) {
+                const char* json = desc->fn(cur);
+                if (json) result = json;
+                bboxes_close(cur);
+            }
+        }
+        duckdb_vector_assign_string_element_len(output, i, result.c_str(), result.size());
+    }
+}
+
+static void generic_json_scalar_blob(duckdb_function_info info, duckdb_data_chunk input,
+                                      duckdb_vector output) {
+    auto* desc = static_cast<ScalarDesc*>(duckdb_scalar_function_get_extra_info(info));
+    idx_t count = duckdb_data_chunk_get_size(input);
+    duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
+
+    for (idx_t i = 0; i < count; i++) {
+        auto* s = &static_cast<duckdb_string_t*>(duckdb_vector_get_data(v_input))[i];
+        const char* blob_data;
+        idx_t blob_size;
+        if (s->value.inlined.length > 12) {
+            blob_data = s->value.pointer.ptr;
+            blob_size = s->value.inlined.length;
+        } else {
+            blob_data = s->value.inlined.inlined;
+            blob_size = s->value.inlined.length;
+        }
+
+        std::string result = "null";
+        if (blob_size > 0) {
+            auto* cur = bboxes_open_format(desc->fmt, blob_data, blob_size);
             if (cur) {
                 const char* json = desc->fn(cur);
                 if (json) result = json;
@@ -390,6 +421,24 @@ static void register_table_fn(duckdb_connection conn, const char* name,
         duckdb_table_function_set_extra_info(func, fmt_ptr, nullptr);
     duckdb_register_table_function(conn, func);
     duckdb_destroy_table_function(&func);
+}
+
+static void register_json_scalar_blob(duckdb_connection conn, const char* name,
+                                       ScalarDesc* desc) {
+    duckdb_scalar_function func = duckdb_create_scalar_function();
+    duckdb_scalar_function_set_name(func, name);
+
+    duckdb_logical_type t_blob = duckdb_create_logical_type(DUCKDB_TYPE_BLOB);
+    duckdb_logical_type t_str  = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
+    duckdb_scalar_function_add_parameter(func, t_blob);
+    duckdb_scalar_function_set_return_type(func, t_str);
+    duckdb_destroy_logical_type(&t_blob);
+    duckdb_destroy_logical_type(&t_str);
+
+    duckdb_scalar_function_set_extra_info(func, desc, nullptr);
+    duckdb_scalar_function_set_function(func, generic_json_scalar_blob);
+    duckdb_register_scalar_function(conn, func);
+    duckdb_destroy_scalar_function(&func);
 }
 
 static void register_json_scalar(duckdb_connection conn, const char* name,
@@ -498,11 +547,13 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
         for (int si = 0; si < 5; si++) {
             std::string name = std::string(f.prefix) + s_json_suffixes[si];
             register_json_scalar(connection, name.c_str(), &s_scalars[fi][si], f.varargs);
+            register_json_scalar_blob(connection, name.c_str(), &s_scalars[fi][si]);
         }
     }
 
     /* bb_info — auto-detecting doc info scalar (alias of bb_doc_json) */
     register_json_scalar(connection, "bb_info", &s_scalars[0][0], false);
+    register_json_scalar_blob(connection, "bb_info", &s_scalars[0][0]);
 
     return true;
 }
