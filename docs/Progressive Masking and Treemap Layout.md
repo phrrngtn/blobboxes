@@ -130,6 +130,12 @@ were in a star schema fact table.
 
 ![Treemap layout of a financial statement showing nested scope regions and a treemap path annotation for cell "812"](treemap-layout.png)
 
+Below, the same structure rendered from actual extracted bboxes with scope
+partition lines overlaid. Blue dashed = level-0 sections, green dash-dot =
+level-1 subsections, red highlight = treemap path to a single leaf cell:
+
+![Scope partitions overlaid on actual bbox text extracted from the financial statement PDF](treemap-overlay.png)
+
 The page **is** a treemap — the labels define the partition boundaries:
 
 1. **Level-0 labels** ("Revenue", "Expenses") divide the page into
