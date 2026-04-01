@@ -97,14 +97,26 @@ CELLS AS (
            END AS cell_id
     FROM CELL_GAPS
 ),
+-- Tag each fragment: is it punctuation, and does it follow punctuation?
+-- This lets us suppress spaces around punctuation during concatenation.
+FRAG_TAGS AS (
+    SELECT CELLS.*,
+           regexp_matches(text, '^[,.:;]+$') AS is_punct,
+           COALESCE(regexp_matches(
+               LAG(text) OVER (PARTITION BY page_id, row_cluster, cell_id ORDER BY x),
+               '^[,.:;]+$'), false) AS after_punct
+    FROM CELLS
+),
 MERGED AS (
     SELECT page_id, row_cluster, cell_id,
            MIN(x) AS x, MIN(y) AS y,
            MAX(x + w) - MIN(x) AS w, MAX(h) AS h,
-           -- Concatenate text within cell: punctuation-only fragments
-           -- (commas, periods) get glued without space to the prior word.
+           -- Punctuation glues to its neighbors without spaces:
+           --   "1" + "," + "234" → "1,234"  (not "1, 234")
+           --   "Net" + "Premium" → "Net Premium"  (normal space)
            STRING_AGG(
-               CASE WHEN regexp_matches(text, '^[,.:;]+$') THEN text
+               CASE WHEN is_punct THEN text        -- no space before punctuation
+                    WHEN after_punct THEN text      -- no space after punctuation
                     ELSE ' ' || text END,
                '' ORDER BY x
            ) AS text_raw,
@@ -113,7 +125,7 @@ MERGED AS (
            MODE(font_size) AS font_size,
            MODE(color) AS color,
            COUNT(*) AS n_fragments
-    FROM CELLS
+    FROM FRAG_TAGS
     GROUP BY page_id, row_cluster, cell_id
 ),
 -- Clean up merged text: trim leading space, collapse whitespace
