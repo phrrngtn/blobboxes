@@ -18,6 +18,66 @@ inline std::string color_string(unsigned r, unsigned g, unsigned b, unsigned a) 
     return buf;
 }
 
+/* Infer typographic traits from a PostScript / TrueType font name.
+   PDF font descriptors often lack weight/width metadata, but the name
+   encodes it reliably (e.g. "Helvetica-BoldOblique", "MyriadPro-SemiboldCond").
+
+   Delimiters vary: hyphen, space, comma, or camelCase boundaries.
+   We do case-insensitive substring matching which handles all of these. */
+struct FontNameTraits {
+    bool bold;          /* weight >= 700 */
+    bool italic;
+    int  weight;        /* CSS-style: 100–950, 0 = unknown */
+    bool condensed;     /* any narrow/condensed/compressed variant */
+};
+
+inline FontNameTraits font_name_traits(const char* name) {
+    FontNameTraits t = {false, false, 0, false};
+    if (!name || !*name) return t;
+
+    /* Work on a lowercased copy */
+    std::string lc(name);
+    for (auto& c : lc) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+    /* ── Weight ── (check specific tokens before generic "bold")
+       Order matters: "extrabold" must match before "bold".  */
+    if (lc.find("thin")       != std::string::npos ||
+        lc.find("hairline")   != std::string::npos)   { t.weight = 100; }
+    else if (lc.find("ultralight")  != std::string::npos ||
+             lc.find("extralight")  != std::string::npos) { t.weight = 200; }
+    else if (lc.find("light")       != std::string::npos)  { t.weight = 300; }
+    else if (lc.find("medium")      != std::string::npos &&
+             lc.find("semi")        == std::string::npos)  { t.weight = 500; }
+    else if (lc.find("semibold")    != std::string::npos ||
+             lc.find("demibold")    != std::string::npos ||
+             lc.find("demi")        != std::string::npos)  { t.weight = 600; }
+    else if (lc.find("extrabold")   != std::string::npos ||
+             lc.find("ultrabold")   != std::string::npos)  { t.weight = 800; }
+    else if (lc.find("black")       != std::string::npos ||
+             lc.find("heavy")       != std::string::npos)  { t.weight = 900; }
+    else if (lc.find("bold")        != std::string::npos)  { t.weight = 700; }
+
+    t.bold = (t.weight >= 700);
+
+    /* ── Italic / Oblique ── */
+    if (lc.find("italic")  != std::string::npos ||
+        lc.find("oblique") != std::string::npos ||
+        lc.find("slanted") != std::string::npos ||
+        /* Short form: "Ital" at end of name, but not as part of "Italic" */
+        (lc.size() >= 4 && lc.substr(lc.size() - 4) == "ital"))
+    { t.italic = true; }
+
+    /* ── Width ── */
+    if (lc.find("condensed")  != std::string::npos ||
+        lc.find("cond")       != std::string::npos ||
+        lc.find("narrow")     != std::string::npos ||
+        lc.find("compressed") != std::string::npos ||
+        lc.find("compact")    != std::string::npos)
+    { t.condensed = true; }
+
+    return t;
+}
+
 /* ── Font table (intern by name only) ──────────────────────────── */
 
 struct FontTable {

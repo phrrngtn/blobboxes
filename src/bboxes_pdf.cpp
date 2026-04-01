@@ -160,6 +160,12 @@ static void extract_page(FPDF_DOCUMENT doc, int pi,
 
         bool bold   = (font_flags >> 18) & 1;
         bool italic = (font_flags >> 6) & 1;
+        /* Fallback: infer bold/italic from the font name when flags are absent */
+        if (!bold || !italic) {
+            FontNameTraits traits = font_name_traits(font_name_buf);
+            if (!bold)   bold   = traits.bold;
+            if (!italic) italic = traits.italic;
+        }
         std::string weight = bold ? "bold" : "normal";
         std::string color  = color_string(r, g, b, a);
 
@@ -310,6 +316,12 @@ static void extract_page_objects(FPDF_DOCUMENT doc, int pi,
             if (weight >= 700) bold = true;
         }
         bool italic = (font_flags >> 6) & 1;
+        /* Final fallback: infer bold/italic from the font name */
+        if (!bold || !italic) {
+            FontNameTraits traits = font_name_traits(font_name_buf);
+            if (!bold)   bold   = traits.bold;
+            if (!italic) italic = traits.italic;
+        }
 
         unsigned int r = 0, g = 0, b = 0, a = 255;
         FPDFPageObj_GetFillColor(obj, &r, &g, &b, &a);
