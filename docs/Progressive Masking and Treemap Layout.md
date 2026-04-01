@@ -128,6 +128,8 @@ were in a star schema fact table.
 
 ## The Page as Treemap
 
+![Treemap layout of a financial statement showing nested scope regions and a treemap path annotation for cell "812"](treemap-layout.png)
+
 The page **is** a treemap — the labels define the partition boundaries:
 
 1. **Level-0 labels** ("Revenue", "Expenses") divide the page into
