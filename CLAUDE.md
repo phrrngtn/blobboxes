@@ -1,10 +1,16 @@
 # CLAUDE.md - Project conventions for blobboxes
 
 ## Package management
-- Use `uv` for all pip operations (not pip directly)
+- Use `uv` for all pip/venv operations (not pip or python -m venv directly)
+  - Create venv: `uv venv --python $(brew --prefix python3)/bin/python3`
   - Install: `uv pip install <package>`
+  - Run scripts: `uv run python script.py`
   - The venv is at `.venv/` — system python3 is NOT the project python
-- Run Python via `.venv/bin/python3` or activate the venv first
+- Run Python via `.venv/bin/python3` or `uv run python`
+- The dc1 Forgejo package registry is configured as the default PyPI index
+  in `~/.config/uv/uv.toml`. Pre-built Python wheels for blob* extensions
+  (blobboxes, blobfilters, etc.) are published there. Install with:
+  `uv pip install blobboxes` (pulls from dc1 first, falls back to pypi.org)
 
 ## Build system
 - Uses scikit-build-core with nanobind (C++ extensions)
@@ -15,6 +21,7 @@
 ## DuckDB extension
 - Load with: `duckdb -unsigned` then `LOAD 'build/duckdb/bboxes.duckdb_extension';`
 - **Always use `-unsigned`** — the extension is locally built and not signed
+- When using DuckDB from Python: `duckdb.connect(config={"allow_unsigned_extensions": "true"})`
 - Function naming: `bb_*` for auto-detect, `bb_pdf_*`, `bb_xlsx_*`, `bb_text_*`, `bb_docx_*` for explicit format
 - Table functions (return rows):
   - `bb(path)` / `bb_pdf(path)` / `bb_xlsx(path)` / ... — bounding boxes: `(page_id, style_id, x, y, w, h, text, formula)`
