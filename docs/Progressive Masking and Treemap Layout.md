@@ -36,14 +36,39 @@ This matters most for:
 The mask is a tag, not a deletion. Spatial algorithms always see the
 full page; classification algorithms see only the unresolved residual.
 
+## Architecture: SQL Does the Arithmetic, Python Orchestrates
+
+The pipeline is **not** a single monolithic SQL query. It's a sequence
+of SQL passes orchestrated by Python, where each pass reads from and
+writes to temp tables. The division of labor:
+
+- **SQL (DuckDB)**: extraction, row/column clustering, cell merging,
+  pattern matching, histogram computation, Bayesian score arithmetic,
+  set-oriented containment probes. Everything that's set-based and
+  benefits from vectorized execution.
+- **Python**: orchestration logic — deciding which pass to run next,
+  interpreting intermediate results, setting thresholds, choosing which
+  domain filters to load, handling the bootstrap between single-element
+  and set-oriented classification. Also: anything that requires
+  conditional control flow that's awkward in SQL.
+
+Each pass writes its results (mask tags, priors, scores) back to the
+bbox temp table as new columns. Python reads the summary stats, decides
+what to do next, and issues the next SQL pass. The Bayesian calculations
+themselves are pure SQL — they're just arithmetic over the scores from
+prior passes.
+
 ## Progressive Masking
 
-Classification proceeds in rounds. Each round identifies a category of
-bboxes and **masks them** (tags them as resolved). Later rounds operate
-on a smaller, less ambiguous residual. Earlier rounds are cheaper and
-higher-confidence; later rounds are more expensive and speculative.
+Classification proceeds in passes. Each pass masks (tags) bboxes as
+resolved. Later passes operate on a smaller, less ambiguous residual.
 
-### Round 0: Font/style histogram (metadata only, no text analysis)
+There is a **bootstrap problem**: you need columns to do set-oriented
+probes, but you need classification to find columns. The solution is
+two phases — cheap single-element classification first to find table
+candidates, then set-oriented probing within those candidates.
+
+### Pass 0: Style histogram (metadata only, no text analysis)
 
 Before looking at any text content, histogram bboxes by `(font_id,
 font_size, weight, color)`. The dominant style — the highest bin count
@@ -74,9 +99,10 @@ correctly identified as common. The histogram tells you what's common
 (needing less classification effort) vs rare (needing more scrutiny).
 That's the right allocation of attention regardless of page type.
 
-### Round 1: Pattern-based classification (regex, TRY_CAST, stop words)
+### Pass 1: Single-element pattern classification
 
-Fast, high-confidence classification using text content:
+Fast, high-confidence classification using text content. No spatial
+context needed — each bbox is classified independently:
 
 - **TRY_CAST probes**: pure integers, floats, dates → mask as `measure`
   or `date`
@@ -85,39 +111,88 @@ Fast, high-confidence classification using text content:
 - **Stop words / common vocabulary**: tokens matching a ~50K common
   English words bitmap AND NOT matching any domain filter → mask as
   `structural` (prose, labels, boilerplate)
+- **Single-element domain probes**: each unresolved bbox probed
+  individually against domain filters. Low-confidence (see
+  [[Hash Collision Analysis for Domain Filters]]) but useful as a
+  Bayesian prior for the set-oriented pass
 
-Stop word masking is particularly important here because it blocks
-spatial analysis from finding false column alignments through common
-words that happen to be vertically aligned.
+**Output**: a scatter of classified points on the page. This scatter is
+itself a table detector — rows where multiple cells classified as
+measures are almost certainly data rows. You don't need to "detect
+tables" as a separate step; the classified measures *are* the table
+signal.
 
-### Round 2: Page chrome
+### Pass 2: Table candidate assembly (Python orchestration)
 
-- **Page title**: largest font size on the page, positioned in the top
-  region (corroborated by round 0 rare-style detection)
-- **Page number**: short numeric text at the bottom of the page
-- **Repeating headers/footers**: identical text at the same `(x, y)`
-  across multiple pages
+Python reads the classified scatter from Pass 1 and identifies **table
+candidate regions**: rectangular clusters of rows with consistent
+measure-cell counts. Within each candidate:
 
-Page title and page number form the **outermost scope layer** — they
-apply to every bbox on their page.
+1. Group measure cells by x-alignment → **putative columns**
+2. The unclassified cells in those same x-columns are likely dimension
+   values (categorical)
+3. Assemble column-shaped sets for set-oriented probing
 
-### Round 3: Domain filter probing (set-oriented)
+This is where the bootstrap resolves: Pass 1 gave us enough classified
+points to find columns, and columns give us the sets we need for
+high-confidence domain probing.
 
-This is where the [[blobfilters]] roaring bitmap infrastructure and the
-set-oriented probing advantage (see [[Hash Collision Analysis for Domain
-Filters]]) come together:
+Python decides which domain filters to load based on the single-element
+probe results from Pass 1 — if no individual cell matched "country_code"
+even weakly, there's no point doing a set-oriented probe against it.
 
-- Group unmasked bboxes into columns using spatial alignment
-- Build a query bitmap from each column's values
-- Compute containment against domain filters
-- Columns with high containment (> 0.8) are classified as dimension
-  columns; their values are masked as `dimension:<domain_name>`
+### Pass 3: Set-oriented domain probing (SQL arithmetic)
 
-The table detection from earlier rounds isn't just about structure — it
-assembles the column-shaped sets that make domain probing exponentially
-more reliable (false positive rate drops as ~p^N rather than p).
+For each putative column assembled in Pass 2:
 
-### Round 4: Embedding / LLM fallback
+- Build a query bitmap from the column's unresolved values
+- Compute containment against candidate domain filters
+- Columns with high containment (> 0.8) → mask all cells as
+  `dimension:<domain_name>`
+
+The exponential FP improvement from set-oriented probing (see
+[[Hash Collision Analysis for Domain Filters#Set-Oriented Probing vs Single-Element Probing]])
+means this pass is extremely reliable. A 20-value column probed against
+a 10K-member domain has a false positive probability of ~10⁻¹¹².
+
+### Pass 4: Bayesian update (SQL arithmetic, Python orchestration)
+
+Combine evidence from all prior passes into a posterior probability for
+each unresolved bbox. The features, all computed in SQL:
+
+- **Style prior** from Pass 0 (P(role | style_bin_rank))
+- **Pattern match** from Pass 1 (binary: did regex/TRY_CAST match?)
+- **Single-element domain score** from Pass 1 (weak prior)
+- **Column domain containment** from Pass 3 (strong evidence)
+- **Positional features**: row position relative to classified measures,
+  x-position relative to column centroids, whether the cell is in a
+  table candidate region
+
+Python sets the prior weights and thresholds; SQL computes the products.
+The Bayesian calculation is just multiplication and normalization — pure
+arithmetic, ideal for SQL.
+
+### Pass 5: Sherlock Holmes residual
+
+After masking measures (Pass 1), dimensions (Pass 3), and high-posterior
+cells (Pass 4), whatever remains in a table-shaped region must be
+structural. By position alone:
+
+- **Column headers**: top row of a putative column, above the first
+  data row
+- **Row labels**: leftmost cell in a data row (indented from section
+  labels)
+- **Section labels**: bold, spanning the label column, in-force
+  downward and to the right
+- **Page chrome**: title, subtitle, page number (corroborated by Pass 0
+  rare-style detection and Pass 2 repeating-text detection across pages)
+
+These cells don't need content classification at all — the progressive
+masking of everything else determined their role by elimination. This is
+the payoff of the masking approach: structural roles emerge from the
+negative space left by classified content.
+
+### Pass 6: Embedding / LLM fallback
 
 - Only genuinely ambiguous bboxes reach this expensive layer
 - The progressive masking typically eliminates 70-90% of bboxes before
