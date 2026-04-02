@@ -16,8 +16,13 @@ from pathlib import Path
 EXT = "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension"
 
 
-def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
-    """Run the full scatter pipeline on a single file."""
+def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'default'):
+    """Run the full scatter pipeline on a single file.
+
+    tag: which weight set to use. 'default' uses baseline weights only.
+    Other tags (e.g., 'financial_statement', 'tax_form') overlay
+    domain-specific adjustments on top of the defaults.
+    """
     fp = filepath
     name = Path(fp).name
 
@@ -218,10 +223,12 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
     """)
 
     # ── Role weights table ──────────────────────────────────────────────
-    # Each row: when feature has this value, add this weight to this role.
-    # Tunable without changing SQL. Could be loaded from a file or learned.
+    # Each row: when feature has this value in this tag context, add weight to role.
+    # tag='default' applies to all documents. Domain-specific tags overlay or
+    # override defaults. Python selects the active tag(s) per document.
     con.execute("""
     CREATE OR REPLACE TEMP TABLE role_weights (
+        tag       VARCHAR,   -- 'default', 'financial_statement', 'tax_form', etc.
         feature   VARCHAR,   -- feature name (matches UNPIVOT column)
         val       BOOLEAN,   -- feature value to match (true/false)
         role      VARCHAR,   -- role this weight applies to
@@ -229,72 +236,106 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
     );
 
     INSERT INTO role_weights VALUES
+    -- ══════════════════════════════════════════════════════════════════
+    -- tag = 'default' — baseline weights for any document
+    -- ══════════════════════════════════════════════════════════════════
+
     -- ── f_pattern_match: pass1 already classified → suppress all structural roles
-    ('f_pattern_match', true,  'col_header',    -5.0),
-    ('f_pattern_match', true,  'section_label', -5.0),
-    ('f_pattern_match', true,  'row_label',     -5.0),
-    ('f_pattern_match', true,  'dimension',     -5.0),
-    ('f_pattern_match', true,  'prose',         -3.0),
-    ('f_pattern_match', false, 'col_header',     0.5),
-    ('f_pattern_match', false, 'dimension',      0.5),
-    ('f_pattern_match', false, 'prose',          0.5),
+    ('default', 'f_pattern_match', true,  'col_header',    -5.0),
+    ('default', 'f_pattern_match', true,  'section_label', -5.0),
+    ('default', 'f_pattern_match', true,  'row_label',     -5.0),
+    ('default', 'f_pattern_match', true,  'dimension',     -5.0),
+    ('default', 'f_pattern_match', true,  'prose',         -3.0),
+    ('default', 'f_pattern_match', false, 'col_header',     0.5),
+    ('default', 'f_pattern_match', false, 'dimension',      0.5),
+    ('default', 'f_pattern_match', false, 'prose',          0.5),
 
     -- ── f_subtends_col: horizontal extent overlaps a putative column
-    ('f_subtends_col', true,  'col_header',     2.0),
-    ('f_subtends_col', true,  'section_label', -1.0),
-    ('f_subtends_col', false, 'col_header',    -1.5),
+    ('default', 'f_subtends_col', true,  'col_header',     2.0),
+    ('default', 'f_subtends_col', true,  'section_label', -1.0),
+    ('default', 'f_subtends_col', false, 'col_header',    -1.5),
 
     -- ── f_row_above_data: row is directly above first data row
-    ('f_row_above_data', true,  'col_header',    2.5),
-    ('f_row_above_data', true,  'section_label', -1.0),
-    ('f_row_above_data', false, 'col_header',   -1.0),
+    ('default', 'f_row_above_data', true,  'col_header',    2.5),
+    ('default', 'f_row_above_data', true,  'section_label', -1.0),
+    ('default', 'f_row_above_data', false, 'col_header',   -1.0),
 
     -- ── f_in_data_region: row is within the data rows of a table
-    ('f_in_data_region', true,  'row_label',     1.5),
-    ('f_in_data_region', true,  'dimension',     1.5),
-    ('f_in_data_region', true,  'prose',        -1.0),
-    ('f_in_data_region', false, 'row_label',    -1.0),
-    ('f_in_data_region', false, 'dimension',    -2.0),
+    ('default', 'f_in_data_region', true,  'row_label',     1.5),
+    ('default', 'f_in_data_region', true,  'dimension',     1.5),
+    ('default', 'f_in_data_region', true,  'prose',        -1.0),
+    ('default', 'f_in_data_region', false, 'row_label',    -1.0),
+    ('default', 'f_in_data_region', false, 'dimension',    -2.0),
 
     -- ── f_in_table: cell is in or near a table region
-    ('f_in_table', true,  'dimension',    1.0),
-    ('f_in_table', true,  'prose',       -1.0),
-    ('f_in_table', false, 'dimension',   -1.0),
-    ('f_in_table', false, 'prose',        2.0),
+    ('default', 'f_in_table', true,  'dimension',    1.0),
+    ('default', 'f_in_table', true,  'prose',       -1.0),
+    ('default', 'f_in_table', false, 'dimension',   -1.0),
+    ('default', 'f_in_table', false, 'prose',        2.0),
 
     -- ── f_bold: font weight is bold
-    ('f_bold', true,  'section_label',  1.5),
-    ('f_bold', true,  'col_header',     0.3),
-    ('f_bold', true,  'row_label',      0.3),
-    ('f_bold', false, 'section_label', -0.5),
-    ('f_bold', false, 'prose',          0.5),
+    ('default', 'f_bold', true,  'section_label',  1.5),
+    ('default', 'f_bold', true,  'col_header',     0.3),
+    ('default', 'f_bold', true,  'row_label',      0.3),
+    ('default', 'f_bold', false, 'section_label', -0.5),
+    ('default', 'f_bold', false, 'prose',          0.5),
 
     -- ── f_rare_style: style rank >= 3 (infrequent style)
-    ('f_rare_style', true,  'section_label',  1.0),
-    ('f_rare_style', false, 'prose',          0.3),
-    ('f_rare_style', true,  'prose',         -0.5),
+    ('default', 'f_rare_style', true,  'section_label',  1.0),
+    ('default', 'f_rare_style', false, 'prose',          0.3),
+    ('default', 'f_rare_style', true,  'prose',         -0.5),
 
     -- ── f_leftmost: cell is at or near the leftmost x in its row
-    ('f_leftmost', true,  'section_label',  1.0),
-    ('f_leftmost', true,  'row_label',      2.0),
-    ('f_leftmost', false, 'section_label', -1.0),
-    ('f_leftmost', false, 'row_label',     -2.0),
-    ('f_leftmost', false, 'dimension',      0.5),
+    ('default', 'f_leftmost', true,  'section_label',  1.0),
+    ('default', 'f_leftmost', true,  'row_label',      2.0),
+    ('default', 'f_leftmost', false, 'section_label', -1.0),
+    ('default', 'f_leftmost', false, 'row_label',     -2.0),
+    ('default', 'f_leftmost', false, 'dimension',      0.5),
 
     -- ── f_no_measures_in_row: no measure cells in this row
-    ('f_no_measures_in_row', true,  'section_label',  1.5),
-    ('f_no_measures_in_row', true,  'prose',          0.5),
-    ('f_no_measures_in_row', false, 'section_label', -2.0),
-    ('f_no_measures_in_row', false, 'row_label',      0.5),
-    ('f_no_measures_in_row', false, 'prose',         -0.5),
+    ('default', 'f_no_measures_in_row', true,  'section_label',  1.5),
+    ('default', 'f_no_measures_in_row', true,  'prose',          0.5),
+    ('default', 'f_no_measures_in_row', false, 'section_label', -2.0),
+    ('default', 'f_no_measures_in_row', false, 'row_label',      0.5),
+    ('default', 'f_no_measures_in_row', false, 'prose',         -0.5),
 
     -- ── f_cell_count_match: cell count in row is close to table's modal column count
-    ('f_cell_count_match', true,  'col_header',  1.0),
-    ('f_cell_count_match', false, 'col_header', -0.5),
+    ('default', 'f_cell_count_match', true,  'col_header',  1.0),
+    ('default', 'f_cell_count_match', false, 'col_header', -0.5),
 
     -- ── f_large_font: font size notably larger than body
-    ('f_large_font', true,  'section_label',  1.5),
-    ('f_large_font', false, 'section_label',  0.0)
+    ('default', 'f_large_font', true,  'section_label',  1.5),
+    ('default', 'f_large_font', false, 'section_label',  0.0),
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- tag = 'financial_statement' — overlays for financial docs
+    -- Stronger priors: bold leftmost = section label (P&L line items),
+    -- indented non-bold = row label (sub-line items)
+    -- ══════════════════════════════════════════════════════════════════
+    ('financial_statement', 'f_bold',   true,  'section_label',  0.5),
+    ('financial_statement', 'f_bold',   true,  'row_label',     -0.5),
+    ('financial_statement', 'f_leftmost', true, 'section_label', 0.5),
+    ('financial_statement', 'f_no_measures_in_row', true, 'section_label', 0.5),
+    -- "Total" rows: bold + has measures = total_label (treat as row_label)
+    ('financial_statement', 'f_no_measures_in_row', false, 'row_label', 0.5),
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- tag = 'tax_form' — overlays for IRS forms, 1099s
+    -- Many small tables, dense layout, form field labels
+    -- ══════════════════════════════════════════════════════════════════
+    ('tax_form', 'f_bold',      true,  'col_header',     0.5),
+    ('tax_form', 'f_rare_style', true, 'col_header',     0.5),
+    ('tax_form', 'f_subtends_col', true, 'col_header',   0.5),
+    -- Tighten header detection: require subtension for header role
+    ('tax_form', 'f_subtends_col', false, 'col_header', -2.0),
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- tag = 'journal_paper' — overlays for academic papers
+    -- Tables embedded in narrative, text-heavy cells
+    -- ══════════════════════════════════════════════════════════════════
+    ('journal_paper', 'f_in_table',    false, 'prose',         1.0),
+    ('journal_paper', 'f_rare_style',  true,  'section_label', 0.5),
+    ('journal_paper', 'f_large_font',  true,  'section_label', 1.0)
     """)
 
     # ── Pass 3: Residual classification ───────────────────────────────
@@ -433,40 +474,81 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
         ))
     ),
 
-    ROLE_SCORES AS (
-        SELECT u.page_id, u.row_cluster, u.cell_id,
-               rw.role,
-               SUM(rw.weight) AS score
-        FROM UNPIVOTED AS u
+    -- Compute scores for ALL tags in parallel.
+    -- Each (cell, tag) gets a score per role. Default weights always
+    -- apply; domain-specific tags add their adjustments on top.
+    -- We score default-only AND default+each-domain-tag simultaneously.
+    TAG_COMBOS AS (
+        SELECT DISTINCT tag FROM role_weights WHERE tag != 'default'
+        UNION ALL
+        SELECT 'default'
+    ),
+    EFFECTIVE_WEIGHTS AS (
+        -- For each tag combo: default weights + that tag's overlays
+        SELECT tc.tag AS active_tag, rw.feature, rw.val, rw.role,
+               SUM(rw.weight) AS weight
+        FROM TAG_COMBOS AS tc
         JOIN role_weights AS rw
-          ON u.feature = rw.feature AND u.val = rw.val
-        GROUP BY u.page_id, u.row_cluster, u.cell_id, rw.role
+          ON rw.tag = 'default' OR rw.tag = tc.tag
+        GROUP BY tc.tag, rw.feature, rw.val, rw.role
     ),
 
-    -- PIVOT scores back to one row per cell with a column per role
+    ROLE_SCORES AS (
+        SELECT u.page_id, u.row_cluster, u.cell_id,
+               ew.active_tag, ew.role,
+               SUM(ew.weight) AS score
+        FROM UNPIVOTED AS u
+        JOIN EFFECTIVE_WEIGHTS AS ew
+          ON u.feature = ew.feature AND u.val = ew.val
+        GROUP BY u.page_id, u.row_cluster, u.cell_id, ew.active_tag, ew.role
+    ),
+
+    -- Per (cell, tag): best score
+    TAG_CELL_BEST AS (
+        SELECT page_id, row_cluster, cell_id, active_tag,
+               MAX(score) AS best_score
+        FROM ROLE_SCORES
+        GROUP BY page_id, row_cluster, cell_id, active_tag
+    ),
+
+    -- Per tag: mean best score across all cells
+    TAG_CONFIDENCE AS (
+        SELECT active_tag,
+               ROUND(AVG(best_score), 2) AS mean_score,
+               COUNT(*) AS n_cells
+        FROM TAG_CELL_BEST
+        GROUP BY active_tag
+    ),
+
+    -- Pick winning tag: highest mean score across all cells
+    WINNING_TAG AS (
+        SELECT active_tag FROM TAG_CONFIDENCE ORDER BY mean_score DESC LIMIT 1
+    ),
+
+    -- PIVOT winning tag's scores to wide format: one column per role
+    PIVOTED_SCORES AS (
+        PIVOT (
+            SELECT page_id, row_cluster, cell_id, role, score
+            FROM ROLE_SCORES
+            WHERE active_tag = (SELECT active_tag FROM WINNING_TAG)
+        )
+        ON role
+        USING COALESCE(SUM(score), 0)
+        GROUP BY page_id, row_cluster, cell_id
+    ),
     SCORED AS (
         SELECT F.*,
-               COALESCE(ch.score, 0)  AS score_col_header,
-               COALESCE(sl.score, 0)  AS score_section_label,
-               COALESCE(rl.score, 0)  AS score_row_label,
-               COALESCE(dm.score, 0)  AS score_dimension,
-               COALESCE(pr.score, 0)  AS score_prose
+               (SELECT active_tag FROM WINNING_TAG) AS winning_tag,
+               COALESCE(P."col_header", 0)     AS score_col_header,
+               COALESCE(P."section_label", 0)  AS score_section_label,
+               COALESCE(P."row_label", 0)      AS score_row_label,
+               COALESCE(P."dimension", 0)       AS score_dimension,
+               COALESCE(P."prose", 0)           AS score_prose
         FROM FEATURES_BOOL AS F
-        LEFT JOIN ROLE_SCORES AS ch
-          ON F.page_id = ch.page_id AND F.row_cluster = ch.row_cluster
-         AND F.cell_id = ch.cell_id AND ch.role = 'col_header'
-        LEFT JOIN ROLE_SCORES AS sl
-          ON F.page_id = sl.page_id AND F.row_cluster = sl.row_cluster
-         AND F.cell_id = sl.cell_id AND sl.role = 'section_label'
-        LEFT JOIN ROLE_SCORES AS rl
-          ON F.page_id = rl.page_id AND F.row_cluster = rl.row_cluster
-         AND F.cell_id = rl.cell_id AND rl.role = 'row_label'
-        LEFT JOIN ROLE_SCORES AS dm
-          ON F.page_id = dm.page_id AND F.row_cluster = dm.row_cluster
-         AND F.cell_id = dm.cell_id AND dm.role = 'dimension'
-        LEFT JOIN ROLE_SCORES AS pr
-          ON F.page_id = pr.page_id AND F.row_cluster = pr.row_cluster
-         AND F.cell_id = pr.cell_id AND pr.role = 'prose'
+        LEFT JOIN PIVOTED_SCORES AS P
+          ON F.page_id = P.page_id
+         AND F.row_cluster = P.row_cluster
+         AND F.cell_id = P.cell_id
     ),
 
     -- Argmax: pick role with highest score
@@ -603,9 +685,49 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
     n_cols = con.execute("SELECT COUNT(*) FROM putative_columns").fetchone()[0]
     n_headers = len(df[df['role'] == 'col_header'])
 
+    # Tag comparison
+    tag_scores = con.execute("""
+        SELECT active_tag, ROUND(AVG(best_score), 2) AS mean_score
+        FROM (
+            SELECT active_tag,
+                   FIRST(role ORDER BY score DESC) AS best_role,
+                   MAX(score) AS best_score
+            FROM (
+                SELECT u.page_id, u.row_cluster, u.cell_id,
+                       ew.active_tag, ew.role, SUM(ew.weight) AS score
+                FROM (SELECT page_id, row_cluster, cell_id, feature, val
+                      FROM classified
+                      UNPIVOT (val FOR feature IN (
+                          f_pattern_match, f_in_table, f_subtends_col,
+                          f_row_above_data, f_in_data_region, f_bold,
+                          f_rare_style, f_leftmost, f_no_measures_in_row,
+                          f_cell_count_match, f_large_font
+                      ))) AS u
+                JOIN (
+                    SELECT tc.tag AS active_tag, rw.feature, rw.val, rw.role,
+                           SUM(rw.weight) AS weight
+                    FROM (SELECT DISTINCT tag FROM role_weights) AS tc
+                    JOIN role_weights AS rw ON rw.tag = 'default' OR rw.tag = tc.tag
+                    GROUP BY tc.tag, rw.feature, rw.val, rw.role
+                ) AS ew ON u.feature = ew.feature AND u.val = ew.val
+                GROUP BY u.page_id, u.row_cluster, u.cell_id, ew.active_tag, ew.role
+            ) AS s
+            GROUP BY page_id, row_cluster, cell_id, active_tag
+        ) AS b
+        GROUP BY active_tag
+        ORDER BY mean_score DESC
+    """).df()
+
+    winning_tag = df['winning_tag'].iloc[0] if 'winning_tag' in df.columns else 'default'
+
     print(f"\n{'='*80}")
     print(f"  {name}")
     print(f"{'='*80}")
+
+    # Tag comparison
+    if len(tag_scores) > 1:
+        tag_summary = ', '.join(f"{r['active_tag']}={r['mean_score']}" for _, r in tag_scores.iterrows())
+        print(f"\n  Tag scores: {tag_summary}  → winner: {winning_tag}")
 
     # Role summary
     print(f"\n  {total} cells → {n_tables} tables, {n_cols} columns, {n_headers} headers detected")
