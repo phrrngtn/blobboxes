@@ -267,6 +267,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
     -- their row and the row has no measure cells
     ROW_MEASURE_COUNT AS (
         SELECT page_id, row_cluster,
+               COUNT(*) AS n_total,
                SUM(CASE WHEN pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date')
                         THEN 1 ELSE 0 END) AS n_measures,
                MIN(x) AS leftmost_x
@@ -274,30 +275,41 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
         GROUP BY page_id, row_cluster
     ),
 
-    -- Classify every cell
-    TAGGED AS (
+    -- ══ Bayesian scoring: compute log-likelihood for each role ══════
+    -- Each feature contributes a log-likelihood ratio per role.
+    -- Final role = argmax of summed log-likelihoods.
+    -- Using LN() scores so evidence multiplies → sums in log space.
+    --
+    -- Roles: measure, col_header, section_label, row_label, dimension, prose
+    -- (measure/currency/percentage/date already resolved in pass1;
+    --  we score the remaining 4 structural roles)
+    --
+    -- Convention: positive = evidence FOR this role, negative = AGAINST.
+
+    FEATURES AS (
         SELECT c.*,
                t.table_id,
+               t.start_row,
+               t.modal_cols,
                pc.col_id,
                pc.col_center,
                bh.header_text AS col_header,
                rmc.n_measures AS row_n_measures,
-               CASE
-                   WHEN c.pass1_role IS NOT NULL THEN c.pass1_role
-                   WHEN hc.subtends_column AND c.row_cluster < t.start_row
-                   THEN 'col_header'
-                   WHEN (c.weight = 'bold' OR c.style_rank >= 3)
-                        AND rmc.n_measures = 0
-                        AND c.x <= rmc.leftmost_x + 5
-                   THEN 'section_label'
-                   WHEN t.table_id IS NOT NULL
-                        AND c.x <= rmc.leftmost_x + 5
-                        AND c.pass1_role IS NULL
-                   THEN 'row_label'
-                   WHEN t.table_id IS NOT NULL AND c.pass1_role IS NULL
-                   THEN 'dimension'
-                   ELSE 'prose'
-               END AS role
+               rmc.leftmost_x,
+               rmc.n_total AS row_n_cells,
+               -- Boolean features for scoring
+               (c.pass1_role IS NOT NULL)                         AS f_pattern_match,
+               (t.table_id IS NOT NULL)                           AS f_in_table,
+               COALESCE(hc.subtends_column, false)                AS f_subtends_col,
+               (c.row_cluster = t.start_row - 1)                  AS f_row_above_data,
+               (c.row_cluster BETWEEN t.start_row AND t.end_row)  AS f_in_data_region,
+               (c.weight = 'bold')                                AS f_bold,
+               (c.style_rank >= 3)                                AS f_rare_style,
+               (c.x <= rmc.leftmost_x + 5)                        AS f_leftmost,
+               (rmc.n_measures = 0)                                AS f_no_measures_in_row,
+               -- Continuous features
+               COALESCE(ABS(rmc.n_total - t.modal_cols), 99)       AS f_cell_count_delta,
+               c.font_size / NULLIF((SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY font_size) FROM cells), 0) AS f_font_size_ratio
         FROM cells AS c
         LEFT JOIN table_regions AS t
           ON c.page_id = t.page_id
@@ -320,16 +332,98 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
          AND c.row_cluster = rmc.row_cluster
     ),
 
-    -- Page title: largest font, top of page
+    SCORED AS (
+        SELECT *,
+               -- ── col_header score ──
+               -- Strong evidence: subtends a column AND row directly above data
+               (CASE WHEN f_subtends_col AND f_row_above_data THEN 3.0
+                     WHEN f_subtends_col THEN 1.5
+                     WHEN f_row_above_data THEN 1.0
+                     ELSE -2.0 END)
+               -- Cell count similar to data rows → plausible header
+             + (CASE WHEN f_cell_count_delta <= 1 AND f_in_table THEN 1.0
+                     WHEN f_cell_count_delta <= 2 AND f_in_table THEN 0.5
+                     ELSE 0.0 END)
+               -- Not a pattern match (headers are text, not numbers)
+             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.5 END)
+               -- Bold is slight evidence for header
+             + (CASE WHEN f_bold THEN 0.3 ELSE 0.0 END)
+               AS score_col_header,
+
+               -- ── section_label score ──
+               (CASE WHEN f_bold THEN 1.5 ELSE -0.5 END)
+             + (CASE WHEN f_rare_style THEN 1.0 ELSE 0.0 END)
+             + (CASE WHEN f_leftmost THEN 1.0 ELSE -1.0 END)
+             + (CASE WHEN f_no_measures_in_row THEN 1.5 ELSE -2.0 END)
+             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.0 END)
+               -- Larger font → more likely a label
+             + (CASE WHEN f_font_size_ratio > 1.3 THEN 1.5
+                     WHEN f_font_size_ratio > 1.1 THEN 0.5
+                     ELSE 0.0 END)
+               -- Subtends column → less likely a section label
+             + (CASE WHEN f_subtends_col AND f_row_above_data THEN -2.0 ELSE 0.0 END)
+               AS score_section_label,
+
+               -- ── row_label score ──
+               (CASE WHEN f_leftmost THEN 2.0 ELSE -2.0 END)
+             + (CASE WHEN f_in_data_region THEN 1.5 ELSE -1.0 END)
+             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.0 END)
+             + (CASE WHEN f_no_measures_in_row THEN -0.5 ELSE 0.5 END)
+             + (CASE WHEN f_bold THEN 0.3 ELSE 0.0 END)
+               AS score_row_label,
+
+               -- ── dimension score (categorical value in a table) ──
+               (CASE WHEN f_in_data_region THEN 1.5 ELSE -2.0 END)
+             + (CASE WHEN NOT f_leftmost THEN 0.5 ELSE -0.5 END)
+             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.5 END)
+             + (CASE WHEN f_in_table THEN 1.0 ELSE -1.0 END)
+               AS score_dimension,
+
+               -- ── prose score (default / background) ──
+               (CASE WHEN NOT f_in_table THEN 2.0 ELSE -1.0 END)
+             + (CASE WHEN f_pattern_match THEN -3.0 ELSE 0.5 END)
+             + (CASE WHEN f_no_measures_in_row THEN 0.5 ELSE -0.5 END)
+             + (CASE WHEN NOT f_bold AND NOT f_rare_style THEN 0.5 ELSE -0.5 END)
+               AS score_prose
+        FROM FEATURES
+    ),
+
+    -- Argmax: pick role with highest score
+    TAGGED AS (
+        SELECT S.*,
+               CASE
+                   WHEN f_pattern_match THEN pass1_role
+                   WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+                        = score_col_header     THEN 'col_header'
+                   WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+                        = score_section_label  THEN 'section_label'
+                   WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+                        = score_row_label      THEN 'row_label'
+                   WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+                        = score_dimension      THEN 'dimension'
+                   ELSE 'prose'
+               END AS role,
+               -- Confidence: gap between best and second-best score
+               GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+               - (
+                   SELECT MAX(s) FROM (VALUES
+                       (score_col_header), (score_section_label), (score_row_label),
+                       (score_dimension), (score_prose)
+                   ) AS t(s)
+                   WHERE s < GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
+               ) AS confidence
+        FROM SCORED AS S
+    ),
+
+    -- Page title: topmost section label on each page
     PAGE_TITLES AS (
         SELECT DISTINCT ON (page_id) page_id, text AS page_title
         FROM TAGGED
-        WHERE font_size = (SELECT MAX(font_size) FROM TAGGED)
-          AND y < 100
-        ORDER BY page_id, y
+        WHERE role = 'section_label'
+        ORDER BY page_id, row_cluster
     ),
 
-    -- Section label indent levels (gap-based clustering of left edges)
+    -- Section label indent levels
     LABEL_EDGES AS (
         SELECT DISTINCT x FROM TAGGED WHERE role = 'section_label'
     ),
