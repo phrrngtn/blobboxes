@@ -126,6 +126,87 @@ The design principle: **domains should be semantically cohesive**.
 Membership in a domain should mean something specific enough that a
 false positive is detectable by context.
 
+## Set-Oriented Probing vs Single-Element Probing
+
+The analysis above assumes single-element probes: hash one token, check
+one bitmap. But the progressive masking pipeline and `bf_containment`
+operate on **sets** — an entire column of values probed against a domain
+bitmap at once. This changes the false positive story qualitatively, not
+just quantitatively.
+
+### How it works
+
+Given a column of N values (e.g., all values in the "Region" column of
+a table), hash all N into a **query bitmap** Q, then compute:
+
+```
+containment = |Q ∩ D| / |Q|
+```
+
+For a column that truly belongs to domain D: containment ≈ 1.0.
+For a random column with no members in D: each hash in Q has probability
+`p = k / 2^32` of colliding with a set bit in D.
+
+### Why the improvement is exponential
+
+The number of false matches in a random column follows
+`Binomial(|Q|, p)`. The containment score concentrates tightly around
+its expected value:
+
+```
+E[containment_false] = p = k / 2^32
+Std[containment_false] = sqrt(p(1-p) / |Q|)
+```
+
+Any threshold significantly above p rejects false matches with
+overwhelming probability. The false positive rate drops **exponentially**
+with column size, not linearly:
+
+| Domain size (k) | Single probe FP | 10-value set FP (threshold 0.5) | 20-value set FP |
+|---|---|---|---|
+| 10,000 | 2.3 × 10⁻⁴ % | ~10⁻⁵⁶ | ~10⁻¹¹² |
+| 100,000 | 2.3 × 10⁻³ % | ~10⁻⁴⁶ | ~10⁻⁹² |
+| 1,000,000 | 2.3 × 10⁻² % | ~10⁻³⁶ | ~10⁻⁷⁰ |
+
+A single probe against a 1M-member domain gives a false positive once
+every ~430K probes. A 20-element set probe at the same per-element rate
+is essentially impossible to fool — the probability is ~10⁻⁷⁰.
+
+### Implications
+
+1. **32-bit is more than sufficient for set-oriented probes.** The bit
+   width debate only matters for single-element probes. In the
+   progressive masking pipeline, most classification happens at the
+   column level via containment scores, so the 2^32 universe is
+   effectively infinite.
+
+2. **Small columns still benefit.** Even |Q| = 5 distinct values gives
+   an exponential improvement over single probes. You don't need large
+   columns to see the effect.
+
+3. **Containment threshold is forgiving.** Because the false containment
+   distribution is concentrated near zero, any threshold above ~0.05
+   effectively eliminates false matches. The choice of 0.5 vs 0.8 vs
+   0.95 is about how many *true* partial matches you want to accept, not
+   about false positive control.
+
+4. **This is the mathematical argument for the sieve architecture.**
+   The progressive masking pipeline first detects table structure
+   (grouping bboxes into columns), then probes columns as sets. The
+   table detection step isn't just about structure recovery — it's
+   about assembling the sets that make domain probing exponentially
+   more reliable.
+
+### Connection to `bf_containment`
+
+The existing `bf_containment(text, filter_bitmap)` function in
+[[blobfilters]] tokenizes the input text, hashes the tokens into a query
+bitmap, and computes `|Q ∩ D| / |Q|`. This is exactly the set-oriented
+probe described above. When used on a column of values (via
+`bf_containment_json_normalized`), the same concentration-of-measure
+effect applies — the containment score for non-matching columns clusters
+near zero while matching columns score near 1.0.
+
 ## FNV-1a Quality
 
 FNV-1a is adequate for this use case:
