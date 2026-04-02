@@ -217,6 +217,86 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
     SELECT * FROM COL_RANGES
     """)
 
+    # ── Role weights table ──────────────────────────────────────────────
+    # Each row: when feature has this value, add this weight to this role.
+    # Tunable without changing SQL. Could be loaded from a file or learned.
+    con.execute("""
+    CREATE OR REPLACE TEMP TABLE role_weights (
+        feature   VARCHAR,   -- feature name (matches UNPIVOT column)
+        val       BOOLEAN,   -- feature value to match (true/false)
+        role      VARCHAR,   -- role this weight applies to
+        weight    DOUBLE     -- log-likelihood contribution
+    );
+
+    INSERT INTO role_weights VALUES
+    -- ── f_pattern_match: pass1 already classified → suppress all structural roles
+    ('f_pattern_match', true,  'col_header',    -5.0),
+    ('f_pattern_match', true,  'section_label', -5.0),
+    ('f_pattern_match', true,  'row_label',     -5.0),
+    ('f_pattern_match', true,  'dimension',     -5.0),
+    ('f_pattern_match', true,  'prose',         -3.0),
+    ('f_pattern_match', false, 'col_header',     0.5),
+    ('f_pattern_match', false, 'dimension',      0.5),
+    ('f_pattern_match', false, 'prose',          0.5),
+
+    -- ── f_subtends_col: horizontal extent overlaps a putative column
+    ('f_subtends_col', true,  'col_header',     2.0),
+    ('f_subtends_col', true,  'section_label', -1.0),
+    ('f_subtends_col', false, 'col_header',    -1.5),
+
+    -- ── f_row_above_data: row is directly above first data row
+    ('f_row_above_data', true,  'col_header',    2.5),
+    ('f_row_above_data', true,  'section_label', -1.0),
+    ('f_row_above_data', false, 'col_header',   -1.0),
+
+    -- ── f_in_data_region: row is within the data rows of a table
+    ('f_in_data_region', true,  'row_label',     1.5),
+    ('f_in_data_region', true,  'dimension',     1.5),
+    ('f_in_data_region', true,  'prose',        -1.0),
+    ('f_in_data_region', false, 'row_label',    -1.0),
+    ('f_in_data_region', false, 'dimension',    -2.0),
+
+    -- ── f_in_table: cell is in or near a table region
+    ('f_in_table', true,  'dimension',    1.0),
+    ('f_in_table', true,  'prose',       -1.0),
+    ('f_in_table', false, 'dimension',   -1.0),
+    ('f_in_table', false, 'prose',        2.0),
+
+    -- ── f_bold: font weight is bold
+    ('f_bold', true,  'section_label',  1.5),
+    ('f_bold', true,  'col_header',     0.3),
+    ('f_bold', true,  'row_label',      0.3),
+    ('f_bold', false, 'section_label', -0.5),
+    ('f_bold', false, 'prose',          0.5),
+
+    -- ── f_rare_style: style rank >= 3 (infrequent style)
+    ('f_rare_style', true,  'section_label',  1.0),
+    ('f_rare_style', false, 'prose',          0.3),
+    ('f_rare_style', true,  'prose',         -0.5),
+
+    -- ── f_leftmost: cell is at or near the leftmost x in its row
+    ('f_leftmost', true,  'section_label',  1.0),
+    ('f_leftmost', true,  'row_label',      2.0),
+    ('f_leftmost', false, 'section_label', -1.0),
+    ('f_leftmost', false, 'row_label',     -2.0),
+    ('f_leftmost', false, 'dimension',      0.5),
+
+    -- ── f_no_measures_in_row: no measure cells in this row
+    ('f_no_measures_in_row', true,  'section_label',  1.5),
+    ('f_no_measures_in_row', true,  'prose',          0.5),
+    ('f_no_measures_in_row', false, 'section_label', -2.0),
+    ('f_no_measures_in_row', false, 'row_label',      0.5),
+    ('f_no_measures_in_row', false, 'prose',         -0.5),
+
+    -- ── f_cell_count_match: cell count in row is close to table's modal column count
+    ('f_cell_count_match', true,  'col_header',  1.0),
+    ('f_cell_count_match', false, 'col_header', -0.5),
+
+    -- ── f_large_font: font size notably larger than body
+    ('f_large_font', true,  'section_label',  1.5),
+    ('f_large_font', false, 'section_label',  0.0)
+    """)
+
     # ── Pass 3: Residual classification ───────────────────────────────
     con.execute("""
     CREATE OR REPLACE TEMP TABLE classified AS
@@ -332,60 +412,61 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection):
          AND c.row_cluster = rmc.row_cluster
     ),
 
+    -- Derive compound boolean features from continuous ones
+    FEATURES_BOOL AS (
+        SELECT F.*,
+               (f_cell_count_delta <= 2 AND f_in_table) AS f_cell_count_match,
+               (f_font_size_ratio > 1.2) AS f_large_font
+        FROM FEATURES AS F
+    ),
+
+    -- UNPIVOT boolean features → (cell_key, feature, val) rows
+    -- then JOIN to role_weights → SUM per cell per role
+    UNPIVOTED AS (
+        SELECT page_id, row_cluster, cell_id, feature, val
+        FROM FEATURES_BOOL
+        UNPIVOT (val FOR feature IN (
+            f_pattern_match, f_in_table, f_subtends_col,
+            f_row_above_data, f_in_data_region, f_bold,
+            f_rare_style, f_leftmost, f_no_measures_in_row,
+            f_cell_count_match, f_large_font
+        ))
+    ),
+
+    ROLE_SCORES AS (
+        SELECT u.page_id, u.row_cluster, u.cell_id,
+               rw.role,
+               SUM(rw.weight) AS score
+        FROM UNPIVOTED AS u
+        JOIN role_weights AS rw
+          ON u.feature = rw.feature AND u.val = rw.val
+        GROUP BY u.page_id, u.row_cluster, u.cell_id, rw.role
+    ),
+
+    -- PIVOT scores back to one row per cell with a column per role
     SCORED AS (
-        SELECT *,
-               -- ── col_header score ──
-               -- Strong evidence: subtends a column AND row directly above data
-               (CASE WHEN f_subtends_col AND f_row_above_data THEN 3.0
-                     WHEN f_subtends_col THEN 1.5
-                     WHEN f_row_above_data THEN 1.0
-                     ELSE -2.0 END)
-               -- Cell count similar to data rows → plausible header
-             + (CASE WHEN f_cell_count_delta <= 1 AND f_in_table THEN 1.0
-                     WHEN f_cell_count_delta <= 2 AND f_in_table THEN 0.5
-                     ELSE 0.0 END)
-               -- Not a pattern match (headers are text, not numbers)
-             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.5 END)
-               -- Bold is slight evidence for header
-             + (CASE WHEN f_bold THEN 0.3 ELSE 0.0 END)
-               AS score_col_header,
-
-               -- ── section_label score ──
-               (CASE WHEN f_bold THEN 1.5 ELSE -0.5 END)
-             + (CASE WHEN f_rare_style THEN 1.0 ELSE 0.0 END)
-             + (CASE WHEN f_leftmost THEN 1.0 ELSE -1.0 END)
-             + (CASE WHEN f_no_measures_in_row THEN 1.5 ELSE -2.0 END)
-             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.0 END)
-               -- Larger font → more likely a label
-             + (CASE WHEN f_font_size_ratio > 1.3 THEN 1.5
-                     WHEN f_font_size_ratio > 1.1 THEN 0.5
-                     ELSE 0.0 END)
-               -- Subtends column → less likely a section label
-             + (CASE WHEN f_subtends_col AND f_row_above_data THEN -2.0 ELSE 0.0 END)
-               AS score_section_label,
-
-               -- ── row_label score ──
-               (CASE WHEN f_leftmost THEN 2.0 ELSE -2.0 END)
-             + (CASE WHEN f_in_data_region THEN 1.5 ELSE -1.0 END)
-             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.0 END)
-             + (CASE WHEN f_no_measures_in_row THEN -0.5 ELSE 0.5 END)
-             + (CASE WHEN f_bold THEN 0.3 ELSE 0.0 END)
-               AS score_row_label,
-
-               -- ── dimension score (categorical value in a table) ──
-               (CASE WHEN f_in_data_region THEN 1.5 ELSE -2.0 END)
-             + (CASE WHEN NOT f_leftmost THEN 0.5 ELSE -0.5 END)
-             + (CASE WHEN f_pattern_match THEN -5.0 ELSE 0.5 END)
-             + (CASE WHEN f_in_table THEN 1.0 ELSE -1.0 END)
-               AS score_dimension,
-
-               -- ── prose score (default / background) ──
-               (CASE WHEN NOT f_in_table THEN 2.0 ELSE -1.0 END)
-             + (CASE WHEN f_pattern_match THEN -3.0 ELSE 0.5 END)
-             + (CASE WHEN f_no_measures_in_row THEN 0.5 ELSE -0.5 END)
-             + (CASE WHEN NOT f_bold AND NOT f_rare_style THEN 0.5 ELSE -0.5 END)
-               AS score_prose
-        FROM FEATURES
+        SELECT F.*,
+               COALESCE(ch.score, 0)  AS score_col_header,
+               COALESCE(sl.score, 0)  AS score_section_label,
+               COALESCE(rl.score, 0)  AS score_row_label,
+               COALESCE(dm.score, 0)  AS score_dimension,
+               COALESCE(pr.score, 0)  AS score_prose
+        FROM FEATURES_BOOL AS F
+        LEFT JOIN ROLE_SCORES AS ch
+          ON F.page_id = ch.page_id AND F.row_cluster = ch.row_cluster
+         AND F.cell_id = ch.cell_id AND ch.role = 'col_header'
+        LEFT JOIN ROLE_SCORES AS sl
+          ON F.page_id = sl.page_id AND F.row_cluster = sl.row_cluster
+         AND F.cell_id = sl.cell_id AND sl.role = 'section_label'
+        LEFT JOIN ROLE_SCORES AS rl
+          ON F.page_id = rl.page_id AND F.row_cluster = rl.row_cluster
+         AND F.cell_id = rl.cell_id AND rl.role = 'row_label'
+        LEFT JOIN ROLE_SCORES AS dm
+          ON F.page_id = dm.page_id AND F.row_cluster = dm.row_cluster
+         AND F.cell_id = dm.cell_id AND dm.role = 'dimension'
+        LEFT JOIN ROLE_SCORES AS pr
+          ON F.page_id = pr.page_id AND F.row_cluster = pr.row_cluster
+         AND F.cell_id = pr.cell_id AND pr.role = 'prose'
     ),
 
     -- Argmax: pick role with highest score
