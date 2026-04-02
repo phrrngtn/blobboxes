@@ -22,6 +22,11 @@
 - Load with: `duckdb -unsigned` then `LOAD 'build/duckdb/bboxes.duckdb_extension';`
 - **Always use `-unsigned`** — the extension is locally built and not signed
 - When using DuckDB from Python: `duckdb.connect(config={"allow_unsigned_extensions": "true"})`
+- **CTE materialization**: DuckDB materializes CTEs by default. A CTE that calls `bb()` will extract once, not per-reference. For multi-query interactive sessions, use temp tables to avoid re-extraction:
+  ```sql
+  CREATE TEMP TABLE bboxes AS SELECT * FROM bb('file.pdf');
+  ```
+  Within a single query, `AS MATERIALIZED` / `AS NOT MATERIALIZED` hints are available but rarely needed — the optimizer handles it.
 - Function naming: `bb_*` for auto-detect, `bb_pdf_*`, `bb_xlsx_*`, `bb_text_*`, `bb_docx_*` for explicit format
 - Table functions (return rows):
   - `bb(path)` / `bb_pdf(path)` / `bb_xlsx(path)` / ... — bounding boxes: `(page_id, style_id, x, y, w, h, text, formula)`
