@@ -1,0 +1,421 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Years Ended December 31, (in millions)",
+                "pdf_text_tight_bbox": [
+                    45.0,
+                    81.4278793334961,
+                    149.4399871826172,
+                    100.61988067626953
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    45.0,
+                    81.4278793334961,
+                    155.30447387695312,
+                    100.61988067626953
+                ],
+                "pdf_text_content": "Years Ended December 31, (in millions)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2013",
+                "pdf_text_tight_bbox": [
+                    446.5,
+                    91.4278793334961,
+                    464.2919921875,
+                    100.61988067626953
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    437.8800048828125,
+                    81.4278793334961,
+                    464.2919921875,
+                    100.61988067626953
+                ],
+                "pdf_text_content": "2013"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2012",
+                "pdf_text_tight_bbox": [
+                    492.82000732421875,
+                    91.56388092041016,
+                    510.61199951171875,
+                    100.61988067626953
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    476.2800598144531,
+                    81.4278793334961,
+                    510.61199951171875,
+                    100.61988067626953
+                ],
+                "pdf_text_content": "2012"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2011",
+                "pdf_text_tight_bbox": [
+                    531.219970703125,
+                    91.56388092041016,
+                    549.011962890625,
+                    100.61988067626953
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    522.5972290039062,
+                    81.4278793334961,
+                    552.1651000976562,
+                    100.61988067626953
+                ],
+                "pdf_text_content": "2011"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Counterparty Credit Valuation Adjustment on Assets:",
+                "pdf_text_tight_bbox": [
+                    45.0,
+                    105.51937866210938,
+                    289.6441650390625,
+                    116.43488311767578
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    45.0,
+                    105.51937866210938,
+                    552.1651000976562,
+                    116.43488311767578
+                ],
+                "pdf_text_content": "Counterparty Credit Valuation Adjustment on Assets:"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Other bond securities",
+                "pdf_text_tight_bbox": [
+                    54.5,
+                    117.18063354492188,
+                    146.1559600830078,
+                    127.93463897705078
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    45.0,
+                    117.01962280273438,
+                    155.30447387695312,
+                    127.93512725830078
+                ],
+                "pdf_text_content": "Other bond securities"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$488",
+                "pdf_text_tight_bbox": [
+                    437.8800048828125,
+                    117.01962280273438,
+                    464.2862548828125,
+                    127.93512725830078
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    437.8800048828125,
+                    117.01962280273438,
+                    464.2919921875,
+                    127.93512725830078
+                ],
+                "pdf_text_content": "$ 488"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1,401",
+                "pdf_text_tight_bbox": [
+                    476.2800598144531,
+                    117.18063354492188,
+                    510.60540771484375,
+                    127.93463897705078
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    476.2800598144531,
+                    117.01962280273438,
+                    510.61199951171875,
+                    127.93512725830078
+                ],
+                "pdf_text_content": "$ 1,401"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$(71)",
+                "pdf_text_tight_bbox": [
+                    522.5972290039062,
+                    117.18063354492188,
+                    552.1651000976562,
+                    127.93463897705078
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    522.5972290039062,
+                    117.01962280273438,
+                    552.1651000976562,
+                    127.93512725830078
+                ],
+                "pdf_text_content": "$ (71)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Loans and other assets",
+                "pdf_text_tight_bbox": [
+                    54.5,
+                    128.67941284179688,
+                    155.30447387695312,
+                    139.43341064453125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    45.0,
+                    128.51937866210938,
+                    155.30447387695312,
+                    139.43487548828125
+                ],
+                "pdf_text_content": "Loans and other assets"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "10",
+                "pdf_text_tight_bbox": [
+                    453.7203063964844,
+                    128.51937866210938,
+                    464.2843322753906,
+                    139.43487548828125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    437.8800048828125,
+                    128.51937866210938,
+                    464.2919921875,
+                    139.43487548828125
+                ],
+                "pdf_text_content": "10"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "29",
+                "pdf_text_tight_bbox": [
+                    500.0404968261719,
+                    128.67941284179688,
+                    510.6045227050781,
+                    139.43341064453125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    476.2800598144531,
+                    128.51937866210938,
+                    510.61199951171875,
+                    139.43487548828125
+                ],
+                "pdf_text_content": "29"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "31",
+                "pdf_text_tight_bbox": [
+                    538.4404907226562,
+                    128.67941284179688,
+                    549.0044555664062,
+                    139.43341064453125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    522.5972290039062,
+                    128.51937866210938,
+                    552.1651000976562,
+                    139.43487548828125
+                ],
+                "pdf_text_content": "31"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    45.0,
+                    81.4278793334961,
+                    552.1651000976562,
+                    100.61988067626953
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    45.0,
+                    105.51937866210938,
+                    552.1651000976562,
+                    116.43488311767578
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    45.0,
+                    117.01962280273438,
+                    552.1651000976562,
+                    127.93512725830078
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    45.0,
+                    128.51937866210938,
+                    552.1651000976562,
+                    139.43487548828125
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    45.0,
+                    81.4278793334961,
+                    155.30447387695312,
+                    139.43487548828125
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    437.8800048828125,
+                    81.4278793334961,
+                    464.2919921875,
+                    139.43487548828125
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    476.2800598144531,
+                    81.4278793334961,
+                    510.61199951171875,
+                    139.43487548828125
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    522.5972290039062,
+                    81.4278793334961,
+                    552.1651000976562,
+                    139.43487548828125
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": true,
+        "split": "train",
+        "pdf_file_name": "page_143.pdf",
+        "pdf_folder": "AIG/2013/",
+        "document_id": "AIG_2013_page_143",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 30037,
+        "fintabnet_source_table_id": 49658,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            594.0,
+            774.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "AIG_2013_page_143_0",
+        "pdf_table_bbox": [
+            45.0,
+            81.4278793334961,
+            552.1651000976562,
+            139.43487548828125
+        ]
+    }
+]

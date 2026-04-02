@@ -1,0 +1,1020 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Year ended December 31 (in millions)",
+                "pdf_text_tight_bbox": [
+                    321.0,
+                    519.2310180664062,
+                    431.5888671875,
+                    527.4979858398438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    519.2310180664062,
+                    447.6020202636719,
+                    527.5469970703125
+                ],
+                "pdf_text_content": "Year ended December 31 (in millions)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2008",
+                "pdf_text_tight_bbox": [
+                    484.55010986328125,
+                    519.3359985351562,
+                    499.9900207519531,
+                    527.5469970703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    519.2310180664062,
+                    502.45269775390625,
+                    527.5469970703125
+                ],
+                "pdf_text_content": "2008"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2007",
+                "pdf_text_tight_bbox": [
+                    522.55029296875,
+                    519.2310180664062,
+                    537.990234375,
+                    527.4979858398438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    519.2310180664062,
+                    540.125732421875,
+                    527.5469970703125
+                ],
+                "pdf_text_content": "2007"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2006",
+                "pdf_text_tight_bbox": [
+                    560.5477294921875,
+                    519.2310180664062,
+                    575.9876708984375,
+                    527.4979858398438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    519.2310180664062,
+                    578.1265869140625,
+                    527.5469970703125
+                ],
+                "pdf_text_content": "2006"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Gains on sales and exchanges of investments, net",
+                "pdf_text_tight_bbox": [
+                    321.0,
+                    533.2969970703125,
+                    447.6020202636719,
+                    555.9257202148438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    533.2969970703125,
+                    447.6020202636719,
+                    555.9887084960938
+                ],
+                "pdf_text_content": "Gains on sales and exchanges of investments, net"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$8",
+                "pdf_text_tight_bbox": [
+                    470.24969482421875,
+                    545.4317016601562,
+                    500.0036926269531,
+                    555.9887084960938
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    533.2969970703125,
+                    502.45269775390625,
+                    555.9887084960938
+                ],
+                "pdf_text_content": "$ 8"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$151",
+                "pdf_text_tight_bbox": [
+                    515.9993896484375,
+                    545.2966918945312,
+                    538.0035400390625,
+                    555.9257202148438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    533.2969970703125,
+                    540.125732421875,
+                    555.9887084960938
+                ],
+                "pdf_text_content": "$ 151"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$733",
+                "pdf_text_tight_bbox": [
+                    553.9992065429688,
+                    545.2966918945312,
+                    576.0033569335938,
+                    555.9257202148438
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    533.2969970703125,
+                    578.1265869140625,
+                    555.9887084960938
+                ],
+                "pdf_text_content": "$ 733"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Investment impairment losses",
+                "pdf_text_tight_bbox": [
+                    320.99908447265625,
+                    557.29638671875,
+                    434.40899658203125,
+                    567.9254150390625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    557.29638671875,
+                    447.6020202636719,
+                    567.9884033203125
+                ],
+                "pdf_text_content": "Investment impairment losses"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "(28)",
+                "pdf_text_tight_bbox": [
+                    487.5989990234375,
+                    557.431396484375,
+                    502.44903564453125,
+                    567.9884033203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    557.29638671875,
+                    502.45269775390625,
+                    567.9884033203125
+                ],
+                "pdf_text_content": "(28)"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "(4)",
+                "pdf_text_tight_bbox": [
+                    530.89892578125,
+                    557.29638671875,
+                    540.125732421875,
+                    567.9254150390625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    557.29638671875,
+                    540.125732421875,
+                    567.9884033203125
+                ],
+                "pdf_text_content": "(4)"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(4)",
+                "pdf_text_tight_bbox": [
+                    568.9067993164062,
+                    557.29638671875,
+                    578.1218872070312,
+                    567.9254150390625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    557.29638671875,
+                    578.1265869140625,
+                    567.9884033203125
+                ],
+                "pdf_text_content": "(4)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Unrealized gains (losses) on trading securities and hedged items",
+                "pdf_text_tight_bbox": [
+                    320.9991149902344,
+                    569.2960815429688,
+                    443.3019104003906,
+                    603.9244995117188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    569.2960815429688,
+                    447.6020202636719,
+                    603.9874877929688
+                ],
+                "pdf_text_content": "Unrealized gains (losses) on trading securities and hedged items"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "(1,117)",
+                "pdf_text_tight_bbox": [
+                    475.24920654296875,
+                    593.4304809570312,
+                    502.45269775390625,
+                    603.9874877929688
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    569.2960815429688,
+                    502.45269775390625,
+                    603.9874877929688
+                ],
+                "pdf_text_content": "(1,117)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "315",
+                "pdf_text_tight_bbox": [
+                    523.0994873046875,
+                    593.2954711914062,
+                    538.00537109375,
+                    603.9244995117188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    569.2960815429688,
+                    540.125732421875,
+                    603.9874877929688
+                ],
+                "pdf_text_content": "315"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "339",
+                "pdf_text_tight_bbox": [
+                    561.10205078125,
+                    593.2954711914062,
+                    576.0079345703125,
+                    603.9244995117188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    569.2960815429688,
+                    578.1265869140625,
+                    603.9874877929688
+                ],
+                "pdf_text_content": "339"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Mark to market adjustments on derivatives related to trading securities and hedged items",
+                "pdf_text_tight_bbox": [
+                    320.99908447265625,
+                    605.295166015625,
+                    440.6729736328125,
+                    639.923583984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    605.295166015625,
+                    447.6020202636719,
+                    639.986572265625
+                ],
+                "pdf_text_content": "Mark to market adjustments on derivatives related to trading securities and hedged items"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,120",
+                "pdf_text_tight_bbox": [
+                    477.698974609375,
+                    629.4295654296875,
+                    500.0010070800781,
+                    639.986572265625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    605.295166015625,
+                    502.45269775390625,
+                    639.986572265625
+                ],
+                "pdf_text_content": "1,120"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "(188)",
+                "pdf_text_tight_bbox": [
+                    520.9989013671875,
+                    629.2945556640625,
+                    540.1221923828125,
+                    639.923583984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    605.295166015625,
+                    540.125732421875,
+                    639.986572265625
+                ],
+                "pdf_text_content": "(188)"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(238)",
+                "pdf_text_tight_bbox": [
+                    559.0032958984375,
+                    629.2945556640625,
+                    578.1265869140625,
+                    639.923583984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    605.295166015625,
+                    578.1265869140625,
+                    639.986572265625
+                ],
+                "pdf_text_content": "(238)"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Mark to market adjustments on derivatives",
+                "pdf_text_tight_bbox": [
+                    320.99908447265625,
+                    641.2942504882812,
+                    440.6729736328125,
+                    663.9229736328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    641.2942504882812,
+                    447.6020202636719,
+                    663.9859619140625
+                ],
+                "pdf_text_content": "Mark to market adjustments on derivatives"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "57",
+                "pdf_text_tight_bbox": [
+                    490.04876708984375,
+                    653.428955078125,
+                    500.0027770996094,
+                    663.9859619140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    641.2942504882812,
+                    502.45269775390625,
+                    663.9859619140625
+                ],
+                "pdf_text_content": "57"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "160",
+                "pdf_text_tight_bbox": [
+                    523.0985717773438,
+                    653.2939453125,
+                    537.9989624023438,
+                    663.9229736328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    641.2942504882812,
+                    540.125732421875,
+                    663.9859619140625
+                ],
+                "pdf_text_content": "160"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(18)",
+                "pdf_text_tight_bbox": [
+                    563.9450073242188,
+                    653.2939453125,
+                    578.1235961914062,
+                    663.9229736328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    641.2942504882812,
+                    578.1265869140625,
+                    663.9859619140625
+                ],
+                "pdf_text_content": "(18)"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Interest and dividend income",
+                "pdf_text_tight_bbox": [
+                    320.9981689453125,
+                    665.2936401367188,
+                    431.1878356933594,
+                    675.9226684570312
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    665.2936401367188,
+                    447.6020202636719,
+                    675.9856567382812
+                ],
+                "pdf_text_content": "Interest and dividend income"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "149",
+                "pdf_text_tight_bbox": [
+                    485.0978698730469,
+                    665.4286499023438,
+                    500.0036926269531,
+                    675.9856567382812
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    665.2936401367188,
+                    502.45269775390625,
+                    675.9856567382812
+                ],
+                "pdf_text_content": "149"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "199",
+                "pdf_text_tight_bbox": [
+                    523.09765625,
+                    665.2936401367188,
+                    538.0035400390625,
+                    675.9226684570312
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    665.2936401367188,
+                    540.125732421875,
+                    675.9856567382812
+                ],
+                "pdf_text_content": "199"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "212",
+                "pdf_text_tight_bbox": [
+                    561.1002197265625,
+                    665.2936401367188,
+                    576.006103515625,
+                    675.9226684570312
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    665.2936401367188,
+                    578.1265869140625,
+                    675.9856567382812
+                ],
+                "pdf_text_content": "212"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Other",
+                "pdf_text_tight_bbox": [
+                    320.99725341796875,
+                    677.2933349609375,
+                    342.431640625,
+                    687.92236328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    677.2933349609375,
+                    447.6020202636719,
+                    687.9853515625
+                ],
+                "pdf_text_content": "Other"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "(100)",
+                "pdf_text_tight_bbox": [
+                    482.64715576171875,
+                    677.4283447265625,
+                    502.44720458984375,
+                    687.9853515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    677.2933349609375,
+                    502.45269775390625,
+                    687.9853515625
+                ],
+                "pdf_text_content": "(100)"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "(32)",
+                "pdf_text_tight_bbox": [
+                    525.9470825195312,
+                    677.2933349609375,
+                    540.1203002929688,
+                    687.92236328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    677.2933349609375,
+                    540.125732421875,
+                    687.9853515625
+                ],
+                "pdf_text_content": "(32)"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(34)",
+                "pdf_text_tight_bbox": [
+                    563.951416015625,
+                    677.2933349609375,
+                    578.1246337890625,
+                    687.92236328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    677.2933349609375,
+                    578.1265869140625,
+                    687.9853515625
+                ],
+                "pdf_text_content": "(34)"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Investment income (loss), net",
+                "pdf_text_tight_bbox": [
+                    320.9972839355469,
+                    693.2935180664062,
+                    432.0141296386719,
+                    703.9225463867188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    320.99725341796875,
+                    693.2935180664062,
+                    447.6020202636719,
+                    703.9855346679688
+                ],
+                "pdf_text_content": "Investment income (loss), net"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$89",
+                "pdf_text_tight_bbox": [
+                    470.2469787597656,
+                    693.4285278320312,
+                    500.0010070800781,
+                    703.9855346679688
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    470.2469787597656,
+                    693.2935180664062,
+                    502.45269775390625,
+                    703.9855346679688
+                ],
+                "pdf_text_content": "$ 89"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$601",
+                "pdf_text_tight_bbox": [
+                    515.9967041015625,
+                    693.2935180664062,
+                    538.0008544921875,
+                    703.9225463867188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    515.9967041015625,
+                    693.2935180664062,
+                    540.125732421875,
+                    703.9855346679688
+                ],
+                "pdf_text_content": "$ 601"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$990",
+                "pdf_text_tight_bbox": [
+                    553.9965209960938,
+                    693.2935180664062,
+                    576.0006713867188,
+                    703.9225463867188
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    553.9965209960938,
+                    693.2935180664062,
+                    578.1265869140625,
+                    703.9855346679688
+                ],
+                "pdf_text_content": "$ 990"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    519.2310180664062,
+                    578.1265869140625,
+                    527.5469970703125
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    533.2969970703125,
+                    578.1265869140625,
+                    555.9887084960938
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    557.29638671875,
+                    578.1265869140625,
+                    567.9884033203125
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    569.2960815429688,
+                    578.1265869140625,
+                    603.9874877929688
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    605.295166015625,
+                    578.1265869140625,
+                    639.986572265625
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    641.2942504882812,
+                    578.1265869140625,
+                    663.9859619140625
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    665.2936401367188,
+                    578.1265869140625,
+                    675.9856567382812
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    677.2933349609375,
+                    578.1265869140625,
+                    687.9853515625
+                ]
+            },
+            "8": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    320.99725341796875,
+                    693.2935180664062,
+                    578.1265869140625,
+                    703.9855346679688
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    320.99725341796875,
+                    519.2310180664062,
+                    447.6020202636719,
+                    703.9855346679688
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    470.2469787597656,
+                    519.2310180664062,
+                    502.45269775390625,
+                    703.9855346679688
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    515.9967041015625,
+                    519.2310180664062,
+                    540.125732421875,
+                    703.9855346679688
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    553.9965209960938,
+                    519.2310180664062,
+                    578.1265869140625,
+                    703.9855346679688
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_59.pdf",
+        "pdf_folder": "CMCSA/2008/",
+        "document_id": "CMCSA_2008_page_59",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 70461,
+        "fintabnet_source_table_id": 114238,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "CMCSA_2008_page_59_0",
+        "pdf_table_bbox": [
+            320.99725341796875,
+            519.2310180664062,
+            578.1265869140625,
+            703.9855346679688
+        ]
+    }
+]

@@ -1,0 +1,622 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0,
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "In millions of dollars",
+                "pdf_text_tight_bbox": [
+                    68.98420715332031,
+                    484.8076477050781,
+                    119.92996215820312,
+                    493.50042724609375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    454.1784362792969,
+                    163.1763916015625,
+                    493.50042724609375
+                ],
+                "pdf_text_content": "In millions of dollars"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1,
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "December 31, 2018",
+                "pdf_text_tight_bbox": [
+                    255.3446807861328,
+                    454.1784362792969,
+                    315.9847717285156,
+                    463.6584167480469
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    454.1784362792969,
+                    315.9847717285156,
+                    463.6584167480469
+                ],
+                "pdf_text_content": "December 31, 2018"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "TotalunconsolidatedVIE assets",
+                "pdf_text_tight_bbox": [
+                    187.28839111328125,
+                    464.64031982421875,
+                    235.98440551757812,
+                    493.3203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    464.64031982421875,
+                    235.98440551757812,
+                    493.50042724609375
+                ],
+                "pdf_text_content": "Total unconsolidated VIE assets"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "Maximumexposure tounconsolidated VIEs",
+                "pdf_text_tight_bbox": [
+                    251.7523956298828,
+                    464.64031982421875,
+                    315.9844665527344,
+                    493.3203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    464.64031982421875,
+                    315.9847717285156,
+                    493.50042724609375
+                ],
+                "pdf_text_content": "Maximum exposure to unconsolidated VIEs"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Type",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    498.84832763671875,
+                    83.64038848876953,
+                    508.32830810546875
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    498.84832763671875,
+                    315.9847717285156,
+                    508.32830810546875
+                ],
+                "pdf_text_content": "Type"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Commercial and other real estate",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    509.0803527832031,
+                    163.1763916015625,
+                    518.1283569335938
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    508.808349609375,
+                    163.1763916015625,
+                    518.288330078125
+                ],
+                "pdf_text_content": "Commercial and other real estate"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$23,918",
+                "pdf_text_tight_bbox": [
+                    210.14439392089844,
+                    508.808349609375,
+                    235.984375,
+                    518.288330078125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    508.808349609375,
+                    235.98440551757812,
+                    518.288330078125
+                ],
+                "pdf_text_content": "$23,918"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$6,928",
+                "pdf_text_tight_bbox": [
+                    290.1444091796875,
+                    508.808349609375,
+                    315.9844055175781,
+                    518.288330078125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    508.808349609375,
+                    315.9847717285156,
+                    518.288330078125
+                ],
+                "pdf_text_content": "$ 6,928"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Corporate loans",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    519.040283203125,
+                    113.56837463378906,
+                    528.0883178710938
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    518.768310546875,
+                    163.1763916015625,
+                    528.248291015625
+                ],
+                "pdf_text_content": "Corporate loans"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "6,731",
+                "pdf_text_tight_bbox": [
+                    218.7043914794922,
+                    518.768310546875,
+                    235.984375,
+                    528.248291015625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    518.768310546875,
+                    235.98440551757812,
+                    528.248291015625
+                ],
+                "pdf_text_content": "6,731"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "5,744",
+                "pdf_text_tight_bbox": [
+                    298.70440673828125,
+                    518.768310546875,
+                    315.9844055175781,
+                    528.248291015625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    518.768310546875,
+                    315.9847717285156,
+                    528.248291015625
+                ],
+                "pdf_text_content": "5,744"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Hedge funds and equities",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    529.000244140625,
+                    140.9283905029297,
+                    538.0482788085938
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    528.728271484375,
+                    163.1763916015625,
+                    538.208251953125
+                ],
+                "pdf_text_content": "Hedge funds and equities"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "388",
+                "pdf_text_tight_bbox": [
+                    224.46438598632812,
+                    528.728271484375,
+                    235.984375,
+                    538.208251953125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    528.728271484375,
+                    235.98440551757812,
+                    538.208251953125
+                ],
+                "pdf_text_content": "388"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "53",
+                "pdf_text_tight_bbox": [
+                    308.3044128417969,
+                    528.728271484375,
+                    315.9844055175781,
+                    538.208251953125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    528.728271484375,
+                    315.9847717285156,
+                    538.208251953125
+                ],
+                "pdf_text_content": "53"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Airplanes, ships and other assets",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    538.9602661132812,
+                    162.39959716796875,
+                    548.00830078125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    538.6882934570312,
+                    163.1763916015625,
+                    548.1682739257812
+                ],
+                "pdf_text_content": "Airplanes, ships and other assets"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "41,534",
+                "pdf_text_tight_bbox": [
+                    214.86439514160156,
+                    538.6882934570312,
+                    235.984375,
+                    548.1682739257812
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    538.6882934570312,
+                    235.98440551757812,
+                    548.1682739257812
+                ],
+                "pdf_text_content": "41,534"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "19,387",
+                "pdf_text_tight_bbox": [
+                    294.8644104003906,
+                    538.6882934570312,
+                    315.9844055175781,
+                    548.1682739257812
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    538.6882934570312,
+                    315.9847717285156,
+                    548.1682739257812
+                ],
+                "pdf_text_content": "19,387"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total",
+                "pdf_text_tight_bbox": [
+                    68.98439025878906,
+                    553.6483154296875,
+                    84.20838928222656,
+                    563.1282958984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    68.98420715332031,
+                    553.6483154296875,
+                    163.1763916015625,
+                    563.1282958984375
+                ],
+                "pdf_text_content": "Total"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$72,571",
+                "pdf_text_tight_bbox": [
+                    210.14439392089844,
+                    553.6483154296875,
+                    235.984375,
+                    563.1282958984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    187.28839111328125,
+                    553.6483154296875,
+                    235.98440551757812,
+                    563.1282958984375
+                ],
+                "pdf_text_content": "$72,571"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$32,112",
+                "pdf_text_tight_bbox": [
+                    290.1444091796875,
+                    553.6483154296875,
+                    315.9844055175781,
+                    563.1282958984375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    251.7523956298828,
+                    553.6483154296875,
+                    315.9847717285156,
+                    563.1282958984375
+                ],
+                "pdf_text_content": "$32,112"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    454.1784362792969,
+                    315.9847717285156,
+                    463.6584167480469
+                ]
+            },
+            "1": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    464.64031982421875,
+                    315.9847717285156,
+                    493.50042724609375
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    498.84832763671875,
+                    315.9847717285156,
+                    508.32830810546875
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    508.808349609375,
+                    315.9847717285156,
+                    518.288330078125
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    518.768310546875,
+                    315.9847717285156,
+                    528.248291015625
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    528.728271484375,
+                    315.9847717285156,
+                    538.208251953125
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    538.6882934570312,
+                    315.9847717285156,
+                    548.1682739257812
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    68.98420715332031,
+                    553.6483154296875,
+                    315.9847717285156,
+                    563.1282958984375
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    68.98420715332031,
+                    454.1784362792969,
+                    163.1763916015625,
+                    563.1282958984375
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    187.28839111328125,
+                    454.1784362792969,
+                    235.98440551757812,
+                    563.1282958984375
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    251.7523956298828,
+                    454.1784362792969,
+                    315.9847717285156,
+                    563.1282958984375
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": true,
+        "split": "train",
+        "pdf_file_name": "page_247.pdf",
+        "pdf_folder": "C/2018/",
+        "document_id": "C_2018_page_247",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 57051,
+        "fintabnet_source_table_id": 94107,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            648.0,
+            828.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "C_2018_page_247_0",
+        "pdf_table_bbox": [
+            68.98420715332031,
+            454.1784362792969,
+            315.9847717285156,
+            563.1282958984375
+        ]
+    }
+]

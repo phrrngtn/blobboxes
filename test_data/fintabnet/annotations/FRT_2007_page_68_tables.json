@@ -1,0 +1,1004 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Date",
+                "pdf_text_tight_bbox": [
+                    101.5,
+                    332.55999755859375,
+                    117.49200439453125,
+                    341.7439880371094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    324.55999755859375,
+                    126.65000915527344,
+                    353.7439880371094
+                ],
+                "pdf_text_content": "Date"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "Property",
+                "pdf_text_tight_bbox": [
+                    209.64999389648438,
+                    332.55999755859375,
+                    240.30599975585938,
+                    341.7439880371094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    324.55999755859375,
+                    271.3599853515625,
+                    353.7439880371094
+                ],
+                "pdf_text_content": "Property"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "City, State",
+                "pdf_text_tight_bbox": [
+                    326.0,
+                    332.55999755859375,
+                    361.9783935546875,
+                    341.7439880371094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    324.55999755859375,
+                    379.4410400390625,
+                    353.7439880371094
+                ],
+                "pdf_text_content": "City, State"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "Gross Leasable Area (In square feet)",
+                "pdf_text_tight_bbox": [
+                    409.0,
+                    324.55999755859375,
+                    461.3960266113281,
+                    353.7439880371094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    324.55999755859375,
+                    461.3960266113281,
+                    353.7439880371094
+                ],
+                "pdf_text_content": "Gross Leasable Area (In square feet)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Purchase Price (In millions)",
+                "pdf_text_tight_bbox": [
+                    481.3504333496094,
+                    324.55999755859375,
+                    523.33447265625,
+                    353.7439880371094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    324.55999755859375,
+                    523.33447265625,
+                    353.7439880371094
+                ],
+                "pdf_text_content": "Purchase Price (In millions)"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "Year ended December 31, 2007",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    352.70001220703125,
+                    210.5010223388672,
+                    364.17999267578125
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    78.0,
+                    352.70001220703125,
+                    523.33447265625,
+                    364.17999267578125
+                ],
+                "pdf_text_content": "Year ended December 31, 2007"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "February 15",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    369.010009765625,
+                    126.65000915527344,
+                    380.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    369.010009765625,
+                    126.65000915527344,
+                    380.17999267578125
+                ],
+                "pdf_text_content": "February 15"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Free State Shopping Center",
+                "pdf_text_tight_bbox": [
+                    161.00001525878906,
+                    369.010009765625,
+                    271.3599853515625,
+                    380.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    369.010009765625,
+                    271.3599853515625,
+                    380.17999267578125
+                ],
+                "pdf_text_content": "Free State Shopping Center"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Bowie, MD",
+                "pdf_text_tight_bbox": [
+                    308.54998779296875,
+                    369.010009765625,
+                    355.760009765625,
+                    380.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    369.010009765625,
+                    379.4410400390625,
+                    380.17999267578125
+                ],
+                "pdf_text_content": "Bowie, MD"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "278,000",
+                "pdf_text_tight_bbox": [
+                    418.95001220703125,
+                    369.010009765625,
+                    451.45001220703125,
+                    380.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    369.010009765625,
+                    461.3960266113281,
+                    380.17999267578125
+                ],
+                "pdf_text_content": "278,000"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$64.1",
+                "pdf_text_tight_bbox": [
+                    491.0500183105469,
+                    369.010009765625,
+                    513.550048828125,
+                    380.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    369.010009765625,
+                    523.33447265625,
+                    380.17999267578125
+                ],
+                "pdf_text_content": "$64.1"
+            },
+            {
+                "row_nums": [
+                    3,
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "February 20",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    381.010009765625,
+                    126.65000915527344,
+                    392.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    381.010009765625,
+                    126.65000915527344,
+                    420.17999267578125
+                ],
+                "pdf_text_content": "February 20"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lake Barcroft Shopping Center(1)",
+                "pdf_text_tight_bbox": [
+                    161.0,
+                    381.010009765625,
+                    257.7400207519531,
+                    404.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    381.010009765625,
+                    271.3599853515625,
+                    404.17999267578125
+                ],
+                "pdf_text_content": "Lake Barcroft Shopping Center(1)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Falls Church, VA",
+                "pdf_text_tight_bbox": [
+                    308.551025390625,
+                    393.010009765625,
+                    379.4410400390625,
+                    404.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    381.010009765625,
+                    379.4410400390625,
+                    404.17999267578125
+                ],
+                "pdf_text_content": "Falls Church, VA"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "9,000",
+                "pdf_text_tight_bbox": [
+                    428.9510498046875,
+                    393.010009765625,
+                    451.4510498046875,
+                    404.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    381.010009765625,
+                    461.3960266113281,
+                    404.17999267578125
+                ],
+                "pdf_text_content": "9,000"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "6.0",
+                "pdf_text_tight_bbox": [
+                    501.0510559082031,
+                    393.010009765625,
+                    513.551025390625,
+                    404.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    381.010009765625,
+                    523.33447265625,
+                    404.17999267578125
+                ],
+                "pdf_text_content": "6.0"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "",
+                "pdf_text_tight_bbox": [],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    409.010009765625,
+                    271.3599853515625,
+                    420.17999267578125
+                ],
+                "pdf_text_content": ""
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total",
+                "pdf_text_tight_bbox": [
+                    308.54998779296875,
+                    409.010009765625,
+                    329.65997314453125,
+                    420.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    409.010009765625,
+                    379.4410400390625,
+                    420.17999267578125
+                ],
+                "pdf_text_content": "Total"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "287,000",
+                "pdf_text_tight_bbox": [
+                    418.9499816894531,
+                    409.010009765625,
+                    451.4499816894531,
+                    420.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    409.010009765625,
+                    461.3960266113281,
+                    420.17999267578125
+                ],
+                "pdf_text_content": "287,000"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$70.1",
+                "pdf_text_tight_bbox": [
+                    491.04998779296875,
+                    409.010009765625,
+                    513.5499877929688,
+                    420.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    409.010009765625,
+                    523.33447265625,
+                    420.17999267578125
+                ],
+                "pdf_text_content": "$70.1"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "Year ended December 31, 2006",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    436.70001220703125,
+                    210.5010223388672,
+                    448.17999267578125
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    78.0,
+                    436.70001220703125,
+                    523.33447265625,
+                    448.17999267578125
+                ],
+                "pdf_text_content": "Year ended December 31, 2006"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "June 5",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    453.010009765625,
+                    103.8499984741211,
+                    464.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    453.010009765625,
+                    126.65000915527344,
+                    464.17999267578125
+                ],
+                "pdf_text_content": "June 5"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Greenlawn Plaza(2)",
+                "pdf_text_tight_bbox": [
+                    161.0,
+                    453.010009765625,
+                    240.7210235595703,
+                    464.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    453.010009765625,
+                    271.3599853515625,
+                    464.17999267578125
+                ],
+                "pdf_text_content": "Greenlawn Plaza(2)"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Huntington, NY",
+                "pdf_text_tight_bbox": [
+                    308.551025390625,
+                    453.010009765625,
+                    373.592041015625,
+                    464.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    453.010009765625,
+                    379.4410400390625,
+                    464.17999267578125
+                ],
+                "pdf_text_content": "Huntington, NY"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "102,000",
+                "pdf_text_tight_bbox": [
+                    418.9520263671875,
+                    453.010009765625,
+                    451.4520263671875,
+                    464.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    453.010009765625,
+                    461.3960266113281,
+                    464.17999267578125
+                ],
+                "pdf_text_content": "102,000"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$20.4",
+                "pdf_text_tight_bbox": [
+                    491.0520324707031,
+                    453.010009765625,
+                    513.552001953125,
+                    464.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    453.010009765625,
+                    523.33447265625,
+                    464.17999267578125
+                ],
+                "pdf_text_content": "$20.4"
+            },
+            {
+                "row_nums": [
+                    8,
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "June 8",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    465.010009765625,
+                    103.8499984741211,
+                    476.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    465.010009765625,
+                    126.65000915527344,
+                    492.17999267578125
+                ],
+                "pdf_text_content": "June 8"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Barcroft Plaza",
+                "pdf_text_tight_bbox": [
+                    161.0,
+                    465.010009765625,
+                    218.5600128173828,
+                    476.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    465.010009765625,
+                    271.3599853515625,
+                    476.17999267578125
+                ],
+                "pdf_text_content": "Barcroft Plaza"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Falls Church, VA",
+                "pdf_text_tight_bbox": [
+                    308.5500183105469,
+                    465.010009765625,
+                    379.4400329589844,
+                    476.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    465.010009765625,
+                    379.4410400390625,
+                    476.17999267578125
+                ],
+                "pdf_text_content": "Falls Church, VA"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "90,000",
+                "pdf_text_tight_bbox": [
+                    423.9500427246094,
+                    465.010009765625,
+                    451.4500427246094,
+                    476.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    465.010009765625,
+                    461.3960266113281,
+                    476.17999267578125
+                ],
+                "pdf_text_content": "90,000"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "25.1",
+                "pdf_text_tight_bbox": [
+                    496.050048828125,
+                    465.010009765625,
+                    513.550048828125,
+                    476.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    465.010009765625,
+                    523.33447265625,
+                    476.17999267578125
+                ],
+                "pdf_text_content": "25.1"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "",
+                "pdf_text_tight_bbox": [],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    161.0,
+                    481.010009765625,
+                    271.3599853515625,
+                    492.17999267578125
+                ],
+                "pdf_text_content": ""
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total",
+                "pdf_text_tight_bbox": [
+                    308.54998779296875,
+                    481.010009765625,
+                    329.65997314453125,
+                    492.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    308.54998779296875,
+                    481.010009765625,
+                    379.4410400390625,
+                    492.17999267578125
+                ],
+                "pdf_text_content": "Total"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "192,000",
+                "pdf_text_tight_bbox": [
+                    418.9499816894531,
+                    481.010009765625,
+                    451.4499816894531,
+                    492.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    409.0,
+                    481.010009765625,
+                    461.3960266113281,
+                    492.17999267578125
+                ],
+                "pdf_text_content": "192,000"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$45.5",
+                "pdf_text_tight_bbox": [
+                    491.04998779296875,
+                    481.010009765625,
+                    513.5499877929688,
+                    492.17999267578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.3504333496094,
+                    481.010009765625,
+                    523.33447265625,
+                    492.17999267578125
+                ],
+                "pdf_text_content": "$45.5"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    324.55999755859375,
+                    523.33447265625,
+                    353.7439880371094
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    78.0,
+                    352.70001220703125,
+                    523.33447265625,
+                    364.17999267578125
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    369.010009765625,
+                    523.33447265625,
+                    380.17999267578125
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    381.010009765625,
+                    523.33447265625,
+                    404.17999267578125
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    409.010009765625,
+                    523.33447265625,
+                    420.17999267578125
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    78.0,
+                    436.70001220703125,
+                    523.33447265625,
+                    448.17999267578125
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    453.010009765625,
+                    523.33447265625,
+                    464.17999267578125
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    465.010009765625,
+                    523.33447265625,
+                    476.17999267578125
+                ]
+            },
+            "8": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    481.010009765625,
+                    523.33447265625,
+                    492.17999267578125
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    78.0,
+                    324.55999755859375,
+                    126.65000915527344,
+                    492.17999267578125
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    161.0,
+                    324.55999755859375,
+                    271.3599853515625,
+                    492.17999267578125
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    308.54998779296875,
+                    324.55999755859375,
+                    379.4410400390625,
+                    492.17999267578125
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    409.0,
+                    324.55999755859375,
+                    461.3960266113281,
+                    492.17999267578125
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    481.3504333496094,
+                    324.55999755859375,
+                    523.33447265625,
+                    492.17999267578125
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": true,
+        "split": "train",
+        "pdf_file_name": "page_68.pdf",
+        "pdf_folder": "FRT/2007/",
+        "document_id": "FRT_2007_page_68",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 88513,
+        "fintabnet_source_table_id": 145262,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 1,
+        "structure_id": "FRT_2007_page_68_1",
+        "pdf_table_bbox": [
+            78.0,
+            324.55999755859375,
+            523.33447265625,
+            492.17999267578125
+        ]
+    }
+]

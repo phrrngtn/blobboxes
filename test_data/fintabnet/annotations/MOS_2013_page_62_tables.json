@@ -1,0 +1,762 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0,
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "(in millions) Derivative Instrument",
+                "pdf_text_tight_bbox": [
+                    62.407005310058594,
+                    160.6570281982422,
+                    163.3278350830078,
+                    177.57701110839844
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    62.407005310058594,
+                    148.7770233154297,
+                    177.27572631835938,
+                    177.57701110839844
+                ],
+                "pdf_text_content": "(in millions) Derivative Instrument"
+            },
+            {
+                "row_nums": [
+                    0,
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "Location",
+                "pdf_text_tight_bbox": [
+                    238.92698669433594,
+                    170.0170135498047,
+                    267.368896484375,
+                    177.57701110839844
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    238.92698669433594,
+                    148.7770233154297,
+                    373.62786865234375,
+                    177.57701110839844
+                ],
+                "pdf_text_content": "Location"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2,
+                    3,
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Gain (loss) Years ended May 31,",
+                "pdf_text_tight_bbox": [
+                    438.4891662597656,
+                    148.7770233154297,
+                    506.01513671875,
+                    164.9738006591797
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    148.7770233154297,
+                    551.3733520507812,
+                    164.9738006591797
+                ],
+                "pdf_text_content": "Gain (loss) Years ended May 31,"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2013",
+                "pdf_text_tight_bbox": [
+                    408.24700927734375,
+                    170.0170135498047,
+                    423.3065185546875,
+                    177.57701110839844
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    170.0170135498047,
+                    438.2037048339844,
+                    177.57701110839844
+                ],
+                "pdf_text_content": "2013"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2012",
+                "pdf_text_tight_bbox": [
+                    467.2870178222656,
+                    170.0170135498047,
+                    482.3465270996094,
+                    177.57701110839844
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    448.927001953125,
+                    170.0170135498047,
+                    497.2507019042969,
+                    177.57701110839844
+                ],
+                "pdf_text_content": "2012"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "2011",
+                "pdf_text_tight_bbox": [
+                    523.8070068359375,
+                    170.0170135498047,
+                    538.8666381835938,
+                    177.57701110839844
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    508.0870361328125,
+                    170.0170135498047,
+                    551.3733520507812,
+                    177.57701110839844
+                ],
+                "pdf_text_content": "2011"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Foreign currency derivatives",
+                "pdf_text_tight_bbox": [
+                    62.407005310058594,
+                    181.7021484375,
+                    177.27572631835938,
+                    192.93702697753906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    62.407005310058594,
+                    181.7021484375,
+                    177.27572631835938,
+                    193.65699768066406
+                ],
+                "pdf_text_content": "Foreign currency derivatives"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Cost of goods sold",
+                "pdf_text_tight_bbox": [
+                    238.92698669433594,
+                    182.422119140625,
+                    313.62030029296875,
+                    193.65699768066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    238.92698669433594,
+                    181.7021484375,
+                    373.62786865234375,
+                    193.65699768066406
+                ],
+                "pdf_text_content": "Cost of goods sold"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$(1.6)",
+                "pdf_text_tight_bbox": [
+                    389.88702392578125,
+                    181.8221435546875,
+                    438.2037048339844,
+                    193.05702209472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    181.7021484375,
+                    438.2037048339844,
+                    193.65699768066406
+                ],
+                "pdf_text_content": "$ (1.6)"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$(23.9)",
+                "pdf_text_tight_bbox": [
+                    448.927001953125,
+                    181.8221435546875,
+                    497.2436828613281,
+                    193.05702209472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    448.927001953125,
+                    181.7021484375,
+                    497.2507019042969,
+                    193.65699768066406
+                ],
+                "pdf_text_content": "$ (23.9)"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$6.8",
+                "pdf_text_tight_bbox": [
+                    508.0870361328125,
+                    181.8221435546875,
+                    548.106689453125,
+                    193.05702209472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    508.0870361328125,
+                    181.7021484375,
+                    551.3733520507812,
+                    193.65699768066406
+                ],
+                "pdf_text_content": "$ 6.8"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Foreign currency derivatives",
+                "pdf_text_tight_bbox": [
+                    62.407005310058594,
+                    193.942138671875,
+                    177.27572631835938,
+                    205.17701721191406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    62.407005310058594,
+                    193.942138671875,
+                    177.27572631835938,
+                    205.89698791503906
+                ],
+                "pdf_text_content": "Foreign currency derivatives"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Foreign currency transaction gain",
+                "pdf_text_tight_bbox": [
+                    238.92698669433594,
+                    194.662109375,
+                    373.62786865234375,
+                    205.89698791503906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    238.92698669433594,
+                    193.942138671875,
+                    373.62786865234375,
+                    205.89698791503906
+                ],
+                "pdf_text_content": "Foreign currency transaction gain"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "(13.8)",
+                "pdf_text_tight_bbox": [
+                    414.00701904296875,
+                    194.0621337890625,
+                    438.2037048339844,
+                    205.29701232910156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    193.942138671875,
+                    438.2037048339844,
+                    205.89698791503906
+                ],
+                "pdf_text_content": "(13.8)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(4.0)",
+                "pdf_text_tight_bbox": [
+                    478.0870056152344,
+                    194.0621337890625,
+                    497.2436828613281,
+                    205.29701232910156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    448.927001953125,
+                    193.942138671875,
+                    497.2507019042969,
+                    205.89698791503906
+                ],
+                "pdf_text_content": "(4.0)"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "7.9",
+                "pdf_text_tight_bbox": [
+                    535.5670166015625,
+                    194.0621337890625,
+                    548.106689453125,
+                    205.29701232910156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    508.0870361328125,
+                    193.942138671875,
+                    551.3733520507812,
+                    205.89698791503906
+                ],
+                "pdf_text_content": "7.9"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Commodity derivatives",
+                "pdf_text_tight_bbox": [
+                    62.407005310058594,
+                    206.18212890625,
+                    156.52052307128906,
+                    217.41700744628906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    62.407005310058594,
+                    206.18212890625,
+                    177.27572631835938,
+                    218.2570343017578
+                ],
+                "pdf_text_content": "Commodity derivatives"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Cost of goods sold",
+                "pdf_text_tight_bbox": [
+                    238.92698669433594,
+                    207.02215576171875,
+                    313.61712646484375,
+                    218.2570343017578
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    238.92698669433594,
+                    206.18212890625,
+                    373.62786865234375,
+                    218.2570343017578
+                ],
+                "pdf_text_content": "Cost of goods sold"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "16.1",
+                "pdf_text_tight_bbox": [
+                    417.36700439453125,
+                    206.3021240234375,
+                    434.9464416503906,
+                    217.53700256347656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    206.18212890625,
+                    438.2037048339844,
+                    218.2570343017578
+                ],
+                "pdf_text_content": "16.1"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(16.0)",
+                "pdf_text_tight_bbox": [
+                    473.0469970703125,
+                    206.3021240234375,
+                    497.2436828613281,
+                    217.53700256347656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    448.927001953125,
+                    206.18212890625,
+                    497.2507019042969,
+                    218.2570343017578
+                ],
+                "pdf_text_content": "(16.0)"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "8.3",
+                "pdf_text_tight_bbox": [
+                    535.5670166015625,
+                    206.3021240234375,
+                    548.106689453125,
+                    217.53700256347656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    508.0870361328125,
+                    206.18212890625,
+                    551.3733520507812,
+                    218.2570343017578
+                ],
+                "pdf_text_content": "8.3"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight derivatives",
+                "pdf_text_tight_bbox": [
+                    62.407005310058594,
+                    218.422119140625,
+                    137.55519104003906,
+                    229.65699768066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    62.407005310058594,
+                    218.422119140625,
+                    177.27572631835938,
+                    230.49366760253906
+                ],
+                "pdf_text_content": "Freight derivatives"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Cost of goods sold",
+                "pdf_text_tight_bbox": [
+                    238.92808532714844,
+                    219.2587890625,
+                    313.61822509765625,
+                    230.49366760253906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    238.92698669433594,
+                    218.422119140625,
+                    373.62786865234375,
+                    230.49366760253906
+                ],
+                "pdf_text_content": "Cost of goods sold"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "0.7",
+                "pdf_text_tight_bbox": [
+                    422.4112243652344,
+                    218.54168701171875,
+                    434.95086669921875,
+                    229.7765655517578
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    389.88702392578125,
+                    218.422119140625,
+                    438.2037048339844,
+                    230.49366760253906
+                ],
+                "pdf_text_content": "0.7"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "(2.0)",
+                "pdf_text_tight_bbox": [
+                    478.09759521484375,
+                    218.54168701171875,
+                    497.2507019042969,
+                    229.7765655517578
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    448.927001953125,
+                    218.422119140625,
+                    497.2507019042969,
+                    230.49366760253906
+                ],
+                "pdf_text_content": "(2.0)"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "(2.0)",
+                "pdf_text_tight_bbox": [
+                    532.2202758789062,
+                    218.54168701171875,
+                    551.3733520507812,
+                    229.7765655517578
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    508.0870361328125,
+                    218.422119140625,
+                    551.3733520507812,
+                    230.49366760253906
+                ],
+                "pdf_text_content": "(2.0)"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    148.7770233154297,
+                    551.3733520507812,
+                    164.9738006591797
+                ]
+            },
+            "1": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    170.0170135498047,
+                    551.3733520507812,
+                    177.57701110839844
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    181.7021484375,
+                    551.3733520507812,
+                    193.65699768066406
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    193.942138671875,
+                    551.3733520507812,
+                    205.89698791503906
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    206.18212890625,
+                    551.3733520507812,
+                    218.2570343017578
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    62.407005310058594,
+                    218.422119140625,
+                    551.3733520507812,
+                    230.49366760253906
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    62.407005310058594,
+                    148.7770233154297,
+                    177.27572631835938,
+                    230.49366760253906
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    238.92698669433594,
+                    148.7770233154297,
+                    373.62786865234375,
+                    230.49366760253906
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    389.88702392578125,
+                    148.7770233154297,
+                    438.2037048339844,
+                    230.49366760253906
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    448.927001953125,
+                    148.7770233154297,
+                    497.2507019042969,
+                    230.49366760253906
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    508.0870361328125,
+                    148.7770233154297,
+                    551.3733520507812,
+                    230.49366760253906
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": true,
+        "split": "train",
+        "pdf_file_name": "page_62.pdf",
+        "pdf_folder": "MOS/2013/",
+        "document_id": "MOS_2013_page_62",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 26973,
+        "fintabnet_source_table_id": 44072,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.5400390625,
+            792.4869384765625
+        ],
+        "document_table_index": 0,
+        "structure_id": "MOS_2013_page_62_0",
+        "pdf_table_bbox": [
+            62.407005310058594,
+            148.7770233154297,
+            551.3733520507812,
+            230.49366760253906
+        ]
+    }
+]

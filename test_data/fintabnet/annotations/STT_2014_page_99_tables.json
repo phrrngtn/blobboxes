@@ -1,0 +1,395 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0,
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "(In millions)",
+                "pdf_text_tight_bbox": [
+                    48.00001525878906,
+                    358.42071533203125,
+                    90.07659912109375,
+                    366.79962158203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    48.00001525878906,
+                    326.4204406738281,
+                    103.14923095703125,
+                    366.79962158203125
+                ],
+                "pdf_text_content": "(In millions)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1,
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "December 31,",
+                "pdf_text_tight_bbox": [
+                    137.10000610351562,
+                    346.3704528808594,
+                    185.84280395507812,
+                    354.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    125.0,
+                    326.4204406738281,
+                    198.4441680908203,
+                    354.7493591308594
+                ],
+                "pdf_text_content": "December 31,"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3,
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Average Balance Year Ended December 31,",
+                "pdf_text_tight_bbox": [
+                    213.90000915527344,
+                    326.4204406738281,
+                    274.3271179199219,
+                    354.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    207.99874877929688,
+                    326.4204406738281,
+                    280.4430847167969,
+                    354.7493591308594
+                ],
+                "pdf_text_content": "Average Balance Year Ended December 31,"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2014",
+                "pdf_text_tight_bbox": [
+                    131.63629150390625,
+                    358.42071533203125,
+                    148.3129425048828,
+                    366.79962158203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    125.0,
+                    358.42071533203125,
+                    155.4444122314453,
+                    366.79962158203125
+                ],
+                "pdf_text_content": "2014"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2013",
+                "pdf_text_tight_bbox": [
+                    173.12930297851562,
+                    358.42071533203125,
+                    189.8059539794922,
+                    366.79962158203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    164.999755859375,
+                    358.42071533203125,
+                    198.4441680908203,
+                    366.79962158203125
+                ],
+                "pdf_text_content": "2013"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2014",
+                "pdf_text_tight_bbox": [
+                    214.622314453125,
+                    358.42071533203125,
+                    231.29896545410156,
+                    366.79962158203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    207.99874877929688,
+                    358.42071533203125,
+                    238.4431610107422,
+                    366.79962158203125
+                ],
+                "pdf_text_content": "2014"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "2013",
+                "pdf_text_tight_bbox": [
+                    255.61582946777344,
+                    358.42071533203125,
+                    272.2924499511719,
+                    366.79962158203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    247.99850463867188,
+                    358.42071533203125,
+                    280.4430847167969,
+                    366.79962158203125
+                ],
+                "pdf_text_content": "2013"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Client deposits (1)",
+                "pdf_text_tight_bbox": [
+                    48.00001525878906,
+                    370.1712951660156,
+                    103.14923095703125,
+                    379.7498779296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    48.00001525878906,
+                    370.1712951660156,
+                    103.14923095703125,
+                    379.7498779296875
+                ],
+                "pdf_text_content": "Client deposits(1)"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$195,276",
+                "pdf_text_tight_bbox": [
+                    125.0,
+                    371.3704528808594,
+                    155.4444122314453,
+                    379.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    125.0,
+                    370.1712951660156,
+                    155.4444122314453,
+                    379.7498779296875
+                ],
+                "pdf_text_content": "$195,276"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$182,268",
+                "pdf_text_tight_bbox": [
+                    164.999755859375,
+                    371.3704528808594,
+                    198.4441680908203,
+                    379.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    164.999755859375,
+                    370.1712951660156,
+                    198.4441680908203,
+                    379.7498779296875
+                ],
+                "pdf_text_content": "$ 182,268"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$167,470",
+                "pdf_text_tight_bbox": [
+                    207.99874877929688,
+                    371.3704528808594,
+                    238.4431610107422,
+                    379.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    207.99874877929688,
+                    370.1712951660156,
+                    238.4431610107422,
+                    379.7498779296875
+                ],
+                "pdf_text_content": "$167,470"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$143,043",
+                "pdf_text_tight_bbox": [
+                    247.99850463867188,
+                    371.3704528808594,
+                    280.4430847167969,
+                    379.7493591308594
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    247.99850463867188,
+                    370.1712951660156,
+                    280.4430847167969,
+                    379.7498779296875
+                ],
+                "pdf_text_content": "$ 143,043"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    48.00001525878906,
+                    326.4204406738281,
+                    280.4430847167969,
+                    354.7493591308594
+                ]
+            },
+            "1": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    48.00001525878906,
+                    358.42071533203125,
+                    280.4430847167969,
+                    366.79962158203125
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    48.00001525878906,
+                    370.1712951660156,
+                    280.4430847167969,
+                    379.7498779296875
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    48.00001525878906,
+                    326.4204406738281,
+                    103.14923095703125,
+                    379.7498779296875
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    125.0,
+                    326.4204406738281,
+                    155.4444122314453,
+                    379.7498779296875
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    164.999755859375,
+                    326.4204406738281,
+                    198.4441680908203,
+                    379.7498779296875
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    207.99874877929688,
+                    326.4204406738281,
+                    238.4431610107422,
+                    379.7498779296875
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    247.99850463867188,
+                    326.4204406738281,
+                    280.4430847167969,
+                    379.7498779296875
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_99.pdf",
+        "pdf_folder": "STT/2014/",
+        "document_id": "STT_2014_page_99",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 34520,
+        "fintabnet_source_table_id": 55678,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            603.0,
+            783.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "STT_2014_page_99_0",
+        "pdf_table_bbox": [
+            48.00001525878906,
+            326.4204406738281,
+            280.4430847167969,
+            379.7498779296875
+        ]
+    }
+]

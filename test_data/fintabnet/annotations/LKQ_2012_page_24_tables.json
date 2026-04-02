@@ -1,0 +1,863 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "",
+                "pdf_text_tight_bbox": [],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    156.89111328125,
+                    167.98008728027344,
+                    165.75048828125
+                ],
+                "pdf_text_content": ""
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "High",
+                "pdf_text_tight_bbox": [
+                    489.54998779296875,
+                    156.89111328125,
+                    506.44720458984375,
+                    165.75048828125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    156.89111328125,
+                    514.0999755859375,
+                    165.75048828125
+                ],
+                "pdf_text_content": "High"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "Low",
+                "pdf_text_tight_bbox": [
+                    533.9000244140625,
+                    156.89111328125,
+                    549.0133666992188,
+                    165.75048828125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    156.89111328125,
+                    558.0999755859375,
+                    165.75048828125
+                ],
+                "pdf_text_content": "Low"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2011",
+                "pdf_text_tight_bbox": [
+                    87.5,
+                    169.65887451171875,
+                    107.5,
+                    180.73309326171875
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    87.5,
+                    169.65887451171875,
+                    558.0999755859375,
+                    180.73309326171875
+                ],
+                "pdf_text_content": "2011"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "First Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    184.66888427734375,
+                    156.8800811767578,
+                    195.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    184.66888427734375,
+                    167.98008728027344,
+                    195.74310302734375
+                ],
+                "pdf_text_content": "First Quarter"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$13.15",
+                "pdf_text_tight_bbox": [
+                    481.5,
+                    184.66888427734375,
+                    514.0999755859375,
+                    195.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    184.66888427734375,
+                    514.0999755859375,
+                    195.74310302734375
+                ],
+                "pdf_text_content": "$ 13.15"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$11.00",
+                "pdf_text_tight_bbox": [
+                    524.5,
+                    184.66888427734375,
+                    558.0999755859375,
+                    195.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    184.66888427734375,
+                    558.0999755859375,
+                    195.74310302734375
+                ],
+                "pdf_text_content": "$ 11.00"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Second Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    199.66888427734375,
+                    167.98008728027344,
+                    210.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    199.66888427734375,
+                    167.98008728027344,
+                    210.74310302734375
+                ],
+                "pdf_text_content": "Second Quarter"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "13.64",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    199.66888427734375,
+                    514.0999755859375,
+                    210.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    199.66888427734375,
+                    514.0999755859375,
+                    210.74310302734375
+                ],
+                "pdf_text_content": "13.64"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "11.37",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    199.66888427734375,
+                    558.0999755859375,
+                    210.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    199.66888427734375,
+                    558.0999755859375,
+                    210.74310302734375
+                ],
+                "pdf_text_content": "11.37"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Third Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    214.66888427734375,
+                    160.7600860595703,
+                    225.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    214.66888427734375,
+                    167.98008728027344,
+                    225.74310302734375
+                ],
+                "pdf_text_content": "Third Quarter"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "13.88",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    214.66888427734375,
+                    514.0999755859375,
+                    225.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    214.66888427734375,
+                    514.0999755859375,
+                    225.74310302734375
+                ],
+                "pdf_text_content": "13.88"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "10.19",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    214.66888427734375,
+                    558.0999755859375,
+                    225.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    214.66888427734375,
+                    558.0999755859375,
+                    225.74310302734375
+                ],
+                "pdf_text_content": "10.19"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Fourth Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    229.66888427734375,
+                    165.2100830078125,
+                    240.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    229.66888427734375,
+                    167.98008728027344,
+                    240.74310302734375
+                ],
+                "pdf_text_content": "Fourth Quarter"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "15.63",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    229.66888427734375,
+                    514.0999755859375,
+                    240.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    229.66888427734375,
+                    514.0999755859375,
+                    240.74310302734375
+                ],
+                "pdf_text_content": "15.63"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "11.13",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    229.66888427734375,
+                    558.0999755859375,
+                    240.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    229.66888427734375,
+                    558.0999755859375,
+                    240.74310302734375
+                ],
+                "pdf_text_content": "11.13"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2012",
+                "pdf_text_tight_bbox": [
+                    87.5,
+                    244.65887451171875,
+                    107.5,
+                    255.73309326171875
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    87.5,
+                    244.65887451171875,
+                    558.0999755859375,
+                    255.73309326171875
+                ],
+                "pdf_text_content": "2012"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "First Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    259.66888427734375,
+                    156.8800811767578,
+                    270.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    259.66888427734375,
+                    167.98008728027344,
+                    270.74310302734375
+                ],
+                "pdf_text_content": "First Quarter"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "16.78",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    259.66888427734375,
+                    514.0999755859375,
+                    270.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    259.66888427734375,
+                    514.0999755859375,
+                    270.74310302734375
+                ],
+                "pdf_text_content": "16.78"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "15.06",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    259.66888427734375,
+                    558.0999755859375,
+                    270.74310302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    259.66888427734375,
+                    558.0999755859375,
+                    270.74310302734375
+                ],
+                "pdf_text_content": "15.06"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Second Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    274.6688537597656,
+                    167.98008728027344,
+                    285.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    274.6688537597656,
+                    167.98008728027344,
+                    285.7430725097656
+                ],
+                "pdf_text_content": "Second Quarter"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "18.67",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    274.6688537597656,
+                    514.0999755859375,
+                    285.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    274.6688537597656,
+                    514.0999755859375,
+                    285.7430725097656
+                ],
+                "pdf_text_content": "18.67"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "14.63",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    274.6688537597656,
+                    558.0999755859375,
+                    285.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    274.6688537597656,
+                    558.0999755859375,
+                    285.7430725097656
+                ],
+                "pdf_text_content": "14.63"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Third Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    289.6688537597656,
+                    160.7600860595703,
+                    300.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    289.6688537597656,
+                    167.98008728027344,
+                    300.7430725097656
+                ],
+                "pdf_text_content": "Third Quarter"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "20.02",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    289.6688537597656,
+                    514.0999755859375,
+                    300.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    289.6688537597656,
+                    514.0999755859375,
+                    300.7430725097656
+                ],
+                "pdf_text_content": "20.02"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "16.52",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    289.6688537597656,
+                    558.0999755859375,
+                    300.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    289.6688537597656,
+                    558.0999755859375,
+                    300.7430725097656
+                ],
+                "pdf_text_content": "16.52"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Fourth Quarter",
+                "pdf_text_tight_bbox": [
+                    105.5,
+                    304.6688537597656,
+                    165.2100830078125,
+                    315.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    87.5,
+                    304.6688537597656,
+                    167.98008728027344,
+                    315.7430725097656
+                ],
+                "pdf_text_content": "Fourth Quarter"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "22.29",
+                "pdf_text_tight_bbox": [
+                    491.6000061035156,
+                    304.6688537597656,
+                    514.0999755859375,
+                    315.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    481.5,
+                    304.6688537597656,
+                    514.0999755859375,
+                    315.7430725097656
+                ],
+                "pdf_text_content": "22.29"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "18.38",
+                "pdf_text_tight_bbox": [
+                    535.5999755859375,
+                    304.6688537597656,
+                    558.0999755859375,
+                    315.7430725097656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    524.5,
+                    304.6688537597656,
+                    558.0999755859375,
+                    315.7430725097656
+                ],
+                "pdf_text_content": "18.38"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    156.89111328125,
+                    558.0999755859375,
+                    165.75048828125
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    87.5,
+                    169.65887451171875,
+                    558.0999755859375,
+                    180.73309326171875
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    184.66888427734375,
+                    558.0999755859375,
+                    195.74310302734375
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    199.66888427734375,
+                    558.0999755859375,
+                    210.74310302734375
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    214.66888427734375,
+                    558.0999755859375,
+                    225.74310302734375
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    229.66888427734375,
+                    558.0999755859375,
+                    240.74310302734375
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    87.5,
+                    244.65887451171875,
+                    558.0999755859375,
+                    255.73309326171875
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    259.66888427734375,
+                    558.0999755859375,
+                    270.74310302734375
+                ]
+            },
+            "8": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    274.6688537597656,
+                    558.0999755859375,
+                    285.7430725097656
+                ]
+            },
+            "9": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    289.6688537597656,
+                    558.0999755859375,
+                    300.7430725097656
+                ]
+            },
+            "10": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    87.5,
+                    304.6688537597656,
+                    558.0999755859375,
+                    315.7430725097656
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    87.5,
+                    156.89111328125,
+                    167.98008728027344,
+                    315.7430725097656
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    481.5,
+                    156.89111328125,
+                    514.0999755859375,
+                    315.7430725097656
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    524.5,
+                    156.89111328125,
+                    558.0999755859375,
+                    315.7430725097656
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_24.pdf",
+        "pdf_folder": "LKQ/2012/",
+        "document_id": "LKQ_2012_page_24",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 70175,
+        "fintabnet_source_table_id": 113510,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "LKQ_2012_page_24_0",
+        "pdf_table_bbox": [
+            87.5,
+            156.89111328125,
+            558.0999755859375,
+            315.7430725097656
+        ]
+    }
+]

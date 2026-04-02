@@ -1,0 +1,485 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "",
+                "pdf_text_tight_bbox": [],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    52.0,
+                    79.0211181640625,
+                    237.4199981689453,
+                    87.90045166015625
+                ],
+                "pdf_text_content": ""
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2016",
+                "pdf_text_tight_bbox": [
+                    420.0,
+                    79.04107666015625,
+                    436.0,
+                    87.90045166015625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    414.70001220703125,
+                    79.0211181640625,
+                    449.9800109863281,
+                    87.90045166015625
+                ],
+                "pdf_text_content": "2016"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2015",
+                "pdf_text_tight_bbox": [
+                    474.0,
+                    79.0211181640625,
+                    490.0,
+                    87.8804931640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    469.25,
+                    79.0211181640625,
+                    503.9700012207031,
+                    87.90045166015625
+                ],
+                "pdf_text_content": "2015"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2014",
+                "pdf_text_tight_bbox": [
+                    528.0,
+                    79.0211181640625,
+                    544.0,
+                    87.8804931640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    523.25,
+                    79.0211181640625,
+                    557.969970703125,
+                    87.90045166015625
+                ],
+                "pdf_text_content": "2014"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total number of store locations closed",
+                "pdf_text_tight_bbox": [
+                    52.0,
+                    91.81884765625,
+                    205.5900115966797,
+                    102.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    52.0,
+                    91.808837890625,
+                    237.4199981689453,
+                    102.89306640625
+                ],
+                "pdf_text_content": "Total number of store locations closed"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "144",
+                "pdf_text_tight_bbox": [
+                    434.6499938964844,
+                    91.808837890625,
+                    449.6499938964844,
+                    102.883056640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    414.70001220703125,
+                    91.808837890625,
+                    449.9800109863281,
+                    102.89306640625
+                ],
+                "pdf_text_content": "144"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "50",
+                "pdf_text_tight_bbox": [
+                    493.6499938964844,
+                    91.81884765625,
+                    503.6499938964844,
+                    102.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    469.25,
+                    91.808837890625,
+                    503.9700012207031,
+                    102.89306640625
+                ],
+                "pdf_text_content": "50"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "73",
+                "pdf_text_tight_bbox": [
+                    547.6500244140625,
+                    91.81884765625,
+                    557.6500244140625,
+                    102.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    523.25,
+                    91.808837890625,
+                    557.969970703125,
+                    102.89306640625
+                ],
+                "pdf_text_content": "73"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Number ofprofitablestore locations closed",
+                "pdf_text_tight_bbox": [
+                    64.0,
+                    106.77886962890625,
+                    237.4199981689453,
+                    117.85308837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    52.0,
+                    106.77886962890625,
+                    237.4199981689453,
+                    117.883056640625
+                ],
+                "pdf_text_content": "Number of profitable store locations closed"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "95",
+                "pdf_text_tight_bbox": [
+                    439.6499938964844,
+                    106.808837890625,
+                    449.6499938964844,
+                    117.883056640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    414.70001220703125,
+                    106.77886962890625,
+                    449.9800109863281,
+                    117.883056640625
+                ],
+                "pdf_text_content": "95"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "35",
+                "pdf_text_tight_bbox": [
+                    493.6499938964844,
+                    106.77886962890625,
+                    503.6499938964844,
+                    117.85308837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    469.25,
+                    106.77886962890625,
+                    503.9700012207031,
+                    117.883056640625
+                ],
+                "pdf_text_content": "35"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "29",
+                "pdf_text_tight_bbox": [
+                    547.6500244140625,
+                    106.77886962890625,
+                    557.6500244140625,
+                    117.85308837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    523.25,
+                    106.77886962890625,
+                    557.969970703125,
+                    117.883056640625
+                ],
+                "pdf_text_content": "29"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Analysis measurement period for closures",
+                "pdf_text_tight_bbox": [
+                    52.0,
+                    121.81884765625,
+                    220.30162048339844,
+                    132.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    52.0,
+                    121.808837890625,
+                    237.4199981689453,
+                    132.89306640625
+                ],
+                "pdf_text_content": "Analysis measurement period for closures"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Q4 2015",
+                "pdf_text_tight_bbox": [
+                    414.70001220703125,
+                    121.808837890625,
+                    449.9800109863281,
+                    132.883056640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    414.70001220703125,
+                    121.808837890625,
+                    449.9800109863281,
+                    132.89306640625
+                ],
+                "pdf_text_content": "Q4 2015"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Q3 2014",
+                "pdf_text_tight_bbox": [
+                    469.25,
+                    121.81884765625,
+                    503.9700012207031,
+                    132.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    469.25,
+                    121.808837890625,
+                    503.9700012207031,
+                    132.89306640625
+                ],
+                "pdf_text_content": "Q3 2014"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Q1 2014",
+                "pdf_text_tight_bbox": [
+                    523.25,
+                    121.81884765625,
+                    557.969970703125,
+                    132.89306640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    523.25,
+                    121.808837890625,
+                    557.969970703125,
+                    132.89306640625
+                ],
+                "pdf_text_content": "Q1 2014"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    52.0,
+                    79.0211181640625,
+                    557.969970703125,
+                    87.90045166015625
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    52.0,
+                    91.808837890625,
+                    557.969970703125,
+                    102.89306640625
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    52.0,
+                    106.77886962890625,
+                    557.969970703125,
+                    117.883056640625
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    52.0,
+                    121.808837890625,
+                    557.969970703125,
+                    132.89306640625
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    52.0,
+                    79.0211181640625,
+                    237.4199981689453,
+                    132.89306640625
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    414.70001220703125,
+                    79.0211181640625,
+                    449.9800109863281,
+                    132.89306640625
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    469.25,
+                    79.0211181640625,
+                    503.9700012207031,
+                    132.89306640625
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    523.25,
+                    79.0211181640625,
+                    557.969970703125,
+                    132.89306640625
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "val",
+        "pdf_file_name": "page_45.pdf",
+        "pdf_folder": "FAST/2016/",
+        "document_id": "FAST_2016_page_45",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_val.jsonl",
+        "fintabnet_source_line_index": 4445,
+        "fintabnet_source_table_id": 72758,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "FAST_2016_page_45_0",
+        "pdf_table_bbox": [
+            52.0,
+            79.0211181640625,
+            557.969970703125,
+            132.89306640625
+        ]
+    }
+]

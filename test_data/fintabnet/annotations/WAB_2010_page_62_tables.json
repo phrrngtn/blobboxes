@@ -1,0 +1,622 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0,
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "In thousands, except per share",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    287.7669982910156,
+                    179.0255889892578,
+                    296.8789978027344
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    267.69500732421875,
+                    269.0910339355469,
+                    296.8789978027344
+                ],
+                "pdf_text_content": "In thousands, except per share"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1,
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "For the year ended December 31,",
+                "pdf_text_tight_bbox": [
+                    451.6499938964844,
+                    267.69500732421875,
+                    516.298828125,
+                    284.8789978027344
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    267.69500732421875,
+                    534.0009765625,
+                    284.8789978027344
+                ],
+                "pdf_text_content": "For the year ended December 31,"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2010",
+                "pdf_text_tight_bbox": [
+                    448.5,
+                    287.69500732421875,
+                    464.5,
+                    296.8789978027344
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    287.69500732421875,
+                    479.0,
+                    296.8789978027344
+                ],
+                "pdf_text_content": "2010"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2009",
+                "pdf_text_tight_bbox": [
+                    503.5,
+                    287.69500732421875,
+                    519.5,
+                    296.8789978027344
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    287.69500732421875,
+                    534.0009765625,
+                    296.8789978027344
+                ],
+                "pdf_text_content": "2009"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net sales",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    302.14501953125,
+                    114.39000701904297,
+                    313.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    302.14501953125,
+                    269.0910339355469,
+                    313.31500244140625
+                ],
+                "pdf_text_content": "Net sales"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1,559,340",
+                "pdf_text_tight_bbox": [
+                    434.0,
+                    302.14501953125,
+                    479.0,
+                    313.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    302.14501953125,
+                    479.0,
+                    313.31500244140625
+                ],
+                "pdf_text_content": "$1,559,340"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1,537,429",
+                "pdf_text_tight_bbox": [
+                    489.0010070800781,
+                    302.14501953125,
+                    534.0009765625,
+                    313.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    302.14501953125,
+                    534.0009765625,
+                    313.31500244140625
+                ],
+                "pdf_text_content": "$1,537,429"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Gross profit",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    314.14501953125,
+                    126.06999969482422,
+                    325.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    314.14501953125,
+                    269.0910339355469,
+                    325.31500244140625
+                ],
+                "pdf_text_content": "Gross profit"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "467,654",
+                "pdf_text_tight_bbox": [
+                    446.5,
+                    314.14501953125,
+                    479.0,
+                    325.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    314.14501953125,
+                    479.0,
+                    325.31500244140625
+                ],
+                "pdf_text_content": "467,654"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "446,373",
+                "pdf_text_tight_bbox": [
+                    501.5,
+                    314.14501953125,
+                    534.0,
+                    325.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    314.14501953125,
+                    534.0009765625,
+                    325.31500244140625
+                ],
+                "pdf_text_content": "446,373"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net income attributable to Wabtec shareholders",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    326.14501953125,
+                    269.0910339355469,
+                    337.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    326.14501953125,
+                    269.0910339355469,
+                    337.31500244140625
+                ],
+                "pdf_text_content": "Net income attributable to Wabtec shareholders"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "128,275",
+                "pdf_text_tight_bbox": [
+                    446.5,
+                    326.14501953125,
+                    479.0,
+                    337.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    326.14501953125,
+                    479.0,
+                    337.31500244140625
+                ],
+                "pdf_text_content": "128,275"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "133,943",
+                "pdf_text_tight_bbox": [
+                    501.5,
+                    326.14501953125,
+                    534.0,
+                    337.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    326.14501953125,
+                    534.0009765625,
+                    337.31500244140625
+                ],
+                "pdf_text_content": "133,943"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Diluted earnings per share",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    338.14501953125,
+                    183.4000244140625,
+                    349.31500244140625
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    78.0,
+                    338.14501953125,
+                    534.0009765625,
+                    349.31500244140625
+                ],
+                "pdf_text_content": "Diluted earnings per share"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "As reported",
+                "pdf_text_tight_bbox": [
+                    98.0,
+                    350.14501953125,
+                    144.9199981689453,
+                    361.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    350.14501953125,
+                    269.0910339355469,
+                    361.31500244140625
+                ],
+                "pdf_text_content": "As reported"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2.56",
+                "pdf_text_tight_bbox": [
+                    434.0,
+                    350.14501953125,
+                    479.0,
+                    361.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    350.14501953125,
+                    479.0,
+                    361.31500244140625
+                ],
+                "pdf_text_content": "$ 2.56"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2.39",
+                "pdf_text_tight_bbox": [
+                    489.0,
+                    350.14501953125,
+                    534.0,
+                    361.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    350.14501953125,
+                    534.0009765625,
+                    361.31500244140625
+                ],
+                "pdf_text_content": "$ 2.39"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Pro forma",
+                "pdf_text_tight_bbox": [
+                    98.0,
+                    362.14501953125,
+                    138.28001403808594,
+                    373.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    362.14501953125,
+                    269.0910339355469,
+                    373.31500244140625
+                ],
+                "pdf_text_content": "Pro forma"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2.66",
+                "pdf_text_tight_bbox": [
+                    434.0,
+                    362.14501953125,
+                    479.0,
+                    373.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    434.0,
+                    362.14501953125,
+                    479.0,
+                    373.31500244140625
+                ],
+                "pdf_text_content": "$ 2.66"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2.79",
+                "pdf_text_tight_bbox": [
+                    489.0,
+                    362.14501953125,
+                    534.0,
+                    373.31500244140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    489.0,
+                    362.14501953125,
+                    534.0009765625,
+                    373.31500244140625
+                ],
+                "pdf_text_content": "$ 2.79"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    267.69500732421875,
+                    534.0009765625,
+                    284.8789978027344
+                ]
+            },
+            "1": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    287.69500732421875,
+                    534.0009765625,
+                    296.8789978027344
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    302.14501953125,
+                    534.0009765625,
+                    313.31500244140625
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    314.14501953125,
+                    534.0009765625,
+                    325.31500244140625
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    326.14501953125,
+                    534.0009765625,
+                    337.31500244140625
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    78.0,
+                    338.14501953125,
+                    534.0009765625,
+                    349.31500244140625
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    350.14501953125,
+                    534.0009765625,
+                    361.31500244140625
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    362.14501953125,
+                    534.0009765625,
+                    373.31500244140625
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    78.0,
+                    267.69500732421875,
+                    269.0910339355469,
+                    373.31500244140625
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    434.0,
+                    267.69500732421875,
+                    479.0,
+                    373.31500244140625
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    489.0,
+                    267.69500732421875,
+                    534.0009765625,
+                    373.31500244140625
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "test",
+        "pdf_file_name": "page_62.pdf",
+        "pdf_folder": "WAB/2010/",
+        "document_id": "WAB_2010_page_62",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_test.jsonl",
+        "fintabnet_source_line_index": 2533,
+        "fintabnet_source_table_id": 136522,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "WAB_2010_page_62_0",
+        "pdf_table_bbox": [
+            78.0,
+            267.69500732421875,
+            534.0009765625,
+            373.31500244140625
+        ]
+    }
+]

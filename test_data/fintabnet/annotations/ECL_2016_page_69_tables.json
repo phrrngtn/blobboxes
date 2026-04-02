@@ -1,0 +1,1354 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Standard",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    459.1828918457031,
+                    88.32162475585938,
+                    465.1828918457031
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    452.222900390625,
+                    239.21585083007812,
+                    465.1828918457031
+                ],
+                "pdf_text_content": "Standard"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "Date of Issuance",
+                "pdf_text_tight_bbox": [
+                    263.2635192871094,
+                    452.222900390625,
+                    287.3394470214844,
+                    465.1828918457031
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    255.70352172851562,
+                    452.222900390625,
+                    294.72125244140625,
+                    465.1828918457031
+                ],
+                "pdf_text_content": "Date of Issuance"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "Description",
+                "pdf_text_tight_bbox": [
+                    304.1835021972656,
+                    459.1828918457031,
+                    334.26123046875,
+                    465.1828918457031
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    304.1835021972656,
+                    452.222900390625,
+                    423.47216796875,
+                    465.1828918457031
+                ],
+                "pdf_text_content": "Description"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "Date of Adoption",
+                "pdf_text_tight_bbox": [
+                    440.16351318359375,
+                    452.222900390625,
+                    463.8680114746094,
+                    465.1828918457031
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    430.4435119628906,
+                    452.222900390625,
+                    473.53033447265625,
+                    465.1828918457031
+                ],
+                "pdf_text_content": "Date of Adoption"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Effect on the Financial Statements",
+                "pdf_text_tight_bbox": [
+                    480.15350341796875,
+                    452.222900390625,
+                    536.119140625,
+                    465.1828918457031
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    480.15350341796875,
+                    452.222900390625,
+                    546.153564453125,
+                    465.1828918457031
+                ],
+                "pdf_text_content": "Effect on the Financial Statements"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "Standards that were adopted:",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    473.7928466796875,
+                    190.33816528320312,
+                    482.7928466796875
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    473.7928466796875,
+                    546.153564453125,
+                    482.7928466796875
+                ],
+                "pdf_text_content": "Standards that were adopted:"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2015-02 — Consolidation (Topic 810): Amendments to the Consolidation Analysis",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    489.9313659667969,
+                    232.92398071289062,
+                    503.5828857421875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    489.9313659667969,
+                    239.21585083007812,
+                    524.3428955078125
+                ],
+                "pdf_text_content": "ASU 2015-02 — Consolidation (Topic 810): Amendments to the Consolidation Analysis"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "February 2015",
+                "pdf_text_tight_bbox": [
+                    255.70352172851562,
+                    490.7428894042969,
+                    294.72125244140625,
+                    496.7428894042969
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    255.70352172851562,
+                    489.9313659667969,
+                    294.72125244140625,
+                    524.3428955078125
+                ],
+                "pdf_text_content": "February 2015"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Certain factors that previously required reporting entities to consolidate a given legal entity have been eliminated, requiring fewer legal entities to be consolidated under the new guidance.",
+                "pdf_text_tight_bbox": [
+                    304.1835021972656,
+                    490.7428894042969,
+                    422.47283935546875,
+                    524.3428955078125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    304.1835021972656,
+                    489.9313659667969,
+                    423.47216796875,
+                    524.3428955078125
+                ],
+                "pdf_text_content": "Certain factors that previously required reporting entities to consolidate a given legal entity have been eliminated, requiring fewer legal entities to be consolidated under the new guidance."
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2016",
+                "pdf_text_tight_bbox": [
+                    430.4435119628906,
+                    490.7428894042969,
+                    473.53033447265625,
+                    496.7428894042969
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    430.4435119628906,
+                    489.9313659667969,
+                    473.53033447265625,
+                    524.3428955078125
+                ],
+                "pdf_text_content": "January 1, 2016"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "The adoption of the guidance did not have a material impact on the Company's financial statements.",
+                "pdf_text_tight_bbox": [
+                    480.15350341796875,
+                    490.7428894042969,
+                    543.8759155273438,
+                    524.3428955078125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    480.15350341796875,
+                    489.9313659667969,
+                    546.153564453125,
+                    524.3428955078125
+                ],
+                "pdf_text_content": "The adoption of the guidance did not have a material impact on the Company's financial statements."
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2015-05 — Intangibles - Goodwill and Other - Internal Use Software (Subtopic 350-40): Customer's Accounting for Fees Paid in a Cloud Computing Arrangement",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    531.3314208984375,
+                    239.21585083007812,
+                    551.94287109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    531.3314208984375,
+                    239.21585083007812,
+                    572.5828857421875
+                ],
+                "pdf_text_content": "ASU 2015-05 — Intangibles - Goodwill and Other - Internal Use Software (Subtopic 350-40): Customer's Accounting for Fees Paid in a Cloud Computing Arrangement"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "April 2015",
+                "pdf_text_tight_bbox": [
+                    261.7035217285156,
+                    532.1429443359375,
+                    288.7662658691406,
+                    538.1429443359375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    255.70352172851562,
+                    531.3314208984375,
+                    294.72125244140625,
+                    572.5828857421875
+                ],
+                "pdf_text_content": "April 2015"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "An entity that is the customer in a cloud computing arrangement that includes a software license should account for the software license element of the arrangement consistent with the acquisition of other software licenses.",
+                "pdf_text_tight_bbox": [
+                    304.1835021972656,
+                    532.1429443359375,
+                    422.3750915527344,
+                    572.5828857421875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    304.1835021972656,
+                    531.3314208984375,
+                    423.47216796875,
+                    572.5828857421875
+                ],
+                "pdf_text_content": "An entity that is the customer in a cloud computing arrangement that includes a software license should account for the software license element of the arrangement consistent with the acquisition of other software licenses."
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2016",
+                "pdf_text_tight_bbox": [
+                    430.4435119628906,
+                    532.1429443359375,
+                    473.53033447265625,
+                    538.1429443359375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    430.4435119628906,
+                    531.3314208984375,
+                    473.53033447265625,
+                    572.5828857421875
+                ],
+                "pdf_text_content": "January 1, 2016"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "The adoption of the guidance did not have a material impact on the Company's financial statements.",
+                "pdf_text_tight_bbox": [
+                    480.15350341796875,
+                    532.1429443359375,
+                    543.8759155273438,
+                    565.742919921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    480.15350341796875,
+                    531.3314208984375,
+                    546.153564453125,
+                    572.5828857421875
+                ],
+                "pdf_text_content": "The adoption of the guidance did not have a material impact on the Company's financial statements."
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2015-07 - Fair Value Measurement (Topic 820): Disclosures for Investments in Certain Entities That Calculate Net Asset Value per Share (or its Equivalent) (a consensus of the Emerging Issues Taskforce)",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    580.3829345703125,
+                    238.86676025390625,
+                    607.1429443359375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    580.3829345703125,
+                    239.21585083007812,
+                    627.81298828125
+                ],
+                "pdf_text_content": "ASU 2015-07 - Fair Value Measurement (Topic 820): Disclosures for Investments in Certain Entities That Calculate Net Asset Value per Share (or its Equivalent) (a consensus of the Emerging Issues Taskforce)"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "May 2015",
+                "pdf_text_tight_bbox": [
+                    262.0635070800781,
+                    580.3829345703125,
+                    288.3971862792969,
+                    586.3829345703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    255.70352172851562,
+                    580.3829345703125,
+                    294.72125244140625,
+                    627.81298828125
+                ],
+                "pdf_text_content": "May 2015"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Investments for which fair value is measured at net asset value per share (or its equivalent) using the practical expedient of ASC 820 should not be categorized in the fair value hierarchy. However, the reporting entity should continue to disclose information on such investments.",
+                "pdf_text_tight_bbox": [
+                    304.1835021972656,
+                    580.3829345703125,
+                    423.47216796875,
+                    627.81298828125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    304.1835021972656,
+                    580.3829345703125,
+                    423.47216796875,
+                    627.81298828125
+                ],
+                "pdf_text_content": "Investments for which fair value is measured at net asset value per share (or its equivalent) using the practical expedient of ASC 820 should not be categorized in the fair value hierarchy. However, the reporting entity should continue to disclose information on such investments."
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2016",
+                "pdf_text_tight_bbox": [
+                    430.4435119628906,
+                    580.3829345703125,
+                    473.53033447265625,
+                    586.3829345703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    430.4435119628906,
+                    580.3829345703125,
+                    473.53033447265625,
+                    627.81298828125
+                ],
+                "pdf_text_content": "January 1, 2016"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "As discussed in Note 16, presentation impact related to year end 2016 pension plan asset disclosures.",
+                "pdf_text_tight_bbox": [
+                    480.15350341796875,
+                    580.3829345703125,
+                    546.153564453125,
+                    614.012939453125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    480.15350341796875,
+                    580.3829345703125,
+                    546.153564453125,
+                    627.81298828125
+                ],
+                "pdf_text_content": "As discussed in Note 16, presentation impact related to year end 2016 pension plan asset disclosures."
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    452.222900390625,
+                    546.153564453125,
+                    465.1828918457031
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    473.7928466796875,
+                    546.153564453125,
+                    482.7928466796875
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    489.9313659667969,
+                    546.153564453125,
+                    524.3428955078125
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    531.3314208984375,
+                    546.153564453125,
+                    572.5828857421875
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    580.3829345703125,
+                    546.153564453125,
+                    627.81298828125
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    63.89350128173828,
+                    452.222900390625,
+                    239.21585083007812,
+                    627.81298828125
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    255.70352172851562,
+                    452.222900390625,
+                    294.72125244140625,
+                    627.81298828125
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    304.1835021972656,
+                    452.222900390625,
+                    423.47216796875,
+                    627.81298828125
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    430.4435119628906,
+                    452.222900390625,
+                    473.53033447265625,
+                    627.81298828125
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    480.15350341796875,
+                    452.222900390625,
+                    546.153564453125,
+                    627.81298828125
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_69.pdf",
+        "pdf_folder": "ECL/2016/",
+        "document_id": "ECL_2016_page_69",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 36160,
+        "fintabnet_source_table_id": 58613,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            613.2645263671875,
+            794.5392456054688
+        ],
+        "document_table_index": 1,
+        "structure_id": "ECL_2016_page_69_1",
+        "pdf_table_bbox": [
+            63.89350128173828,
+            452.222900390625,
+            546.153564453125,
+            627.81298828125
+        ]
+    },
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "ASU 2016-05 - Effect of Derivative Contract Novations on Existing Hedge Accounting Relationships",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    64.79290771484375,
+                    239.22030639648438,
+                    77.6329345703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    64.79290771484375,
+                    242.52291870117188,
+                    105.2509765625
+                ],
+                "pdf_text_content": "ASU 2016-05 - Effect of Derivative Contract Novations on Existing Hedge Accounting Relationships"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "March 2016",
+                "pdf_text_tight_bbox": [
+                    256.3034973144531,
+                    64.79290771484375,
+                    288.03240966796875,
+                    70.79290771484375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    252.58349609375,
+                    64.79290771484375,
+                    291.6011962890625,
+                    105.2509765625
+                ],
+                "pdf_text_content": "March 2016"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "The amendment clarifies language related to hedge accounting criteria that a change in the counterparty is not in and of itself considered a termination of the derivative or critical term of the hedging relationship.",
+                "pdf_text_tight_bbox": [
+                    300.2235107421875,
+                    64.79290771484375,
+                    417.01971435546875,
+                    98.41094970703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    300.2235107421875,
+                    64.79290771484375,
+                    417.89056396484375,
+                    105.2509765625
+                ],
+                "pdf_text_content": "The amendment clarifies language related to hedge accounting criteria that a change in the counterparty is not in and of itself considered a termination of the derivative or critical term of the hedging relationship."
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "January 1, 2017",
+                "pdf_text_tight_bbox": [
+                    425.04351806640625,
+                    64.79290771484375,
+                    468.1303405761719,
+                    70.79290771484375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    425.04351806640625,
+                    64.79290771484375,
+                    468.1303405761719,
+                    105.2509765625
+                ],
+                "pdf_text_content": "January 1, 2017"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements.",
+                "pdf_text_tight_bbox": [
+                    474.7535095214844,
+                    64.79290771484375,
+                    537.1454467773438,
+                    105.2509765625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    474.7535095214844,
+                    64.79290771484375,
+                    543.050048828125,
+                    105.2509765625
+                ],
+                "pdf_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements."
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2016-02 - Leases (Topic 842)",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    113.05291748046875,
+                    156.6422119140625,
+                    119.05291748046875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    113.05291748046875,
+                    242.52291870117188,
+                    153.6129150390625
+                ],
+                "pdf_text_content": "ASU 2016-02 - Leases (Topic 842)"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "February 2016",
+                "pdf_text_tight_bbox": [
+                    252.58349609375,
+                    113.05291748046875,
+                    291.6011962890625,
+                    119.05291748046875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    252.58349609375,
+                    113.05291748046875,
+                    291.6011962890625,
+                    153.6129150390625
+                ],
+                "pdf_text_content": "February 2016"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Introduces the recognition of lease assets and lease liabilities by lessors for those leases classified as operating leases under previous guidance.",
+                "pdf_text_tight_bbox": [
+                    300.2235107421875,
+                    113.05291748046875,
+                    414.4735107421875,
+                    139.81298828125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    300.2235107421875,
+                    113.05291748046875,
+                    417.89056396484375,
+                    153.6129150390625
+                ],
+                "pdf_text_content": "Introduces the recognition of lease assets and lease liabilities by lessors for those leases classified as operating leases under previous guidance."
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2019",
+                "pdf_text_tight_bbox": [
+                    425.04351806640625,
+                    113.05291748046875,
+                    468.1303405761719,
+                    119.05291748046875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    425.04351806640625,
+                    113.05291748046875,
+                    468.1303405761719,
+                    153.6129150390625
+                ],
+                "pdf_text_content": "January 1, 2019"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "See additional information regarding the impact of this guidance on the Company's financials at the bottom of this table in note (a).",
+                "pdf_text_tight_bbox": [
+                    474.7535095214844,
+                    113.05291748046875,
+                    543.050048828125,
+                    153.6129150390625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    474.7535095214844,
+                    113.05291748046875,
+                    543.050048828125,
+                    153.6129150390625
+                ],
+                "pdf_text_content": "See additional information regarding the impact of this guidance on the Company's financials at the bottom of this table in note (a)."
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2016-01 - Financial Instruments – Overall (Subtopic 825-10): Recognition and Measurement of Financial Assets and Financial Liabilities",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    160.60137939453125,
+                    239.09326171875,
+                    181.21295166015625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    160.60137939453125,
+                    242.52291870117188,
+                    215.65301513671875
+                ],
+                "pdf_text_content": "ASU 2016-01 - Financial Instruments – Overall (Subtopic 825-10): Recognition and Measurement of Financial Assets and Financial Liabilities"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 2016",
+                "pdf_text_tight_bbox": [
+                    253.90350341796875,
+                    161.41290283203125,
+                    290.2811584472656,
+                    167.41290283203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    252.58349609375,
+                    160.60137939453125,
+                    291.6011962890625,
+                    215.65301513671875
+                ],
+                "pdf_text_content": "January 2016"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "The amendment revises accounting related to the classification and measurement of investments in equity securities and the presentation of certain fair value changes for financial liabilities measured at fair value. The ASU also amends certain disclosure requirements associated with the fair value of financial instruments.",
+                "pdf_text_tight_bbox": [
+                    300.2235107421875,
+                    161.41290283203125,
+                    417.84381103515625,
+                    215.65301513671875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    300.2235107421875,
+                    160.60137939453125,
+                    417.89056396484375,
+                    215.65301513671875
+                ],
+                "pdf_text_content": "The amendment revises accounting related to the classification and measurement of investments in equity securities and the presentation of certain fair value changes for financial liabilities measured at fair value. The ASU also amends certain disclosure requirements associated with the fair value of financial instruments."
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2017",
+                "pdf_text_tight_bbox": [
+                    425.04351806640625,
+                    161.41290283203125,
+                    468.1303405761719,
+                    167.41290283203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    425.04351806640625,
+                    160.60137939453125,
+                    468.1303405761719,
+                    215.65301513671875
+                ],
+                "pdf_text_content": "January 1, 2017"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements.",
+                "pdf_text_tight_bbox": [
+                    474.7535095214844,
+                    161.41290283203125,
+                    537.1454467773438,
+                    201.85302734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    474.7535095214844,
+                    160.60137939453125,
+                    543.050048828125,
+                    215.65301513671875
+                ],
+                "pdf_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements."
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "ASU 2015-11 - Inventory (Topic 330): Simplifying the Measurement of Inventory",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    223.452880859375,
+                    242.52291870117188,
+                    236.41290283203125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    223.452880859375,
+                    242.52291870117188,
+                    264.04290771484375
+                ],
+                "pdf_text_content": "ASU 2015-11 - Inventory (Topic 330): Simplifying the Measurement of Inventory"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "July 2015",
+                "pdf_text_tight_bbox": [
+                    259.3034973144531,
+                    223.452880859375,
+                    285.0479736328125,
+                    229.452880859375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    252.58349609375,
+                    223.452880859375,
+                    291.6011962890625,
+                    264.04290771484375
+                ],
+                "pdf_text_content": "July 2015"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "The amendment requires entities to measure inventory under the FIFO or average cost methods at the lower of cost or net realizable value.",
+                "pdf_text_tight_bbox": [
+                    300.2235107421875,
+                    223.452880859375,
+                    411.2702331542969,
+                    250.21295166015625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    300.2235107421875,
+                    223.452880859375,
+                    417.89056396484375,
+                    264.04290771484375
+                ],
+                "pdf_text_content": "The amendment requires entities to measure inventory under the FIFO or average cost methods at the lower of cost or net realizable value."
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2017",
+                "pdf_text_tight_bbox": [
+                    425.04351806640625,
+                    223.452880859375,
+                    468.1303405761719,
+                    229.452880859375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    425.04351806640625,
+                    223.452880859375,
+                    468.1303405761719,
+                    264.04290771484375
+                ],
+                "pdf_text_content": "January 1, 2017"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements.",
+                "pdf_text_tight_bbox": [
+                    474.7535095214844,
+                    223.452880859375,
+                    537.1454467773438,
+                    264.04290771484375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    474.7535095214844,
+                    223.452880859375,
+                    543.050048828125,
+                    264.04290771484375
+                ],
+                "pdf_text_content": "The Company does not expect the updated guidance to have a significant impact on future financial statements."
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Revenue Recognition ASUs:2014-09 - Revenue from Contracts with Customers2015-14 - Deferral of the Effective Date2016-08 - Principal Versus Agent Considerations2016-10 - Identifying Performance Obligations and Licensing2016-11 - Revenue Recognition and Derivatives and Hedging2016-12 - Narrow-Scope Improvements & Practical Expedients2016-20--Technical Corrections and Improvements",
+                "pdf_text_tight_bbox": [
+                    63.89350128173828,
+                    271.843017578125,
+                    230.95025634765625,
+                    326.0829162597656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    63.89350128173828,
+                    271.843017578125,
+                    242.52291870117188,
+                    339.883056640625
+                ],
+                "pdf_text_content": "Revenue Recognition ASUs: 2014-09 - Revenue from Contracts with Customers 2015-14 - Deferral of the Effective Date 2016-08 - Principal Versus Agent Considerations 2016-10 - Identifying Performance Obligations and Licensing 2016-11 - Revenue Recognition and Derivatives and Hedging 2016-12 - Narrow-Scope Improvements & Practical Expedients 2016-20--Technical Corrections and Improvements"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Various",
+                "pdf_text_tight_bbox": [
+                    261.9435119628906,
+                    271.843017578125,
+                    282.4310607910156,
+                    277.843017578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    252.58349609375,
+                    271.843017578125,
+                    291.6011962890625,
+                    339.883056640625
+                ],
+                "pdf_text_content": "Various"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Recognition standard contains principles for entities to apply to determine the measurement of revenue and timing of when the revenue is recognized. The underlying principle of the updated guidance will have entities recognize revenue to depict the transfer of goods or services to customers at an amount that is expected to be received in exchange for those goods or services.",
+                "pdf_text_tight_bbox": [
+                    300.2235107421875,
+                    271.843017578125,
+                    417.89056396484375,
+                    339.883056640625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    300.2235107421875,
+                    271.843017578125,
+                    417.89056396484375,
+                    339.883056640625
+                ],
+                "pdf_text_content": "Recognition standard contains principles for entities to apply to determine the measurement of revenue and timing of when the revenue is recognized. The underlying principle of the updated guidance will have entities recognize revenue to depict the transfer of goods or services to customers at an amount that is expected to be received in exchange for those goods or services."
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "January 1, 2018",
+                "pdf_text_tight_bbox": [
+                    425.04351806640625,
+                    271.843017578125,
+                    468.1303405761719,
+                    277.843017578125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    425.04351806640625,
+                    271.843017578125,
+                    468.1303405761719,
+                    339.883056640625
+                ],
+                "pdf_text_content": "January 1, 2018"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "See additional information regarding the impact of this guidance on the Company's financials at the bottom of this table in note (b).",
+                "pdf_text_tight_bbox": [
+                    474.7535095214844,
+                    271.843017578125,
+                    543.050048828125,
+                    312.2830810546875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    474.7535095214844,
+                    271.843017578125,
+                    543.050048828125,
+                    339.883056640625
+                ],
+                "pdf_text_content": "See additional information regarding the impact of this guidance on the Company's financials at the bottom of this table in note (b)."
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    64.79290771484375,
+                    543.050048828125,
+                    105.2509765625
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    113.05291748046875,
+                    543.050048828125,
+                    153.6129150390625
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    160.60137939453125,
+                    543.050048828125,
+                    215.65301513671875
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    223.452880859375,
+                    543.050048828125,
+                    264.04290771484375
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    63.89350128173828,
+                    271.843017578125,
+                    543.050048828125,
+                    339.883056640625
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    63.89350128173828,
+                    64.79290771484375,
+                    242.52291870117188,
+                    339.883056640625
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    252.58349609375,
+                    64.79290771484375,
+                    291.6011962890625,
+                    339.883056640625
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    300.2235107421875,
+                    64.79290771484375,
+                    417.89056396484375,
+                    339.883056640625
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    425.04351806640625,
+                    64.79290771484375,
+                    468.1303405761719,
+                    339.883056640625
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    474.7535095214844,
+                    64.79290771484375,
+                    543.050048828125,
+                    339.883056640625
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_69.pdf",
+        "pdf_folder": "ECL/2016/",
+        "document_id": "ECL_2016_page_69",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 36159,
+        "fintabnet_source_table_id": 58612,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            613.2645263671875,
+            794.5392456054688
+        ],
+        "document_table_index": 0,
+        "structure_id": "ECL_2016_page_69_0",
+        "pdf_table_bbox": [
+            63.89350128173828,
+            64.79290771484375,
+            543.050048828125,
+            339.883056640625
+        ]
+    }
+]

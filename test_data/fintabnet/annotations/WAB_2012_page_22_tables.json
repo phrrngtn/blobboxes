@@ -1,0 +1,3194 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Location",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    80.54498291015625,
+                    108.2239990234375,
+                    89.72898864746094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    72.54498291015625,
+                    218.9010009765625,
+                    89.72898864746094
+                ],
+                "pdf_text_content": "Location"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "Primary Use",
+                "pdf_text_tight_bbox": [
+                    285.20001220703125,
+                    80.54498291015625,
+                    328.49041748046875,
+                    89.72898864746094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    72.54498291015625,
+                    329.5499572753906,
+                    89.72898864746094
+                ],
+                "pdf_text_content": "Primary Use"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "Segment",
+                "pdf_text_tight_bbox": [
+                    399.20001220703125,
+                    80.54498291015625,
+                    428.52801513671875,
+                    89.72898864746094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    72.54498291015625,
+                    442.3509216308594,
+                    89.72898864746094
+                ],
+                "pdf_text_content": "Segment"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "Own/ Lease",
+                "pdf_text_tight_bbox": [
+                    457.2503967285156,
+                    72.54498291015625,
+                    477.47198486328125,
+                    89.72898864746094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    72.54498291015625,
+                    478.6729736328125,
+                    89.72898864746094
+                ],
+                "pdf_text_content": "Own/ Lease"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Approximate Square Feet",
+                "pdf_text_tight_bbox": [
+                    488.70001220703125,
+                    72.54498291015625,
+                    534.0280151367188,
+                    89.72898864746094
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    72.54498291015625,
+                    534.0280151367188,
+                    89.72898864746094
+                ],
+                "pdf_text_content": "Approximate Square Feet"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Shenyang City, Liaoning Province, China",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    94.99498748779297,
+                    218.9010009765625,
+                    118.16498565673828
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    94.99498748779297,
+                    218.9010009765625,
+                    118.16498565673828
+                ],
+                "pdf_text_content": "Shenyang City, Liaoning Province, China"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    106.99498748779297,
+                    296.77996826171875,
+                    118.16498565673828
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    94.99498748779297,
+                    329.5499572753906,
+                    118.16498565673828
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    106.99498748779297,
+                    411.2409362792969,
+                    118.16498565673828
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    94.99498748779297,
+                    442.3509216308594,
+                    118.16498565673828
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    106.99498748779297,
+                    478.67095947265625,
+                    118.16498565673828
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    94.99498748779297,
+                    478.6729736328125,
+                    118.16498565673828
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "290,550",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    106.99498748779297,
+                    527.6009521484375,
+                    118.16498565673828
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    94.99498748779297,
+                    534.0280151367188,
+                    118.16498565673828
+                ],
+                "pdf_text_content": "290,550"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "London (Ontario), Canada",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    118.99498748779297,
+                    183.89102172851562,
+                    130.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    118.99498748779297,
+                    218.9010009765625,
+                    130.16497802734375
+                ],
+                "pdf_text_content": "London (Ontario), Canada"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    118.99498748779297,
+                    296.77996826171875,
+                    130.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    118.99498748779297,
+                    329.5499572753906,
+                    130.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    118.99498748779297,
+                    411.2409362792969,
+                    130.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    118.99498748779297,
+                    442.3509216308594,
+                    130.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    118.99498748779297,
+                    478.67095947265625,
+                    130.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    118.99498748779297,
+                    478.6729736328125,
+                    130.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "103,540",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    118.99498748779297,
+                    527.6009521484375,
+                    130.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    118.99498748779297,
+                    534.0280151367188,
+                    130.16497802734375
+                ],
+                "pdf_text_content": "103,540"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Stoney Creek (Ontario), Canada",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    130.99497985839844,
+                    216.35000610351562,
+                    142.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    130.99497985839844,
+                    218.9010009765625,
+                    142.16497802734375
+                ],
+                "pdf_text_content": "Stoney Creek (Ontario), Canada."
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Service",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    130.99497985839844,
+                    329.5499572753906,
+                    142.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    130.99497985839844,
+                    329.5499572753906,
+                    142.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Service"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    130.99497985839844,
+                    411.2409362792969,
+                    142.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    130.99497985839844,
+                    442.3509216308594,
+                    142.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    130.99497985839844,
+                    478.67095947265625,
+                    142.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    130.99497985839844,
+                    478.6729736328125,
+                    142.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "47,940",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    130.99497985839844,
+                    527.6009521484375,
+                    142.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    130.99497985839844,
+                    534.0280151367188,
+                    142.16497802734375
+                ],
+                "pdf_text_content": "47,940"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Wuxi City, Jiangsu Province, China",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    142.99497985839844,
+                    195.60000610351562,
+                    166.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    142.99497985839844,
+                    218.9010009765625,
+                    166.16497802734375
+                ],
+                "pdf_text_content": "Wuxi City, Jiangsu Province, China"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    154.99497985839844,
+                    325.0999450683594,
+                    166.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    142.99497985839844,
+                    329.5499572753906,
+                    166.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    154.99497985839844,
+                    411.2409362792969,
+                    166.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    142.99497985839844,
+                    442.3509216308594,
+                    166.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    154.99497985839844,
+                    478.67095947265625,
+                    166.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    142.99497985839844,
+                    478.6729736328125,
+                    166.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "43,056",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    154.99497985839844,
+                    527.6009521484375,
+                    166.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    142.99497985839844,
+                    534.0280151367188,
+                    166.16497802734375
+                ],
+                "pdf_text_content": "43,056"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Kolkata, India",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    166.99497985839844,
+                    135.25,
+                    178.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    166.99497985839844,
+                    218.9010009765625,
+                    178.16497802734375
+                ],
+                "pdf_text_content": "Kolkata, India"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    166.99497985839844,
+                    296.77996826171875,
+                    178.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    166.99497985839844,
+                    329.5499572753906,
+                    178.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    166.99497985839844,
+                    411.2409362792969,
+                    178.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    166.99497985839844,
+                    442.3509216308594,
+                    178.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    166.99497985839844,
+                    478.67095947265625,
+                    178.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    166.99497985839844,
+                    478.6729736328125,
+                    178.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "36,965",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    166.99497985839844,
+                    527.6009521484375,
+                    178.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    166.99497985839844,
+                    534.0280151367188,
+                    178.16497802734375
+                ],
+                "pdf_text_content": "36,965"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Belo Horizonte, Brazil",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    178.99497985839844,
+                    168.89102172851562,
+                    190.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    178.99497985839844,
+                    218.9010009765625,
+                    190.16497802734375
+                ],
+                "pdf_text_content": "Belo Horizonte, Brazil"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Service",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    178.99497985839844,
+                    329.5499572753906,
+                    190.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    178.99497985839844,
+                    329.5499572753906,
+                    190.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Service"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    178.99497985839844,
+                    411.2409362792969,
+                    190.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    178.99497985839844,
+                    442.3509216308594,
+                    190.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    178.99497985839844,
+                    478.67095947265625,
+                    190.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    178.99497985839844,
+                    478.6729736328125,
+                    190.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "33,992",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    178.99497985839844,
+                    527.6009521484375,
+                    190.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    178.99497985839844,
+                    534.0280151367188,
+                    190.16497802734375
+                ],
+                "pdf_text_content": "33,992"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Juiz de Fora, Minas Gerais, Brazil",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    190.99497985839844,
+                    215.09002685546875,
+                    202.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    190.99497985839844,
+                    218.9010009765625,
+                    202.16497802734375
+                ],
+                "pdf_text_content": "Juiz de Fora, Minas Gerais, Brazil"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.3500213623047,
+                    190.99497985839844,
+                    325.0999755859375,
+                    202.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    190.99497985839844,
+                    329.5499572753906,
+                    202.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.3509826660156,
+                    190.99497985839844,
+                    411.240966796875,
+                    202.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    190.99497985839844,
+                    442.3509216308594,
+                    202.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    190.99497985839844,
+                    478.67095947265625,
+                    202.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    190.99497985839844,
+                    478.6729736328125,
+                    202.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "33,992",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    190.99497985839844,
+                    527.6009521484375,
+                    202.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    190.99497985839844,
+                    534.0280151367188,
+                    202.16497802734375
+                ],
+                "pdf_text_content": "33,992"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lachine (Quebec), Canada",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    202.99497985839844,
+                    184.99102783203125,
+                    214.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    202.99497985839844,
+                    218.9010009765625,
+                    214.16497802734375
+                ],
+                "pdf_text_content": "Lachine (Quebec), Canada"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Service Center",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    202.99497985839844,
+                    296.5600280761719,
+                    214.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    202.99497985839844,
+                    329.5499572753906,
+                    214.16497802734375
+                ],
+                "pdf_text_content": "Service Center"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight",
+                "pdf_text_tight_bbox": [
+                    382.35003662109375,
+                    202.99497985839844,
+                    411.2400207519531,
+                    214.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    202.99497985839844,
+                    442.3509216308594,
+                    214.16497802734375
+                ],
+                "pdf_text_content": "Freight"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.35003662109375,
+                    202.99497985839844,
+                    478.6700439453125,
+                    214.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    202.99497985839844,
+                    478.6729736328125,
+                    214.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "25,455",
+                "pdf_text_tight_bbox": [
+                    500.10003662109375,
+                    202.99497985839844,
+                    527.6000366210938,
+                    214.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    202.99497985839844,
+                    534.0280151367188,
+                    214.16497802734375
+                ],
+                "pdf_text_content": "25,455"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Doncaster, UK",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    214.99497985839844,
+                    138.04100036621094,
+                    226.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    214.99497985839844,
+                    218.9010009765625,
+                    226.16497802734375
+                ],
+                "pdf_text_content": "Doncaster, UK"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Service",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    214.99497985839844,
+                    329.5499572753906,
+                    226.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    214.99497985839844,
+                    329.5499572753906,
+                    226.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Service"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight/Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    214.99497985839844,
+                    442.3509216308594,
+                    226.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    214.99497985839844,
+                    442.3509216308594,
+                    226.16497802734375
+                ],
+                "pdf_text_content": "Freight/Transit"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3519287109375,
+                    214.99497985839844,
+                    474.79193115234375,
+                    226.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    214.99497985839844,
+                    478.6729736328125,
+                    226.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "330,000",
+                "pdf_text_tight_bbox": [
+                    495.1019287109375,
+                    214.99497985839844,
+                    527.6019287109375,
+                    226.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    214.99497985839844,
+                    534.0280151367188,
+                    226.16497802734375
+                ],
+                "pdf_text_content": "330,000"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Kilmarnock, UK",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    226.99497985839844,
+                    145.29100036621094,
+                    238.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    226.99497985839844,
+                    218.9010009765625,
+                    238.16497802734375
+                ],
+                "pdf_text_content": "Kilmarnock, UK"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    226.99497985839844,
+                    296.77996826171875,
+                    238.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    226.99497985839844,
+                    329.5499572753906,
+                    238.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight/Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    226.99497985839844,
+                    442.3509216308594,
+                    238.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    226.99497985839844,
+                    442.3509216308594,
+                    238.16497802734375
+                ],
+                "pdf_text_content": "Freight/Transit"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3519287109375,
+                    226.99497985839844,
+                    474.79193115234375,
+                    238.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    226.99497985839844,
+                    478.6729736328125,
+                    238.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "107,975",
+                "pdf_text_tight_bbox": [
+                    495.1019287109375,
+                    226.99497985839844,
+                    527.6019287109375,
+                    238.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    226.99497985839844,
+                    534.0280151367188,
+                    238.16497802734375
+                ],
+                "pdf_text_content": "107,975"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Loughborough, UK",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    238.99497985839844,
+                    156.89100646972656,
+                    250.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    238.99497985839844,
+                    218.9010009765625,
+                    250.16497802734375
+                ],
+                "pdf_text_content": "Loughborough, UK"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    238.99497985839844,
+                    296.77996826171875,
+                    250.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    238.99497985839844,
+                    329.5499572753906,
+                    250.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight/Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    238.99497985839844,
+                    442.3509216308594,
+                    250.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    238.99497985839844,
+                    442.3509216308594,
+                    250.16497802734375
+                ],
+                "pdf_text_content": "Freight/Transit"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3519287109375,
+                    238.99497985839844,
+                    478.67193603515625,
+                    250.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    238.99497985839844,
+                    478.6729736328125,
+                    250.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "235,274",
+                "pdf_text_tight_bbox": [
+                    495.1019287109375,
+                    238.99497985839844,
+                    527.6019287109375,
+                    250.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    238.99497985839844,
+                    534.0280151367188,
+                    250.16497802734375
+                ],
+                "pdf_text_content": "235,274"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Wetherill Park, Australia",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    250.99497985839844,
+                    178.4110107421875,
+                    262.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    250.99497985839844,
+                    218.9010009765625,
+                    262.16497802734375
+                ],
+                "pdf_text_content": "Wetherill Park, Australia"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    250.99497985839844,
+                    296.77996826171875,
+                    262.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    250.99497985839844,
+                    329.5499572753906,
+                    262.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Freight/Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    250.99497985839844,
+                    442.3509216308594,
+                    262.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    250.99497985839844,
+                    442.3509216308594,
+                    262.16497802734375
+                ],
+                "pdf_text_content": "Freight/Transit"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3519287109375,
+                    250.99497985839844,
+                    478.67193603515625,
+                    262.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    250.99497985839844,
+                    478.6729736328125,
+                    262.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "70,600",
+                "pdf_text_tight_bbox": [
+                    500.1019287109375,
+                    250.99497985839844,
+                    527.6019287109375,
+                    262.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    250.99497985839844,
+                    534.0280151367188,
+                    262.16497802734375
+                ],
+                "pdf_text_content": "70,600"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Avellino, Italy",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    262.9949951171875,
+                    136.38099670410156,
+                    274.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    262.9949951171875,
+                    218.9010009765625,
+                    274.16497802734375
+                ],
+                "pdf_text_content": "Avellino, Italy"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    262.9949951171875,
+                    325.0999450683594,
+                    274.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    262.9949951171875,
+                    329.5499572753906,
+                    274.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    262.9949951171875,
+                    410.6809387207031,
+                    274.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    262.9949951171875,
+                    442.3509216308594,
+                    274.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    262.9949951171875,
+                    474.79095458984375,
+                    274.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    262.9949951171875,
+                    478.6729736328125,
+                    274.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "132,495",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    262.9949951171875,
+                    527.6009521484375,
+                    274.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    262.9949951171875,
+                    534.0280151367188,
+                    274.16497802734375
+                ],
+                "pdf_text_content": "132,495"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "St. Laurent (Quebec), Canada",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    274.9949951171875,
+                    197.2410125732422,
+                    286.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    274.9949951171875,
+                    218.9010009765625,
+                    286.16497802734375
+                ],
+                "pdf_text_content": "St. Laurent (Quebec), Canada"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    274.9949951171875,
+                    296.77996826171875,
+                    286.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    274.9949951171875,
+                    329.5499572753906,
+                    286.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    274.9949951171875,
+                    410.6809387207031,
+                    286.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    274.9949951171875,
+                    442.3509216308594,
+                    286.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    274.9949951171875,
+                    474.79095458984375,
+                    286.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    274.9949951171875,
+                    478.6729736328125,
+                    286.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "106,000",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    274.9949951171875,
+                    527.6009521484375,
+                    286.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    274.9949951171875,
+                    534.0280151367188,
+                    286.16497802734375
+                ],
+                "pdf_text_content": "106,000"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Recklinghausen, Germany",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    286.9949951171875,
+                    184.1610107421875,
+                    298.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    286.9949951171875,
+                    218.9010009765625,
+                    298.16497802734375
+                ],
+                "pdf_text_content": "Recklinghausen, Germany"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    286.9949951171875,
+                    296.77996826171875,
+                    298.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    286.9949951171875,
+                    329.5499572753906,
+                    298.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    286.9949951171875,
+                    410.6809387207031,
+                    298.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    286.9949951171875,
+                    442.3509216308594,
+                    298.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    286.9949951171875,
+                    474.79095458984375,
+                    298.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    286.9949951171875,
+                    478.6729736328125,
+                    298.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "86,390",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    286.9949951171875,
+                    527.6009521484375,
+                    298.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    286.9949951171875,
+                    534.0280151367188,
+                    298.16497802734375
+                ],
+                "pdf_text_content": "86,390"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Fauld, UK",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    298.9949951171875,
+                    120.23999786376953,
+                    310.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    298.9949951171875,
+                    218.9010009765625,
+                    310.16497802734375
+                ],
+                "pdf_text_content": "Fauld, UK"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    298.9949951171875,
+                    325.0999450683594,
+                    310.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    298.9949951171875,
+                    329.5499572753906,
+                    310.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    298.9949951171875,
+                    410.6809387207031,
+                    310.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    298.9949951171875,
+                    442.3509216308594,
+                    310.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    298.9949951171875,
+                    474.79095458984375,
+                    310.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    298.9949951171875,
+                    478.6729736328125,
+                    310.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "64,000",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    298.9949951171875,
+                    527.6009521484375,
+                    310.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    298.9949951171875,
+                    534.0280151367188,
+                    310.16497802734375
+                ],
+                "pdf_text_content": "64,000"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Sable-sur-Sarthe, France",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    310.9949951171875,
+                    177.01101684570312,
+                    322.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    310.9949951171875,
+                    218.9010009765625,
+                    322.16497802734375
+                ],
+                "pdf_text_content": "Sable-sur-Sarthe, France"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    310.9949951171875,
+                    296.77996826171875,
+                    322.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    310.9949951171875,
+                    329.5499572753906,
+                    322.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    310.9949951171875,
+                    410.6809387207031,
+                    322.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    310.9949951171875,
+                    442.3509216308594,
+                    322.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    310.9949951171875,
+                    474.79095458984375,
+                    322.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    310.9949951171875,
+                    478.6729736328125,
+                    322.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "51,667",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    310.9949951171875,
+                    527.6009521484375,
+                    322.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    310.9949951171875,
+                    534.0280151367188,
+                    322.16497802734375
+                ],
+                "pdf_text_content": "51,667"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Utrecht, The Netherlands",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    322.9949951171875,
+                    179.42001342773438,
+                    334.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    322.9949951171875,
+                    218.9010009765625,
+                    334.16497802734375
+                ],
+                "pdf_text_content": "Utrecht, The Netherlands"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    322.9949951171875,
+                    296.77996826171875,
+                    334.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    322.9949951171875,
+                    329.5499572753906,
+                    334.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    322.9949951171875,
+                    410.6809387207031,
+                    334.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    322.9949951171875,
+                    442.3509216308594,
+                    334.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Own",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    322.9949951171875,
+                    474.79095458984375,
+                    334.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    322.9949951171875,
+                    478.6729736328125,
+                    334.16497802734375
+                ],
+                "pdf_text_content": "Own"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "48,439",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    322.9949951171875,
+                    527.6009521484375,
+                    334.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    322.9949951171875,
+                    534.0280151367188,
+                    334.16497802734375
+                ],
+                "pdf_text_content": "48,439"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Barton under Needwood, UK",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    334.9949951171875,
+                    195.791015625,
+                    346.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    334.9949951171875,
+                    218.9010009765625,
+                    346.16497802734375
+                ],
+                "pdf_text_content": "Barton under Needwood, UK"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    334.9949951171875,
+                    325.0999450683594,
+                    346.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    334.9949951171875,
+                    329.5499572753906,
+                    346.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    334.9949951171875,
+                    410.6809387207031,
+                    346.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    334.9949951171875,
+                    442.3509216308594,
+                    346.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    334.9949951171875,
+                    478.67095947265625,
+                    346.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    334.9949951171875,
+                    478.6729736328125,
+                    346.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "253,453",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    334.9949951171875,
+                    527.6009521484375,
+                    346.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    334.9949951171875,
+                    534.0280151367188,
+                    346.16497802734375
+                ],
+                "pdf_text_content": "253,453"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Camisano, Italy",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    346.9949951171875,
+                    141.38101196289062,
+                    358.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    346.9949951171875,
+                    218.9010009765625,
+                    358.16497802734375
+                ],
+                "pdf_text_content": "Camisano, Italy"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing/Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    346.9949951171875,
+                    325.0999450683594,
+                    358.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    346.9949951171875,
+                    329.5499572753906,
+                    358.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing/Office"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    346.9949951171875,
+                    410.6809387207031,
+                    358.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    346.9949951171875,
+                    442.3509216308594,
+                    358.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    346.9949951171875,
+                    478.67095947265625,
+                    358.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    346.9949951171875,
+                    478.6729736328125,
+                    358.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "136,465",
+                "pdf_text_tight_bbox": [
+                    495.1009521484375,
+                    346.9949951171875,
+                    527.6009521484375,
+                    358.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    346.9949951171875,
+                    534.0280151367188,
+                    358.16497802734375
+                ],
+                "pdf_text_content": "136,465"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "St. Laurent (Quebec), Canada",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    358.9949951171875,
+                    197.2410125732422,
+                    370.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    358.9949951171875,
+                    218.9010009765625,
+                    370.16497802734375
+                ],
+                "pdf_text_content": "St. Laurent (Quebec), Canada"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Office",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    358.9949951171875,
+                    262.8900146484375,
+                    370.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    358.9949951171875,
+                    329.5499572753906,
+                    370.16497802734375
+                ],
+                "pdf_text_content": "Office"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3500061035156,
+                    358.9949951171875,
+                    410.67999267578125,
+                    370.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    358.9949951171875,
+                    442.3509216308594,
+                    370.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3499755859375,
+                    358.9949951171875,
+                    478.66998291015625,
+                    370.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    358.9949951171875,
+                    478.6729736328125,
+                    370.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "38,926",
+                "pdf_text_tight_bbox": [
+                    500.0999755859375,
+                    358.9949951171875,
+                    527.5999755859375,
+                    370.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    358.9949951171875,
+                    534.0280151367188,
+                    370.16497802734375
+                ],
+                "pdf_text_content": "38,926"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Hangzhou, Hunan Province, China",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    370.9949951171875,
+                    217.74200439453125,
+                    382.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    370.9949951171875,
+                    218.9010009765625,
+                    382.16497802734375
+                ],
+                "pdf_text_content": "Hangzhou, Hunan Province, China"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.3520050048828,
+                    370.9949951171875,
+                    296.781982421875,
+                    382.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    370.9949951171875,
+                    329.5499572753906,
+                    382.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.35296630859375,
+                    370.9949951171875,
+                    410.6829528808594,
+                    382.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    370.9949951171875,
+                    442.3509216308594,
+                    382.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.35296630859375,
+                    370.9949951171875,
+                    478.6729736328125,
+                    382.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    370.9949951171875,
+                    478.6729736328125,
+                    382.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "31,032",
+                "pdf_text_tight_bbox": [
+                    500.10296630859375,
+                    370.9949951171875,
+                    527.6029663085938,
+                    382.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    370.9949951171875,
+                    534.0280151367188,
+                    382.16497802734375
+                ],
+                "pdf_text_content": "31,032"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Sassuolo, Italy",
+                "pdf_text_tight_bbox": [
+                    78.0,
+                    382.9949951171875,
+                    136.93099975585938,
+                    394.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    78.0,
+                    382.9949951171875,
+                    218.9010009765625,
+                    394.16497802734375
+                ],
+                "pdf_text_content": "Sassuolo, Italy"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "Manufacturing",
+                "pdf_text_tight_bbox": [
+                    237.35000610351562,
+                    382.9949951171875,
+                    296.77996826171875,
+                    394.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    237.35000610351562,
+                    382.9949951171875,
+                    329.5499572753906,
+                    394.16497802734375
+                ],
+                "pdf_text_content": "Manufacturing"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "Transit",
+                "pdf_text_tight_bbox": [
+                    382.3509521484375,
+                    382.9949951171875,
+                    410.6809387207031,
+                    394.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    382.3500061035156,
+                    382.9949951171875,
+                    442.3509216308594,
+                    394.16497802734375
+                ],
+                "pdf_text_content": "Transit"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lease",
+                "pdf_text_tight_bbox": [
+                    455.3509521484375,
+                    382.9949951171875,
+                    478.67095947265625,
+                    394.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    455.3499755859375,
+                    382.9949951171875,
+                    478.6729736328125,
+                    394.16497802734375
+                ],
+                "pdf_text_content": "Lease"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "30,000",
+                "pdf_text_tight_bbox": [
+                    500.1009521484375,
+                    382.9949951171875,
+                    527.6009521484375,
+                    394.16497802734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    488.70001220703125,
+                    382.9949951171875,
+                    534.0280151367188,
+                    394.16497802734375
+                ],
+                "pdf_text_content": "30,000"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    72.54498291015625,
+                    534.0280151367188,
+                    89.72898864746094
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    94.99498748779297,
+                    534.0280151367188,
+                    118.16498565673828
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    118.99498748779297,
+                    534.0280151367188,
+                    130.16497802734375
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    130.99497985839844,
+                    534.0280151367188,
+                    142.16497802734375
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    142.99497985839844,
+                    534.0280151367188,
+                    166.16497802734375
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    166.99497985839844,
+                    534.0280151367188,
+                    178.16497802734375
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    178.99497985839844,
+                    534.0280151367188,
+                    190.16497802734375
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    190.99497985839844,
+                    534.0280151367188,
+                    202.16497802734375
+                ]
+            },
+            "8": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    202.99497985839844,
+                    534.0280151367188,
+                    214.16497802734375
+                ]
+            },
+            "9": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    214.99497985839844,
+                    534.0280151367188,
+                    226.16497802734375
+                ]
+            },
+            "10": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    226.99497985839844,
+                    534.0280151367188,
+                    238.16497802734375
+                ]
+            },
+            "11": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    238.99497985839844,
+                    534.0280151367188,
+                    250.16497802734375
+                ]
+            },
+            "12": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    250.99497985839844,
+                    534.0280151367188,
+                    262.16497802734375
+                ]
+            },
+            "13": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    262.9949951171875,
+                    534.0280151367188,
+                    274.16497802734375
+                ]
+            },
+            "14": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    274.9949951171875,
+                    534.0280151367188,
+                    286.16497802734375
+                ]
+            },
+            "15": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    286.9949951171875,
+                    534.0280151367188,
+                    298.16497802734375
+                ]
+            },
+            "16": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    298.9949951171875,
+                    534.0280151367188,
+                    310.16497802734375
+                ]
+            },
+            "17": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    310.9949951171875,
+                    534.0280151367188,
+                    322.16497802734375
+                ]
+            },
+            "18": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    322.9949951171875,
+                    534.0280151367188,
+                    334.16497802734375
+                ]
+            },
+            "19": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    334.9949951171875,
+                    534.0280151367188,
+                    346.16497802734375
+                ]
+            },
+            "20": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    346.9949951171875,
+                    534.0280151367188,
+                    358.16497802734375
+                ]
+            },
+            "21": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    358.9949951171875,
+                    534.0280151367188,
+                    370.16497802734375
+                ]
+            },
+            "22": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    370.9949951171875,
+                    534.0280151367188,
+                    382.16497802734375
+                ]
+            },
+            "23": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    78.0,
+                    382.9949951171875,
+                    534.0280151367188,
+                    394.16497802734375
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    78.0,
+                    72.54498291015625,
+                    218.9010009765625,
+                    394.16497802734375
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    237.35000610351562,
+                    72.54498291015625,
+                    329.5499572753906,
+                    394.16497802734375
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    382.3500061035156,
+                    72.54498291015625,
+                    442.3509216308594,
+                    394.16497802734375
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    455.3499755859375,
+                    72.54498291015625,
+                    478.6729736328125,
+                    394.16497802734375
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    488.70001220703125,
+                    72.54498291015625,
+                    534.0280151367188,
+                    394.16497802734375
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "test",
+        "pdf_file_name": "page_22.pdf",
+        "pdf_folder": "WAB/2012/",
+        "document_id": "WAB_2012_page_22",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_test.jsonl",
+        "fintabnet_source_line_index": 2524,
+        "fintabnet_source_table_id": 136374,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            612.0,
+            792.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "WAB_2012_page_22_0",
+        "pdf_table_bbox": [
+            78.0,
+            72.54498291015625,
+            534.0280151367188,
+            394.16497802734375
+        ]
+    }
+]

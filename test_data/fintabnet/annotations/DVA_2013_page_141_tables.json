@@ -1,0 +1,334 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Period",
+                "pdf_text_tight_bbox": [
+                    89.0,
+                    491.4880065917969,
+                    110.23999786376953,
+                    500.6000061035156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    89.0,
+                    459.3680114746094,
+                    171.6400146484375,
+                    500.6000061035156
+                ],
+                "pdf_text_content": "Period"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "Total Number of Shares Purchased",
+                "pdf_text_tight_bbox": [
+                    212.6999969482422,
+                    467.3680114746094,
+                    260.2583923339844,
+                    500.6000061035156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    212.6999969482422,
+                    459.3680114746094,
+                    260.2583923339844,
+                    500.6000061035156
+                ],
+                "pdf_text_content": "Total Number of Shares Purchased"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "Average Price Paid per Share",
+                "pdf_text_tight_bbox": [
+                    274.29998779296875,
+                    475.3680114746094,
+                    308.3960266113281,
+                    500.6000061035156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    274.29998779296875,
+                    459.3680114746094,
+                    308.3960266113281,
+                    500.6000061035156
+                ],
+                "pdf_text_content": "Average Price Paid per Share"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "Total Number of Shares Purchased as Part of Publicly Announced Plansor Programs(1)",
+                "pdf_text_tight_bbox": [
+                    322.39959716796875,
+                    459.3680114746094,
+                    401.5188293457031,
+                    500.6000061035156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    322.39959716796875,
+                    459.3680114746094,
+                    401.5188293457031,
+                    500.6000061035156
+                ],
+                "pdf_text_content": "Total Number of Shares Purchased as Part of Publicly Announced Plans or Programs(1)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": true,
+                "json_text_content": "Approximate Dollar Value of Shares that May Yet Be Purchased Under the Plans or Programs (in millions)",
+                "pdf_text_tight_bbox": [
+                    415.5,
+                    459.3680114746094,
+                    504.9752197265625,
+                    500.6000061035156
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    415.5,
+                    459.3680114746094,
+                    504.9752197265625,
+                    500.6000061035156
+                ],
+                "pdf_text_content": "Approximate Dollar Value of Shares that May Yet Be Purchased Under the Plans or Programs (in millions)"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Oct 1—Dec 31, 2013",
+                "pdf_text_tight_bbox": [
+                    89.0,
+                    505.6099853515625,
+                    171.6400146484375,
+                    517.0
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    89.0,
+                    505.6099853515625,
+                    171.6400146484375,
+                    517.0
+                ],
+                "pdf_text_content": "Oct 1—Dec 31, 2013"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "—",
+                "pdf_text_tight_bbox": [
+                    230.5999755859375,
+                    505.6099853515625,
+                    239.719970703125,
+                    517.0
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    212.6999969482422,
+                    505.6099853515625,
+                    260.2583923339844,
+                    517.0
+                ],
+                "pdf_text_content": "—"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "—",
+                "pdf_text_tight_bbox": [
+                    285.4499816894531,
+                    505.6099853515625,
+                    294.5699768066406,
+                    517.0
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    274.29998779296875,
+                    505.6099853515625,
+                    308.3960266113281,
+                    517.0
+                ],
+                "pdf_text_content": "—"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "—",
+                "pdf_text_tight_bbox": [
+                    356.04998779296875,
+                    505.6099853515625,
+                    365.16998291015625,
+                    517.0
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    322.39959716796875,
+                    505.6099853515625,
+                    401.5188293457031,
+                    517.0
+                ],
+                "pdf_text_content": "—"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    4
+                ],
+                "is_column_header": false,
+                "json_text_content": "$358.2",
+                "pdf_text_tight_bbox": [
+                    445.6500244140625,
+                    505.6099853515625,
+                    474.83001708984375,
+                    517.0
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    415.5,
+                    505.6099853515625,
+                    504.9752197265625,
+                    517.0
+                ],
+                "pdf_text_content": "$358.2"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    89.0,
+                    459.3680114746094,
+                    504.9752197265625,
+                    500.6000061035156
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    89.0,
+                    505.6099853515625,
+                    504.9752197265625,
+                    517.0
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    89.0,
+                    459.3680114746094,
+                    171.6400146484375,
+                    517.0
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    212.6999969482422,
+                    459.3680114746094,
+                    260.2583923339844,
+                    517.0
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    274.29998779296875,
+                    459.3680114746094,
+                    308.3960266113281,
+                    517.0
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    322.39959716796875,
+                    459.3680114746094,
+                    401.5188293457031,
+                    517.0
+                ]
+            },
+            "4": {
+                "pdf_column_bbox": [
+                    415.5,
+                    459.3680114746094,
+                    504.9752197265625,
+                    517.0
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": true,
+        "split": "val",
+        "pdf_file_name": "page_141.pdf",
+        "pdf_folder": "DVA/2013/",
+        "document_id": "DVA_2013_page_141",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_val.jsonl",
+        "fintabnet_source_line_index": 7610,
+        "fintabnet_source_table_id": 138218,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            594.0,
+            774.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "DVA_2013_page_141_0",
+        "pdf_table_bbox": [
+            89.0,
+            459.3680114746094,
+            504.9752197265625,
+            517.0
+        ]
+    }
+]

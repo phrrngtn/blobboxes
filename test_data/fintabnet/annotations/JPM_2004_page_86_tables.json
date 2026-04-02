@@ -1,0 +1,3887 @@
+[
+    {
+        "cells": [
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": true,
+                "json_text_content": "Year ended December 31, (in millions, except per share data) (a)",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    80.23553466796875,
+                    228.76551818847656,
+                    90.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    80.23553466796875,
+                    308.6196594238281,
+                    90.4058837890625
+                ],
+                "pdf_text_content": "Year ended December 31, (in millions, except per share data)(a)"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": true,
+                "json_text_content": "2004",
+                "pdf_text_tight_bbox": [
+                    350.4067077636719,
+                    81.48088073730469,
+                    365.9999084472656,
+                    90.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    80.23553466796875,
+                    366.53173828125,
+                    90.4058837890625
+                ],
+                "pdf_text_content": "2004"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": true,
+                "json_text_content": "2003",
+                "pdf_text_tight_bbox": [
+                    423.6007080078125,
+                    81.68338012695312,
+                    438.000732421875,
+                    90.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    80.23553466796875,
+                    438.0007629394531,
+                    90.4058837890625
+                ],
+                "pdf_text_content": "2003"
+            },
+            {
+                "row_nums": [
+                    0
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": true,
+                "json_text_content": "2002",
+                "pdf_text_tight_bbox": [
+                    495.60150146484375,
+                    81.68338012695312,
+                    510.00152587890625,
+                    90.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    80.23553466796875,
+                    510.3435363769531,
+                    90.4058837890625
+                ],
+                "pdf_text_content": "2002"
+            },
+            {
+                "row_nums": [
+                    1
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Revenue",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    95.73088073730469,
+                    81.97795104980469,
+                    104.6558837890625
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    95.73088073730469,
+                    510.3435363769531,
+                    104.6558837890625
+                ],
+                "pdf_text_content": "Revenue"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Investment banking fees",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    106.18362426757812,
+                    124.68443298339844,
+                    114.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    105.98112487792969,
+                    308.6196594238281,
+                    114.9061279296875
+                ],
+                "pdf_text_content": "Investment banking fees"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$3,537",
+                "pdf_text_tight_bbox": [
+                    335.99993896484375,
+                    105.98112487792969,
+                    365.9999084472656,
+                    114.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    105.98112487792969,
+                    366.53173828125,
+                    114.9061279296875
+                ],
+                "pdf_text_content": "$ 3,537"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2,890",
+                "pdf_text_tight_bbox": [
+                    408.99517822265625,
+                    106.18362426757812,
+                    438.0007019042969,
+                    114.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    105.98112487792969,
+                    438.0007629394531,
+                    114.9061279296875
+                ],
+                "pdf_text_content": "$ 2,890"
+            },
+            {
+                "row_nums": [
+                    2
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$2,763",
+                "pdf_text_tight_bbox": [
+                    478.0701904296875,
+                    106.18362426757812,
+                    510.00146484375,
+                    114.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    105.98112487792969,
+                    510.3435363769531,
+                    114.9061279296875
+                ],
+                "pdf_text_content": "$ 2,763"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Trading revenue",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    116.43386840820312,
+                    99.88794708251953,
+                    125.1563720703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    116.23136901855469,
+                    308.6196594238281,
+                    125.1563720703125
+                ],
+                "pdf_text_content": "Trading revenue"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "3,612",
+                "pdf_text_tight_bbox": [
+                    347.6789245605469,
+                    116.23136901855469,
+                    365.9999084472656,
+                    125.1563720703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    116.23136901855469,
+                    366.53173828125,
+                    125.1563720703125
+                ],
+                "pdf_text_content": "3,612"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "4,427",
+                "pdf_text_tight_bbox": [
+                    421.0806884765625,
+                    116.43386840820312,
+                    438.0007019042969,
+                    125.1563720703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    116.23136901855469,
+                    438.0007629394531,
+                    125.1563720703125
+                ],
+                "pdf_text_content": "4,427"
+            },
+            {
+                "row_nums": [
+                    3
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,675",
+                "pdf_text_tight_bbox": [
+                    493.0814514160156,
+                    116.43386840820312,
+                    510.00146484375,
+                    125.1563720703125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    116.23136901855469,
+                    510.3435363769531,
+                    125.1563720703125
+                ],
+                "pdf_text_content": "2,675"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Lending & deposit related fees",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    126.68411254882812,
+                    142.67393493652344,
+                    135.4066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    126.48161315917969,
+                    308.6196594238281,
+                    135.4066162109375
+                ],
+                "pdf_text_content": "Lending & deposit related fees"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,672",
+                "pdf_text_tight_bbox": [
+                    347.6789245605469,
+                    126.48161315917969,
+                    365.9999084472656,
+                    135.4066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    126.48161315917969,
+                    366.53173828125,
+                    135.4066162109375
+                ],
+                "pdf_text_content": "2,672"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,727",
+                "pdf_text_tight_bbox": [
+                    421.0806884765625,
+                    126.68411254882812,
+                    438.0007019042969,
+                    135.4066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    126.48161315917969,
+                    438.0007629394531,
+                    135.4066162109375
+                ],
+                "pdf_text_content": "1,727"
+            },
+            {
+                "row_nums": [
+                    4
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,674",
+                "pdf_text_tight_bbox": [
+                    493.0814514160156,
+                    126.68411254882812,
+                    510.00146484375,
+                    135.4066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    126.48161315917969,
+                    510.3435363769531,
+                    135.4066162109375
+                ],
+                "pdf_text_content": "1,674"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Asset management, administration and commissions",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    136.93435668945312,
+                    206.21688842773438,
+                    145.6568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    136.7318572998047,
+                    308.6196594238281,
+                    145.6568603515625
+                ],
+                "pdf_text_content": "Asset management, administration and commissions"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "7,967",
+                "pdf_text_tight_bbox": [
+                    347.6789245605469,
+                    136.7318572998047,
+                    365.9999084472656,
+                    145.6568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    136.7318572998047,
+                    366.53173828125,
+                    145.6568603515625
+                ],
+                "pdf_text_content": "7,967"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "5,906",
+                "pdf_text_tight_bbox": [
+                    421.0806884765625,
+                    136.93435668945312,
+                    438.0007019042969,
+                    145.6568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    136.7318572998047,
+                    438.0007629394531,
+                    145.6568603515625
+                ],
+                "pdf_text_content": "5,906"
+            },
+            {
+                "row_nums": [
+                    5
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "5,754",
+                "pdf_text_tight_bbox": [
+                    493.0814514160156,
+                    136.93435668945312,
+                    510.00146484375,
+                    145.6568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    136.7318572998047,
+                    510.3435363769531,
+                    145.6568603515625
+                ],
+                "pdf_text_content": "5,754"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Securities/private equity gains",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    147.18460083007812,
+                    140.47044372558594,
+                    155.9071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    146.9821014404297,
+                    308.6196594238281,
+                    155.9071044921875
+                ],
+                "pdf_text_content": "Securities/private equity gains"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,874",
+                "pdf_text_tight_bbox": [
+                    347.6789245605469,
+                    146.9821014404297,
+                    365.9999084472656,
+                    155.9071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    146.9821014404297,
+                    366.53173828125,
+                    155.9071044921875
+                ],
+                "pdf_text_content": "1,874"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,479",
+                "pdf_text_tight_bbox": [
+                    421.0806884765625,
+                    147.18460083007812,
+                    438.0007019042969,
+                    155.9071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    146.9821014404297,
+                    438.0007629394531,
+                    155.9071044921875
+                ],
+                "pdf_text_content": "1,479"
+            },
+            {
+                "row_nums": [
+                    6
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "817",
+                "pdf_text_tight_bbox": [
+                    498.8414306640625,
+                    147.18460083007812,
+                    510.0014343261719,
+                    155.9071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    146.9821014404297,
+                    510.3435363769531,
+                    155.9071044921875
+                ],
+                "pdf_text_content": "817"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Mortgage fees and related income",
+                "pdf_text_tight_bbox": [
+                    53.99993896484375,
+                    157.43484497070312,
+                    153.86093139648438,
+                    166.1573486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    157.2323455810547,
+                    308.6196594238281,
+                    166.1573486328125
+                ],
+                "pdf_text_content": "Mortgage fees and related income"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,004",
+                "pdf_text_tight_bbox": [
+                    347.6789245605469,
+                    157.2323455810547,
+                    365.9999084472656,
+                    166.1573486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    157.2323455810547,
+                    366.53173828125,
+                    166.1573486328125
+                ],
+                "pdf_text_content": "1,004"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "923",
+                "pdf_text_tight_bbox": [
+                    426.8406677246094,
+                    157.43484497070312,
+                    438.00067138671875,
+                    166.1573486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    157.2323455810547,
+                    438.0007629394531,
+                    166.1573486328125
+                ],
+                "pdf_text_content": "923"
+            },
+            {
+                "row_nums": [
+                    7
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "988",
+                "pdf_text_tight_bbox": [
+                    498.8414306640625,
+                    157.43484497070312,
+                    510.0014343261719,
+                    166.1573486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    157.2323455810547,
+                    510.3435363769531,
+                    166.1573486328125
+                ],
+                "pdf_text_content": "988"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Credit card income",
+                "pdf_text_tight_bbox": [
+                    53.999908447265625,
+                    167.68508911132812,
+                    108.64942169189453,
+                    176.4075927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    167.4825897216797,
+                    308.6196594238281,
+                    176.4075927734375
+                ],
+                "pdf_text_content": "Credit card income"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "4,840",
+                "pdf_text_tight_bbox": [
+                    347.67889404296875,
+                    167.4825897216797,
+                    365.9998779296875,
+                    176.4075927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    167.4825897216797,
+                    366.53173828125,
+                    176.4075927734375
+                ],
+                "pdf_text_content": "4,840"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,466",
+                "pdf_text_tight_bbox": [
+                    421.08062744140625,
+                    167.68508911132812,
+                    438.0006408691406,
+                    176.4075927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    167.4825897216797,
+                    438.0007629394531,
+                    176.4075927734375
+                ],
+                "pdf_text_content": "2,466"
+            },
+            {
+                "row_nums": [
+                    8
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,307",
+                "pdf_text_tight_bbox": [
+                    493.0813903808594,
+                    167.68508911132812,
+                    510.00140380859375,
+                    176.4075927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    167.4825897216797,
+                    510.3435363769531,
+                    176.4075927734375
+                ],
+                "pdf_text_content": "2,307"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Other income",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    177.93338012695312,
+                    92.83350372314453,
+                    186.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    177.7308807373047,
+                    308.6196594238281,
+                    186.6558837890625
+                ],
+                "pdf_text_content": "Other income"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "830",
+                "pdf_text_tight_bbox": [
+                    353.9152526855469,
+                    177.7308807373047,
+                    365.999267578125,
+                    186.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    177.7308807373047,
+                    366.53173828125,
+                    186.6558837890625
+                ],
+                "pdf_text_content": "830"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "601",
+                "pdf_text_tight_bbox": [
+                    426.84075927734375,
+                    177.93338012695312,
+                    438.0007629394531,
+                    186.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    177.7308807373047,
+                    438.0007629394531,
+                    186.6558837890625
+                ],
+                "pdf_text_content": "601"
+            },
+            {
+                "row_nums": [
+                    9
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "458",
+                "pdf_text_tight_bbox": [
+                    498.84149169921875,
+                    177.93338012695312,
+                    510.0014953613281,
+                    186.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    177.7308807373047,
+                    510.3435363769531,
+                    186.6558837890625
+                ],
+                "pdf_text_content": "458"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Noninterest revenue",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    193.9808807373047,
+                    121.86151123046875,
+                    202.9058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    193.9808807373047,
+                    308.6196594238281,
+                    202.9058837890625
+                ],
+                "pdf_text_content": "Noninterest revenue"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "26,336",
+                "pdf_text_tight_bbox": [
+                    343.58551025390625,
+                    193.9808807373047,
+                    365.9992370605469,
+                    202.9058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    193.9808807373047,
+                    366.53173828125,
+                    202.9058837890625
+                ],
+                "pdf_text_content": "26,336"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "20,419",
+                "pdf_text_tight_bbox": [
+                    417.3007507324219,
+                    194.18338012695312,
+                    438.0007629394531,
+                    202.9058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    193.9808807373047,
+                    438.0007629394531,
+                    202.9058837890625
+                ],
+                "pdf_text_content": "20,419"
+            },
+            {
+                "row_nums": [
+                    10
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "17,436",
+                "pdf_text_tight_bbox": [
+                    489.30224609375,
+                    194.18338012695312,
+                    510.00225830078125,
+                    202.9058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    193.9808807373047,
+                    510.3435363769531,
+                    202.9058837890625
+                ],
+                "pdf_text_content": "17,436"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Interest income",
+                "pdf_text_tight_bbox": [
+                    53.999237060546875,
+                    210.43362426757812,
+                    98.49823760986328,
+                    219.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    210.2311248779297,
+                    308.6196594238281,
+                    219.1561279296875
+                ],
+                "pdf_text_content": "Interest income"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "30,595",
+                "pdf_text_tight_bbox": [
+                    343.5847473144531,
+                    210.2311248779297,
+                    365.99847412109375,
+                    219.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    210.2311248779297,
+                    366.53173828125,
+                    219.1561279296875
+                ],
+                "pdf_text_content": "30,595"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "24,044",
+                "pdf_text_tight_bbox": [
+                    417.29998779296875,
+                    210.43362426757812,
+                    438.0,
+                    219.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    210.2311248779297,
+                    438.0007629394531,
+                    219.1561279296875
+                ],
+                "pdf_text_content": "24,044"
+            },
+            {
+                "row_nums": [
+                    11
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "25,936",
+                "pdf_text_tight_bbox": [
+                    489.301513671875,
+                    210.43362426757812,
+                    510.00152587890625,
+                    219.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    210.2311248779297,
+                    510.3435363769531,
+                    219.1561279296875
+                ],
+                "pdf_text_content": "25,936"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Interest expense",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    220.68338012695312,
+                    101.16748809814453,
+                    229.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    220.4808807373047,
+                    308.6196594238281,
+                    229.4058837890625
+                ],
+                "pdf_text_content": "Interest expense"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "13,834",
+                "pdf_text_tight_bbox": [
+                    343.58551025390625,
+                    220.4808807373047,
+                    365.9992370605469,
+                    229.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    220.4808807373047,
+                    366.53173828125,
+                    229.4058837890625
+                ],
+                "pdf_text_content": "13,834"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "11,079",
+                "pdf_text_tight_bbox": [
+                    417.3007507324219,
+                    220.68338012695312,
+                    438.0007629394531,
+                    229.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    220.4808807373047,
+                    438.0007629394531,
+                    229.4058837890625
+                ],
+                "pdf_text_content": "11,079"
+            },
+            {
+                "row_nums": [
+                    12
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "13,758",
+                "pdf_text_tight_bbox": [
+                    489.30224609375,
+                    220.68338012695312,
+                    510.00225830078125,
+                    229.4058837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    220.4808807373047,
+                    510.3435363769531,
+                    229.4058837890625
+                ],
+                "pdf_text_content": "13,758"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net interest income",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    236.7308807373047,
+                    119.91602325439453,
+                    245.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    236.7308807373047,
+                    308.6196594238281,
+                    245.6558837890625
+                ],
+                "pdf_text_content": "Net interest income"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "16,761",
+                "pdf_text_tight_bbox": [
+                    343.58551025390625,
+                    236.7308807373047,
+                    365.9992370605469,
+                    245.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    236.7308807373047,
+                    366.53173828125,
+                    245.6558837890625
+                ],
+                "pdf_text_content": "16,761"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "12,965",
+                "pdf_text_tight_bbox": [
+                    417.3007507324219,
+                    236.93338012695312,
+                    438.0007629394531,
+                    245.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    236.7308807373047,
+                    438.0007629394531,
+                    245.6558837890625
+                ],
+                "pdf_text_content": "12,965"
+            },
+            {
+                "row_nums": [
+                    13
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "12,178",
+                "pdf_text_tight_bbox": [
+                    489.30224609375,
+                    236.93338012695312,
+                    510.00225830078125,
+                    245.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    236.7308807373047,
+                    510.3435363769531,
+                    245.6558837890625
+                ],
+                "pdf_text_content": "12,178"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total net revenue",
+                "pdf_text_tight_bbox": [
+                    53.999237060546875,
+                    252.9811248779297,
+                    112.21723175048828,
+                    261.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    252.9811248779297,
+                    308.6196594238281,
+                    261.9061279296875
+                ],
+                "pdf_text_content": "Total net revenue"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "43,097",
+                "pdf_text_tight_bbox": [
+                    343.5847473144531,
+                    252.9811248779297,
+                    365.99847412109375,
+                    261.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    252.9811248779297,
+                    366.53173828125,
+                    261.9061279296875
+                ],
+                "pdf_text_content": "43,097"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "33,384",
+                "pdf_text_tight_bbox": [
+                    417.29998779296875,
+                    253.18362426757812,
+                    438.0,
+                    261.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    252.9811248779297,
+                    438.0007629394531,
+                    261.9061279296875
+                ],
+                "pdf_text_content": "33,384"
+            },
+            {
+                "row_nums": [
+                    14
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "29,614",
+                "pdf_text_tight_bbox": [
+                    489.301513671875,
+                    253.18362426757812,
+                    510.00152587890625,
+                    261.9061279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    252.9811248779297,
+                    510.3435363769531,
+                    261.9061279296875
+                ],
+                "pdf_text_content": "29,614"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Provision for credit losses",
+                "pdf_text_tight_bbox": [
+                    53.99847412109375,
+                    267.4336242675781,
+                    127.969482421875,
+                    276.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    267.23114013671875,
+                    308.6196594238281,
+                    276.1561279296875
+                ],
+                "pdf_text_content": "Provision for credit losses"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,544",
+                "pdf_text_tight_bbox": [
+                    347.6774597167969,
+                    267.23114013671875,
+                    365.9984436035156,
+                    276.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    267.23114013671875,
+                    366.53173828125,
+                    276.1561279296875
+                ],
+                "pdf_text_content": "2,544"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,540",
+                "pdf_text_tight_bbox": [
+                    421.0792236328125,
+                    267.4336242675781,
+                    437.9992370605469,
+                    276.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    267.23114013671875,
+                    438.0007629394531,
+                    276.1561279296875
+                ],
+                "pdf_text_content": "1,540"
+            },
+            {
+                "row_nums": [
+                    15
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "4,331",
+                "pdf_text_tight_bbox": [
+                    493.0799865722656,
+                    267.4336242675781,
+                    510.0,
+                    276.1561279296875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    267.23114013671875,
+                    510.3435363769531,
+                    276.1561279296875
+                ],
+                "pdf_text_content": "4,331"
+            },
+            {
+                "row_nums": [
+                    16
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Noninterest expense",
+                "pdf_text_tight_bbox": [
+                    53.99847412109375,
+                    283.48138427734375,
+                    122.35724639892578,
+                    292.4063720703125
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    283.48138427734375,
+                    510.3435363769531,
+                    292.4063720703125
+                ],
+                "pdf_text_content": "Noninterest expense"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Compensation expense",
+                "pdf_text_tight_bbox": [
+                    53.99847412109375,
+                    293.9341125488281,
+                    120.78746795654297,
+                    302.6566162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    293.73162841796875,
+                    308.6196594238281,
+                    302.6566162109375
+                ],
+                "pdf_text_content": "Compensation expense"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "14,506",
+                "pdf_text_tight_bbox": [
+                    343.583984375,
+                    293.73162841796875,
+                    365.9977111816406,
+                    302.6566162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    293.73162841796875,
+                    366.53173828125,
+                    302.6566162109375
+                ],
+                "pdf_text_content": "14,506"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "11,387",
+                "pdf_text_tight_bbox": [
+                    417.2992248535156,
+                    293.9341125488281,
+                    437.9992370605469,
+                    302.6566162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    293.73162841796875,
+                    438.0007629394531,
+                    302.6566162109375
+                ],
+                "pdf_text_content": "11,387"
+            },
+            {
+                "row_nums": [
+                    17
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "10,693",
+                "pdf_text_tight_bbox": [
+                    489.30072021484375,
+                    293.9341125488281,
+                    510.000732421875,
+                    302.6566162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    293.73162841796875,
+                    510.3435363769531,
+                    302.6566162109375
+                ],
+                "pdf_text_content": "10,693"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Occupancy expense",
+                "pdf_text_tight_bbox": [
+                    53.997711181640625,
+                    304.1843566894531,
+                    110.24772644042969,
+                    312.9068603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    303.98187255859375,
+                    308.6196594238281,
+                    312.9068603515625
+                ],
+                "pdf_text_content": "Occupancy expense"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,084",
+                "pdf_text_tight_bbox": [
+                    347.67669677734375,
+                    303.98187255859375,
+                    365.9976806640625,
+                    312.9068603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    303.98187255859375,
+                    366.53173828125,
+                    312.9068603515625
+                ],
+                "pdf_text_content": "2,084"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,912",
+                "pdf_text_tight_bbox": [
+                    421.07843017578125,
+                    304.1843566894531,
+                    437.9984436035156,
+                    312.9068603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    303.98187255859375,
+                    438.0007629394531,
+                    312.9068603515625
+                ],
+                "pdf_text_content": "1,912"
+            },
+            {
+                "row_nums": [
+                    18
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,606",
+                "pdf_text_tight_bbox": [
+                    493.0791931152344,
+                    304.1843566894531,
+                    509.99920654296875,
+                    312.9068603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    303.98187255859375,
+                    510.3435363769531,
+                    312.9068603515625
+                ],
+                "pdf_text_content": "1,606"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Technology and communications expense",
+                "pdf_text_tight_bbox": [
+                    53.9976806640625,
+                    314.4346008300781,
+                    173.4936981201172,
+                    323.1571044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    314.23211669921875,
+                    308.6196594238281,
+                    323.1571044921875
+                ],
+                "pdf_text_content": "Technology and communications expense"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "3,702",
+                "pdf_text_tight_bbox": [
+                    347.6766662597656,
+                    314.23211669921875,
+                    365.9976501464844,
+                    323.1571044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    314.23211669921875,
+                    366.53173828125,
+                    323.1571044921875
+                ],
+                "pdf_text_content": "3,702"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,844",
+                "pdf_text_tight_bbox": [
+                    421.07843017578125,
+                    314.4346008300781,
+                    437.9984436035156,
+                    323.1571044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    314.23211669921875,
+                    438.0007629394531,
+                    323.1571044921875
+                ],
+                "pdf_text_content": "2,844"
+            },
+            {
+                "row_nums": [
+                    19
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,554",
+                "pdf_text_tight_bbox": [
+                    493.0791931152344,
+                    314.4346008300781,
+                    509.99920654296875,
+                    323.1571044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    314.23211669921875,
+                    510.3435363769531,
+                    323.1571044921875
+                ],
+                "pdf_text_content": "2,554"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Professional & outside services",
+                "pdf_text_tight_bbox": [
+                    53.9976806640625,
+                    324.6848449707031,
+                    143.25518798828125,
+                    333.4073486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    324.48236083984375,
+                    308.6196594238281,
+                    333.4073486328125
+                ],
+                "pdf_text_content": "Professional & outside services"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "3,862",
+                "pdf_text_tight_bbox": [
+                    347.6766662597656,
+                    324.48236083984375,
+                    365.9976501464844,
+                    333.4073486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    324.48236083984375,
+                    366.53173828125,
+                    333.4073486328125
+                ],
+                "pdf_text_content": "3,862"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,875",
+                "pdf_text_tight_bbox": [
+                    421.07843017578125,
+                    324.6848449707031,
+                    437.9984436035156,
+                    333.4073486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    324.48236083984375,
+                    438.0007629394531,
+                    333.4073486328125
+                ],
+                "pdf_text_content": "2,875"
+            },
+            {
+                "row_nums": [
+                    20
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,587",
+                "pdf_text_tight_bbox": [
+                    493.0791931152344,
+                    324.6848449707031,
+                    509.99920654296875,
+                    333.4073486328125
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    324.48236083984375,
+                    510.3435363769531,
+                    333.4073486328125
+                ],
+                "pdf_text_content": "2,587"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Marketing",
+                "pdf_text_tight_bbox": [
+                    53.9976806640625,
+                    334.9350891113281,
+                    83.06543731689453,
+                    343.6575927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    334.73260498046875,
+                    308.6196594238281,
+                    343.6575927734375
+                ],
+                "pdf_text_content": "Marketing"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,335",
+                "pdf_text_tight_bbox": [
+                    347.6766662597656,
+                    334.73260498046875,
+                    365.9976501464844,
+                    343.6575927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    334.73260498046875,
+                    366.53173828125,
+                    343.6575927734375
+                ],
+                "pdf_text_content": "1,335"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "710",
+                "pdf_text_tight_bbox": [
+                    426.8384094238281,
+                    334.9350891113281,
+                    437.9984130859375,
+                    343.6575927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    334.73260498046875,
+                    438.0007629394531,
+                    343.6575927734375
+                ],
+                "pdf_text_content": "710"
+            },
+            {
+                "row_nums": [
+                    21
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "689",
+                "pdf_text_tight_bbox": [
+                    498.83917236328125,
+                    334.9350891113281,
+                    509.9991760253906,
+                    343.6575927734375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    334.73260498046875,
+                    510.3435363769531,
+                    343.6575927734375
+                ],
+                "pdf_text_content": "689"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Other expense",
+                "pdf_text_tight_bbox": [
+                    53.997650146484375,
+                    345.1853332519531,
+                    95.49964141845703,
+                    353.9078369140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    344.98284912109375,
+                    308.6196594238281,
+                    353.9078369140625
+                ],
+                "pdf_text_content": "Other expense"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,859",
+                "pdf_text_tight_bbox": [
+                    347.6766357421875,
+                    344.98284912109375,
+                    365.99761962890625,
+                    353.9078369140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    344.98284912109375,
+                    366.53173828125,
+                    353.9078369140625
+                ],
+                "pdf_text_content": "2,859"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,694",
+                "pdf_text_tight_bbox": [
+                    421.078369140625,
+                    345.1853332519531,
+                    437.9983825683594,
+                    353.9078369140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    344.98284912109375,
+                    438.0007629394531,
+                    353.9078369140625
+                ],
+                "pdf_text_content": "1,694"
+            },
+            {
+                "row_nums": [
+                    22
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,802",
+                "pdf_text_tight_bbox": [
+                    493.0791320800781,
+                    345.1853332519531,
+                    509.9991455078125,
+                    353.9078369140625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    344.98284912109375,
+                    510.3435363769531,
+                    353.9078369140625
+                ],
+                "pdf_text_content": "1,802"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Amortization of intangibles",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    355.43341064453125,
+                    132.92103576660156,
+                    364.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    355.2309265136719,
+                    308.6196594238281,
+                    364.1559143066406
+                ],
+                "pdf_text_content": "Amortization of intangibles"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "946",
+                "pdf_text_tight_bbox": [
+                    353.9152526855469,
+                    355.2309265136719,
+                    365.999267578125,
+                    364.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    355.2309265136719,
+                    366.53173828125,
+                    364.1559143066406
+                ],
+                "pdf_text_content": "946"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "294",
+                "pdf_text_tight_bbox": [
+                    426.84075927734375,
+                    355.43341064453125,
+                    438.0007629394531,
+                    364.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    355.2309265136719,
+                    438.0007629394531,
+                    364.1559143066406
+                ],
+                "pdf_text_content": "294"
+            },
+            {
+                "row_nums": [
+                    23
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "323",
+                "pdf_text_tight_bbox": [
+                    498.84149169921875,
+                    355.43341064453125,
+                    510.0014953613281,
+                    364.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    355.2309265136719,
+                    510.3435363769531,
+                    364.1559143066406
+                ],
+                "pdf_text_content": "323"
+            },
+            {
+                "row_nums": [
+                    24
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total noninterest expense before merger costs and litigation reserve charge",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    371.4811706542969,
+                    308.6196594238281,
+                    380.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    371.4811706542969,
+                    308.6196594238281,
+                    380.4061584472656
+                ],
+                "pdf_text_content": "Total noninterest expense before merger costs and litigation reserve charge"
+            },
+            {
+                "row_nums": [
+                    24
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "29,294",
+                "pdf_text_tight_bbox": [
+                    343.58551025390625,
+                    371.4811706542969,
+                    365.9992370605469,
+                    380.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    371.4811706542969,
+                    366.53173828125,
+                    380.4061584472656
+                ],
+                "pdf_text_content": "29,294"
+            },
+            {
+                "row_nums": [
+                    24
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "21,716",
+                "pdf_text_tight_bbox": [
+                    417.3007507324219,
+                    371.68365478515625,
+                    438.0007629394531,
+                    380.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    371.4811706542969,
+                    438.0007629394531,
+                    380.4061584472656
+                ],
+                "pdf_text_content": "21,716"
+            },
+            {
+                "row_nums": [
+                    24
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "20,254",
+                "pdf_text_tight_bbox": [
+                    489.30224609375,
+                    371.68365478515625,
+                    510.00225830078125,
+                    380.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    371.4811706542969,
+                    510.3435363769531,
+                    380.4061584472656
+                ],
+                "pdf_text_content": "20,254"
+            },
+            {
+                "row_nums": [
+                    25
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Merger costs",
+                "pdf_text_tight_bbox": [
+                    53.999237060546875,
+                    381.93389892578125,
+                    91.14523315429688,
+                    390.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    381.7314147949219,
+                    308.6196594238281,
+                    390.6564025878906
+                ],
+                "pdf_text_content": "Merger costs"
+            },
+            {
+                "row_nums": [
+                    25
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,365",
+                "pdf_text_tight_bbox": [
+                    347.67822265625,
+                    381.7314147949219,
+                    365.99920654296875,
+                    390.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    381.7314147949219,
+                    366.53173828125,
+                    390.6564025878906
+                ],
+                "pdf_text_content": "1,365"
+            },
+            {
+                "row_nums": [
+                    25
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "—",
+                "pdf_text_tight_bbox": [
+                    430.49920654296875,
+                    381.93389892578125,
+                    437.99920654296875,
+                    390.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    381.7314147949219,
+                    438.0007629394531,
+                    390.6564025878906
+                ],
+                "pdf_text_content": "—"
+            },
+            {
+                "row_nums": [
+                    25
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,210",
+                "pdf_text_tight_bbox": [
+                    493.0799560546875,
+                    381.93389892578125,
+                    509.9999694824219,
+                    390.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    381.7314147949219,
+                    510.3435363769531,
+                    390.6564025878906
+                ],
+                "pdf_text_content": "1,210"
+            },
+            {
+                "row_nums": [
+                    26
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Litigation reserve charge",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    392.18341064453125,
+                    125.32648468017578,
+                    400.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    391.9809265136719,
+                    308.6196594238281,
+                    400.9059143066406
+                ],
+                "pdf_text_content": "Litigation reserve charge"
+            },
+            {
+                "row_nums": [
+                    26
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "3,700",
+                "pdf_text_tight_bbox": [
+                    347.6789855957031,
+                    391.9809265136719,
+                    365.9999694824219,
+                    400.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    391.9809265136719,
+                    366.53173828125,
+                    400.9059143066406
+                ],
+                "pdf_text_content": "3,700"
+            },
+            {
+                "row_nums": [
+                    26
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "100",
+                "pdf_text_tight_bbox": [
+                    426.8407287597656,
+                    392.18341064453125,
+                    438.000732421875,
+                    400.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    391.9809265136719,
+                    438.0007629394531,
+                    400.9059143066406
+                ],
+                "pdf_text_content": "100"
+            },
+            {
+                "row_nums": [
+                    26
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,300",
+                "pdf_text_tight_bbox": [
+                    493.08148193359375,
+                    392.18341064453125,
+                    510.0014953613281,
+                    400.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    391.9809265136719,
+                    510.3435363769531,
+                    400.9059143066406
+                ],
+                "pdf_text_content": "1,300"
+            },
+            {
+                "row_nums": [
+                    27
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Total noninterest expense",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    408.2309265136719,
+                    140.02349853515625,
+                    417.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    408.2309265136719,
+                    308.6196594238281,
+                    417.1559143066406
+                ],
+                "pdf_text_content": "Total noninterest expense"
+            },
+            {
+                "row_nums": [
+                    27
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "34,359",
+                "pdf_text_tight_bbox": [
+                    343.58551025390625,
+                    408.2309265136719,
+                    365.9992370605469,
+                    417.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    408.2309265136719,
+                    366.53173828125,
+                    417.1559143066406
+                ],
+                "pdf_text_content": "34,359"
+            },
+            {
+                "row_nums": [
+                    27
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "21,816",
+                "pdf_text_tight_bbox": [
+                    417.3007507324219,
+                    408.43341064453125,
+                    438.0007629394531,
+                    417.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    408.2309265136719,
+                    438.0007629394531,
+                    417.1559143066406
+                ],
+                "pdf_text_content": "21,816"
+            },
+            {
+                "row_nums": [
+                    27
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "22,764",
+                "pdf_text_tight_bbox": [
+                    489.30224609375,
+                    408.43341064453125,
+                    510.00225830078125,
+                    417.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    408.2309265136719,
+                    510.3435363769531,
+                    417.1559143066406
+                ],
+                "pdf_text_content": "22,764"
+            },
+            {
+                "row_nums": [
+                    28
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Income before income tax expense",
+                "pdf_text_tight_bbox": [
+                    53.999237060546875,
+                    424.4811706542969,
+                    170.21023559570312,
+                    433.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    424.4811706542969,
+                    308.6196594238281,
+                    433.4061584472656
+                ],
+                "pdf_text_content": "Income before income tax expense"
+            },
+            {
+                "row_nums": [
+                    28
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "6,194",
+                "pdf_text_tight_bbox": [
+                    347.67822265625,
+                    424.4811706542969,
+                    365.99920654296875,
+                    433.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    424.4811706542969,
+                    366.53173828125,
+                    433.4061584472656
+                ],
+                "pdf_text_content": "6,194"
+            },
+            {
+                "row_nums": [
+                    28
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "10,028",
+                "pdf_text_tight_bbox": [
+                    417.30072021484375,
+                    424.68365478515625,
+                    438.000732421875,
+                    433.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    424.4811706542969,
+                    438.0007629394531,
+                    433.4061584472656
+                ],
+                "pdf_text_content": "10,028"
+            },
+            {
+                "row_nums": [
+                    28
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,519",
+                "pdf_text_tight_bbox": [
+                    493.08148193359375,
+                    424.68365478515625,
+                    510.0014953613281,
+                    433.4061584472656
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    424.4811706542969,
+                    510.3435363769531,
+                    433.4061584472656
+                ],
+                "pdf_text_content": "2,519"
+            },
+            {
+                "row_nums": [
+                    29
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Income tax expense",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    434.93341064453125,
+                    111.14698791503906,
+                    443.6559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    434.7309265136719,
+                    308.6196594238281,
+                    443.6559143066406
+                ],
+                "pdf_text_content": "Income tax expense"
+            },
+            {
+                "row_nums": [
+                    29
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,728",
+                "pdf_text_tight_bbox": [
+                    347.6789855957031,
+                    434.7309265136719,
+                    365.9999694824219,
+                    443.6559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    434.7309265136719,
+                    366.53173828125,
+                    443.6559143066406
+                ],
+                "pdf_text_content": "1,728"
+            },
+            {
+                "row_nums": [
+                    29
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "3,309",
+                "pdf_text_tight_bbox": [
+                    421.08074951171875,
+                    434.93341064453125,
+                    438.0007629394531,
+                    443.6559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    434.7309265136719,
+                    438.0007629394531,
+                    443.6559143066406
+                ],
+                "pdf_text_content": "3,309"
+            },
+            {
+                "row_nums": [
+                    29
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "856",
+                "pdf_text_tight_bbox": [
+                    498.84149169921875,
+                    434.93341064453125,
+                    510.0014953613281,
+                    443.6559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    434.7309265136719,
+                    510.3435363769531,
+                    443.6559143066406
+                ],
+                "pdf_text_content": "856"
+            },
+            {
+                "row_nums": [
+                    30
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net income",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    450.9809265136719,
+                    91.78650665283203,
+                    459.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    450.9809265136719,
+                    308.6196594238281,
+                    459.9059143066406
+                ],
+                "pdf_text_content": "Net income"
+            },
+            {
+                "row_nums": [
+                    30
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$4,466",
+                "pdf_text_tight_bbox": [
+                    336.0,
+                    450.9809265136719,
+                    365.9999694824219,
+                    459.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    450.9809265136719,
+                    366.53173828125,
+                    459.9059143066406
+                ],
+                "pdf_text_content": "$ 4,466"
+            },
+            {
+                "row_nums": [
+                    30
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$6,719",
+                "pdf_text_tight_bbox": [
+                    408.9952392578125,
+                    451.18341064453125,
+                    438.0007629394531,
+                    459.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    450.9809265136719,
+                    438.0007629394531,
+                    459.9059143066406
+                ],
+                "pdf_text_content": "$ 6,719"
+            },
+            {
+                "row_nums": [
+                    30
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1,663",
+                "pdf_text_tight_bbox": [
+                    478.07025146484375,
+                    451.18341064453125,
+                    510.00152587890625,
+                    459.9059143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    450.9809265136719,
+                    510.3435363769531,
+                    459.9059143066406
+                ],
+                "pdf_text_content": "$ 1,663"
+            },
+            {
+                "row_nums": [
+                    31
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net income applicable to common stock",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    467.2309265136719,
+                    188.1134796142578,
+                    476.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    467.2309265136719,
+                    308.6196594238281,
+                    476.1559143066406
+                ],
+                "pdf_text_content": "Net income applicable to common stock"
+            },
+            {
+                "row_nums": [
+                    31
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$4,414",
+                "pdf_text_tight_bbox": [
+                    336.0,
+                    467.2309265136719,
+                    365.9999694824219,
+                    476.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    467.2309265136719,
+                    366.53173828125,
+                    476.1559143066406
+                ],
+                "pdf_text_content": "$ 4,414"
+            },
+            {
+                "row_nums": [
+                    31
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$6,668",
+                "pdf_text_tight_bbox": [
+                    408.9952392578125,
+                    467.43341064453125,
+                    438.0007629394531,
+                    476.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    467.2309265136719,
+                    438.0007629394531,
+                    476.1559143066406
+                ],
+                "pdf_text_content": "$ 6,668"
+            },
+            {
+                "row_nums": [
+                    31
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1,612",
+                "pdf_text_tight_bbox": [
+                    478.07025146484375,
+                    467.43341064453125,
+                    510.00152587890625,
+                    476.1559143066406
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    467.2309265136719,
+                    510.3435363769531,
+                    476.1559143066406
+                ],
+                "pdf_text_content": "$ 1,612"
+            },
+            {
+                "row_nums": [
+                    32
+                ],
+                "column_nums": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "Net income per common share",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    483.4811706542969,
+                    155.7532501220703,
+                    492.4061584472656
+                ],
+                "is_projected_row_header": true,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    483.4811706542969,
+                    510.3435363769531,
+                    492.4061584472656
+                ],
+                "pdf_text_content": "Net income per common share"
+            },
+            {
+                "row_nums": [
+                    33
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Basic earnings per share",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    493.93389892578125,
+                    124.74298858642578,
+                    502.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    493.7314147949219,
+                    308.6196594238281,
+                    502.6564025878906
+                ],
+                "pdf_text_content": "Basic earnings per share"
+            },
+            {
+                "row_nums": [
+                    33
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1.59",
+                "pdf_text_tight_bbox": [
+                    336.0,
+                    493.7314147949219,
+                    366.000732421875,
+                    502.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    493.7314147949219,
+                    366.53173828125,
+                    502.6564025878906
+                ],
+                "pdf_text_content": "$ 1.59"
+            },
+            {
+                "row_nums": [
+                    33
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$3.32",
+                "pdf_text_tight_bbox": [
+                    408.9952392578125,
+                    493.93389892578125,
+                    438.0007629394531,
+                    502.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    493.7314147949219,
+                    438.0007629394531,
+                    502.6564025878906
+                ],
+                "pdf_text_content": "$ 3.32"
+            },
+            {
+                "row_nums": [
+                    33
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$0.81",
+                "pdf_text_tight_bbox": [
+                    478.07025146484375,
+                    493.93389892578125,
+                    510.00152587890625,
+                    502.6564025878906
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    493.7314147949219,
+                    510.3435363769531,
+                    502.6564025878906
+                ],
+                "pdf_text_content": "$ 0.81"
+            },
+            {
+                "row_nums": [
+                    34
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Diluted earnings per share",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    504.18414306640625,
+                    130.5299835205078,
+                    512.9066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    503.9816589355469,
+                    308.6196594238281,
+                    512.9066162109375
+                ],
+                "pdf_text_content": "Diluted earnings per share"
+            },
+            {
+                "row_nums": [
+                    34
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "1.55",
+                "pdf_text_tight_bbox": [
+                    351.7724914550781,
+                    503.9816589355469,
+                    366.000732421875,
+                    512.9066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    503.9816589355469,
+                    366.53173828125,
+                    512.9066162109375
+                ],
+                "pdf_text_content": "1.55"
+            },
+            {
+                "row_nums": [
+                    34
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "3.24",
+                "pdf_text_tight_bbox": [
+                    424.8607482910156,
+                    504.18414306640625,
+                    438.0007629394531,
+                    512.9066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    503.9816589355469,
+                    438.0007629394531,
+                    512.9066162109375
+                ],
+                "pdf_text_content": "3.24"
+            },
+            {
+                "row_nums": [
+                    34
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "0.80",
+                "pdf_text_tight_bbox": [
+                    496.86151123046875,
+                    504.18414306640625,
+                    510.00152587890625,
+                    512.9066162109375
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    503.9816589355469,
+                    510.3435363769531,
+                    512.9066162109375
+                ],
+                "pdf_text_content": "0.80"
+            },
+            {
+                "row_nums": [
+                    35
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Average basic shares",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    520.4343872070312,
+                    114.70198822021484,
+                    529.1568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    520.2318725585938,
+                    308.6196594238281,
+                    529.1568603515625
+                ],
+                "pdf_text_content": "Average basic shares"
+            },
+            {
+                "row_nums": [
+                    35
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,780",
+                "pdf_text_tight_bbox": [
+                    348.21075439453125,
+                    520.2318725585938,
+                    366.53173828125,
+                    529.1568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    520.2318725585938,
+                    366.53173828125,
+                    529.1568603515625
+                ],
+                "pdf_text_content": "2,780"
+            },
+            {
+                "row_nums": [
+                    35
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,009",
+                "pdf_text_tight_bbox": [
+                    421.08074951171875,
+                    520.4343872070312,
+                    438.0007629394531,
+                    529.1568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    520.2318725585938,
+                    438.0007629394531,
+                    529.1568603515625
+                ],
+                "pdf_text_content": "2,009"
+            },
+            {
+                "row_nums": [
+                    35
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "1,984",
+                "pdf_text_tight_bbox": [
+                    493.42352294921875,
+                    520.4343872070312,
+                    510.3435363769531,
+                    529.1568603515625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    520.2318725585938,
+                    510.3435363769531,
+                    529.1568603515625
+                ],
+                "pdf_text_content": "1,984"
+            },
+            {
+                "row_nums": [
+                    36
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Average diluted shares",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    530.6846313476562,
+                    120.06900787353516,
+                    539.4071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    530.4821166992188,
+                    308.6196594238281,
+                    539.4071044921875
+                ],
+                "pdf_text_content": "Average diluted shares"
+            },
+            {
+                "row_nums": [
+                    36
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,851",
+                "pdf_text_tight_bbox": [
+                    348.21075439453125,
+                    530.4821166992188,
+                    366.53173828125,
+                    539.4071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    530.4821166992188,
+                    366.53173828125,
+                    539.4071044921875
+                ],
+                "pdf_text_content": "2,851"
+            },
+            {
+                "row_nums": [
+                    36
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,055",
+                "pdf_text_tight_bbox": [
+                    421.08074951171875,
+                    530.6846313476562,
+                    438.0007629394531,
+                    539.4071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    530.4821166992188,
+                    438.0007629394531,
+                    539.4071044921875
+                ],
+                "pdf_text_content": "2,055"
+            },
+            {
+                "row_nums": [
+                    36
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "2,009",
+                "pdf_text_tight_bbox": [
+                    493.42352294921875,
+                    530.6846313476562,
+                    510.3435363769531,
+                    539.4071044921875
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    530.4821166992188,
+                    510.3435363769531,
+                    539.4071044921875
+                ],
+                "pdf_text_content": "2,009"
+            },
+            {
+                "row_nums": [
+                    37
+                ],
+                "column_nums": [
+                    0
+                ],
+                "is_column_header": false,
+                "json_text_content": "Cash dividends per common share",
+                "pdf_text_tight_bbox": [
+                    54.0,
+                    546.7308959960938,
+                    167.77723693847656,
+                    555.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    53.997650146484375,
+                    546.7308959960938,
+                    308.6196594238281,
+                    555.6558837890625
+                ],
+                "pdf_text_content": "Cash dividends per common share"
+            },
+            {
+                "row_nums": [
+                    37
+                ],
+                "column_nums": [
+                    1
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1.36",
+                "pdf_text_tight_bbox": [
+                    336.0,
+                    546.7308959960938,
+                    366.000732421875,
+                    555.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    335.99993896484375,
+                    546.7308959960938,
+                    366.53173828125,
+                    555.6558837890625
+                ],
+                "pdf_text_content": "$ 1.36"
+            },
+            {
+                "row_nums": [
+                    37
+                ],
+                "column_nums": [
+                    2
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1.36",
+                "pdf_text_tight_bbox": [
+                    408.9952392578125,
+                    546.9334106445312,
+                    438.0007629394531,
+                    555.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    408.99517822265625,
+                    546.7308959960938,
+                    438.0007629394531,
+                    555.6558837890625
+                ],
+                "pdf_text_content": "$ 1.36"
+            },
+            {
+                "row_nums": [
+                    37
+                ],
+                "column_nums": [
+                    3
+                ],
+                "is_column_header": false,
+                "json_text_content": "$1.36",
+                "pdf_text_tight_bbox": [
+                    478.07025146484375,
+                    546.9334106445312,
+                    510.00152587890625,
+                    555.6558837890625
+                ],
+                "is_projected_row_header": false,
+                "pdf_bbox": [
+                    478.0701904296875,
+                    546.7308959960938,
+                    510.3435363769531,
+                    555.6558837890625
+                ],
+                "pdf_text_content": "$ 1.36"
+            }
+        ],
+        "rows": {
+            "0": {
+                "is_column_header": true,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    80.23553466796875,
+                    510.3435363769531,
+                    90.4058837890625
+                ]
+            },
+            "1": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    95.73088073730469,
+                    510.3435363769531,
+                    104.6558837890625
+                ]
+            },
+            "2": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    105.98112487792969,
+                    510.3435363769531,
+                    114.9061279296875
+                ]
+            },
+            "3": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    116.23136901855469,
+                    510.3435363769531,
+                    125.1563720703125
+                ]
+            },
+            "4": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    126.48161315917969,
+                    510.3435363769531,
+                    135.4066162109375
+                ]
+            },
+            "5": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    136.7318572998047,
+                    510.3435363769531,
+                    145.6568603515625
+                ]
+            },
+            "6": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    146.9821014404297,
+                    510.3435363769531,
+                    155.9071044921875
+                ]
+            },
+            "7": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    157.2323455810547,
+                    510.3435363769531,
+                    166.1573486328125
+                ]
+            },
+            "8": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    167.4825897216797,
+                    510.3435363769531,
+                    176.4075927734375
+                ]
+            },
+            "9": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    177.7308807373047,
+                    510.3435363769531,
+                    186.6558837890625
+                ]
+            },
+            "10": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    193.9808807373047,
+                    510.3435363769531,
+                    202.9058837890625
+                ]
+            },
+            "11": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    210.2311248779297,
+                    510.3435363769531,
+                    219.1561279296875
+                ]
+            },
+            "12": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    220.4808807373047,
+                    510.3435363769531,
+                    229.4058837890625
+                ]
+            },
+            "13": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    236.7308807373047,
+                    510.3435363769531,
+                    245.6558837890625
+                ]
+            },
+            "14": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    252.9811248779297,
+                    510.3435363769531,
+                    261.9061279296875
+                ]
+            },
+            "15": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    267.23114013671875,
+                    510.3435363769531,
+                    276.1561279296875
+                ]
+            },
+            "16": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    283.48138427734375,
+                    510.3435363769531,
+                    292.4063720703125
+                ]
+            },
+            "17": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    293.73162841796875,
+                    510.3435363769531,
+                    302.6566162109375
+                ]
+            },
+            "18": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    303.98187255859375,
+                    510.3435363769531,
+                    312.9068603515625
+                ]
+            },
+            "19": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    314.23211669921875,
+                    510.3435363769531,
+                    323.1571044921875
+                ]
+            },
+            "20": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    324.48236083984375,
+                    510.3435363769531,
+                    333.4073486328125
+                ]
+            },
+            "21": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    334.73260498046875,
+                    510.3435363769531,
+                    343.6575927734375
+                ]
+            },
+            "22": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    344.98284912109375,
+                    510.3435363769531,
+                    353.9078369140625
+                ]
+            },
+            "23": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    355.2309265136719,
+                    510.3435363769531,
+                    364.1559143066406
+                ]
+            },
+            "24": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    371.4811706542969,
+                    510.3435363769531,
+                    380.4061584472656
+                ]
+            },
+            "25": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    381.7314147949219,
+                    510.3435363769531,
+                    390.6564025878906
+                ]
+            },
+            "26": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    391.9809265136719,
+                    510.3435363769531,
+                    400.9059143066406
+                ]
+            },
+            "27": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    408.2309265136719,
+                    510.3435363769531,
+                    417.1559143066406
+                ]
+            },
+            "28": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    424.4811706542969,
+                    510.3435363769531,
+                    433.4061584472656
+                ]
+            },
+            "29": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    434.7309265136719,
+                    510.3435363769531,
+                    443.6559143066406
+                ]
+            },
+            "30": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    450.9809265136719,
+                    510.3435363769531,
+                    459.9059143066406
+                ]
+            },
+            "31": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    467.2309265136719,
+                    510.3435363769531,
+                    476.1559143066406
+                ]
+            },
+            "32": {
+                "is_column_header": false,
+                "is_projected_row_header": true,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    483.4811706542969,
+                    510.3435363769531,
+                    492.4061584472656
+                ]
+            },
+            "33": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    493.7314147949219,
+                    510.3435363769531,
+                    502.6564025878906
+                ]
+            },
+            "34": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    503.9816589355469,
+                    510.3435363769531,
+                    512.9066162109375
+                ]
+            },
+            "35": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    520.2318725585938,
+                    510.3435363769531,
+                    529.1568603515625
+                ]
+            },
+            "36": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    530.4821166992188,
+                    510.3435363769531,
+                    539.4071044921875
+                ]
+            },
+            "37": {
+                "is_column_header": false,
+                "is_projected_row_header": false,
+                "pdf_row_bbox": [
+                    53.997650146484375,
+                    546.7308959960938,
+                    510.3435363769531,
+                    555.6558837890625
+                ]
+            }
+        },
+        "columns": {
+            "0": {
+                "pdf_column_bbox": [
+                    53.997650146484375,
+                    80.23553466796875,
+                    308.6196594238281,
+                    555.6558837890625
+                ]
+            },
+            "1": {
+                "pdf_column_bbox": [
+                    335.99993896484375,
+                    80.23553466796875,
+                    366.53173828125,
+                    555.6558837890625
+                ]
+            },
+            "2": {
+                "pdf_column_bbox": [
+                    408.99517822265625,
+                    80.23553466796875,
+                    438.0007629394531,
+                    555.6558837890625
+                ]
+            },
+            "3": {
+                "pdf_column_bbox": [
+                    478.0701904296875,
+                    80.23553466796875,
+                    510.3435363769531,
+                    555.6558837890625
+                ]
+            }
+        },
+        "exclude_for_structure": false,
+        "exclude_for_detection": false,
+        "split": "train",
+        "pdf_file_name": "page_86.pdf",
+        "pdf_folder": "JPM/2004/",
+        "document_id": "JPM_2004_page_86",
+        "fintabnet_source_file_name": "FinTabNet_1.0.0_cell_train.jsonl",
+        "fintabnet_source_line_index": 64496,
+        "fintabnet_source_table_id": 104388,
+        "pdf_page_index": 0,
+        "pdf_full_page_bbox": [
+            0.0,
+            0.0,
+            576.0,
+            783.0
+        ],
+        "document_table_index": 0,
+        "structure_id": "JPM_2004_page_86_0",
+        "pdf_table_bbox": [
+            53.997650146484375,
+            80.23553466796875,
+            510.3435363769531,
+            555.6558837890625
+        ]
+    }
+]

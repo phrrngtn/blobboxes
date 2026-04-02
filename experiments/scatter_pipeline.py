@@ -56,7 +56,9 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
         GROUP BY style_id
     ),
 
-    -- Row clustering (gap-based on y)
+    -- Row clustering (gap-based on y with max-height constraint)
+    -- Two-pass: first cluster by consecutive y-gap, then split
+    -- any cluster whose y-range exceeds 2×body_h.
     BODY_H AS (
         SELECT GREATEST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY h)
                         FILTER (WHERE h > 2), 4.0) AS bh FROM RAW
@@ -68,15 +70,38 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
                LAG(page_id) OVER (ORDER BY page_id, y, x) AS prev_page
         FROM RAW
     ),
-    ROWS AS (
+    -- Pass 1: initial clusters by consecutive gap
+    ROWS_INITIAL AS (
         SELECT * EXCLUDE (sort_ord, y_gap, prev_page),
+               sort_ord, y_gap,
                SUM(CASE
                    WHEN y_gap IS NULL THEN 1
                    WHEN prev_page != page_id THEN 1
                    WHEN y_gap > (SELECT bh FROM BODY_H) THEN 1
                    ELSE 0
-               END) OVER (ORDER BY sort_ord) AS row_cluster
+               END) OVER (ORDER BY sort_ord) AS row_cluster_init
         FROM Y_SORTED
+    ),
+    -- Pass 2: split over-tall clusters at the midpoint of their y-range
+    -- A cluster taller than 2×bh gets sub-clustered by y-band
+    ROW_HEIGHTS AS (
+        SELECT row_cluster_init,
+               MAX(y) - MIN(y) AS row_y_range,
+               MIN(y) AS row_min_y
+        FROM ROWS_INITIAL
+        GROUP BY row_cluster_init
+    ),
+    ROWS AS (
+        SELECT r.* EXCLUDE (sort_ord, y_gap, row_cluster_init),
+               CASE
+                   WHEN rh.row_y_range <= (SELECT bh FROM BODY_H) * 2
+                   THEN r.row_cluster_init
+                   -- Sub-cluster by y-band of width bh within the over-tall cluster
+                   ELSE r.row_cluster_init * 1000
+                        + FLOOR((r.y - rh.row_min_y) / (SELECT bh FROM BODY_H))
+               END AS row_cluster
+        FROM ROWS_INITIAL AS r
+        JOIN ROW_HEIGHTS AS rh ON r.row_cluster_init = rh.row_cluster_init
     ),
 
     -- Cell merging with punctuation-aware concatenation
@@ -86,9 +111,24 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
                LAG(h) OVER (PARTITION BY page_id, row_cluster ORDER BY x) AS prev_h
         FROM ROWS
     ),
+    -- Data-driven gap threshold: find the natural break between
+    -- word-spacing gaps and column-spacing gaps.
+    -- Word gaps cluster tightly (2-5pt); column gaps are larger.
+    -- Use p75 of within-word mode × 2 as threshold, floored at body_h.
+    GAP_THRESHOLD AS (
+        SELECT GREATEST(
+                   COALESCE(
+                       PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY gap)
+                           FILTER (WHERE gap > 0.5 AND gap < (SELECT bh FROM BODY_H) * 3),
+                       (SELECT bh FROM BODY_H)
+                   ) * 2.0,
+                   (SELECT bh FROM BODY_H)
+               ) AS cell_gap_thresh
+        FROM CELL_GAPS
+    ),
     CELL_IDS AS (
         SELECT *,
-               SUM(CASE WHEN gap IS NULL OR gap > GREATEST(COALESCE(prev_h, h) * 1.2, 5.0)
+               SUM(CASE WHEN gap IS NULL OR gap > (SELECT cell_gap_thresh FROM GAP_THRESHOLD)
                         THEN 1 ELSE 0 END)
                    OVER (PARTITION BY page_id, row_cluster ORDER BY x) AS cell_id
         FROM CELL_GAPS
@@ -122,10 +162,15 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     )
 
     -- Pass 1: pattern classification
+    -- Note: 4-digit years (1900-2099) get 'year' not 'measure' —
+    -- they may be column headers. The Bayesian pass can reclassify.
     SELECT m.*,
            sh.style_rank,
            sh.n_bboxes AS style_count,
            CASE
+               WHEN regexp_matches(TRIM(m.text), '^\d{4}$')
+                    AND TRY_CAST(TRIM(m.text) AS INTEGER) BETWEEN 1900 AND 2099
+               THEN 'year'
                WHEN TRY_CAST(REPLACE(REPLACE(REPLACE(m.text, ',', ''), '$', ''), ' ', '') AS DOUBLE) IS NOT NULL
                THEN 'measure'
                WHEN TRY_CAST(m.text AS DATE) IS NOT NULL THEN 'date'
@@ -146,7 +191,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     ROW_STATS AS (
         SELECT page_id, row_cluster,
                COUNT(*) AS n_cells,
-               SUM(CASE WHEN pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date')
+               SUM(CASE WHEN pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date', 'year')
                         THEN 1 ELSE 0 END) AS n_typed,
                MIN(x) AS row_left, MAX(x + w) AS row_right,
                MIN(y) AS row_top, MAX(y + h) AS row_bottom
@@ -192,7 +237,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
         JOIN table_regions AS t
           ON c.page_id = t.page_id
          AND c.row_cluster BETWEEN t.start_row AND t.end_row
-        WHERE c.pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date')
+        WHERE c.pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date', 'year')
     ),
     -- Cluster x_center values into columns using gap-based approach
     SORTED_X AS (
@@ -307,6 +352,14 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     ('default', 'f_large_font', true,  'section_label',  1.5),
     ('default', 'f_large_font', false, 'section_label',  0.0),
 
+    -- ── f_year_text: standalone 4-digit year (1900-2099)
+    -- Strong signal for col_header when in table region
+    ('default', 'f_year_text', true,  'col_header',      2.0),
+    ('default', 'f_year_text', true,  'dimension',       1.0),
+    ('default', 'f_year_text', true,  'section_label',  -2.0),
+    ('default', 'f_year_text', true,  'prose',          -3.0),
+    ('default', 'f_year_text', true,  'row_label',      -1.0),
+
     -- ══════════════════════════════════════════════════════════════════
     -- tag = 'financial_statement' — overlays for financial docs
     -- Stronger priors: bold leftmost = section label (P&L line items),
@@ -346,8 +399,9 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     -- Look for rows just above start_row that have similar cell count
     EXTENDED_REGIONS AS (
         SELECT t.*,
-               -- Include 1-2 rows above start_row as header candidates
-               GREATEST(t.start_row - 2, 1) AS search_start
+               -- Include up to 5 rows above start_row as header candidates
+               -- (headers may be separated by whitespace rows)
+               GREATEST(t.start_row - 5, 1) AS search_start
         FROM table_regions AS t
     ),
 
@@ -389,7 +443,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     ROW_MEASURE_COUNT AS (
         SELECT page_id, row_cluster,
                COUNT(*) AS n_total,
-               SUM(CASE WHEN pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date')
+               SUM(CASE WHEN pass1_role IN ('measure', 'currency', 'percentage', 'date', 'iso_date', 'year')
                         THEN 1 ELSE 0 END) AS n_measures,
                MIN(x) AS leftmost_x
         FROM cells
@@ -407,47 +461,71 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     --
     -- Convention: positive = evidence FOR this role, negative = AGAINST.
 
-    FEATURES AS (
-        SELECT c.*,
-               t.table_id,
-               t.start_row,
-               t.modal_cols,
-               pc.col_id,
-               pc.col_center,
-               bh.header_text AS col_header,
-               rmc.n_measures AS row_n_measures,
-               rmc.leftmost_x,
-               rmc.n_total AS row_n_cells,
-               -- Boolean features for scoring
-               (c.pass1_role IS NOT NULL)                         AS f_pattern_match,
-               (t.table_id IS NOT NULL)                           AS f_in_table,
-               COALESCE(hc.subtends_column, false)                AS f_subtends_col,
-               (c.row_cluster = t.start_row - 1)                  AS f_row_above_data,
-               (c.row_cluster BETWEEN t.start_row AND t.end_row)  AS f_in_data_region,
-               (c.weight = 'bold')                                AS f_bold,
-               (c.style_rank >= 3)                                AS f_rare_style,
-               (c.x <= rmc.leftmost_x + 5)                        AS f_leftmost,
-               (rmc.n_measures = 0)                                AS f_no_measures_in_row,
-               -- Continuous features
-               COALESCE(ABS(rmc.n_total - t.modal_cols), 99)       AS f_cell_count_delta,
-               c.font_size / NULLIF((SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY font_size) FROM cells), 0) AS f_font_size_ratio
+    -- Deduplicate: one row per cell for table/column membership
+    CELL_TABLE AS (
+        SELECT DISTINCT ON (c.page_id, c.row_cluster, c.cell_id)
+               c.page_id, c.row_cluster, c.cell_id,
+               t.table_id, t.start_row, t.end_row, t.modal_cols
         FROM cells AS c
         LEFT JOIN table_regions AS t
           ON c.page_id = t.page_id
-         AND c.row_cluster BETWEEN GREATEST(t.start_row - 2, 1) AND t.end_row
+         AND c.row_cluster BETWEEN GREATEST(t.start_row - 5, 1) AND t.end_row
+        ORDER BY c.page_id, c.row_cluster, c.cell_id, t.table_id
+    ),
+    -- Best column match per cell (closest center); also pick up header text
+    CELL_COL AS (
+        SELECT DISTINCT ON (c.page_id, c.row_cluster, c.cell_id)
+               c.page_id, c.row_cluster, c.cell_id,
+               pc.col_id, pc.col_center,
+               bh.header_text AS col_header
+        FROM cells AS c
+        JOIN CELL_TABLE AS ct USING (page_id, row_cluster, cell_id)
         LEFT JOIN putative_columns AS pc
           ON c.page_id = pc.page_id
-         AND t.table_id = pc.table_id
+         AND ct.table_id = pc.table_id
          AND c.x < pc.col_right AND c.x + c.w > pc.col_left
         LEFT JOIN BEST_HEADERS AS bh
           ON pc.page_id = bh.page_id
          AND pc.table_id = bh.table_id
          AND pc.col_id = bh.col_id
-        LEFT JOIN HEADER_CANDIDATES AS hc
-          ON c.page_id = hc.page_id
-         AND c.row_cluster = hc.row_cluster
-         AND c.cell_id = hc.cell_id
-         AND hc.subtends_column
+        ORDER BY c.page_id, c.row_cluster, c.cell_id,
+                 ABS((c.x + c.w / 2) - COALESCE(pc.col_center, 1e9))
+    ),
+    -- Does this cell subtend any column? (boolean, deduplicated)
+    CELL_SUBTENDS AS (
+        SELECT DISTINCT page_id, row_cluster, cell_id, true AS subtends_column
+        FROM HEADER_CANDIDATES
+        WHERE subtends_column
+    ),
+
+    FEATURES AS (
+        SELECT c.*,
+               ct.table_id,
+               ct.start_row,
+               ct.modal_cols,
+               cc.col_id,
+               cc.col_center,
+               cc.col_header,
+               rmc.n_measures AS row_n_measures,
+               rmc.leftmost_x,
+               rmc.n_total AS row_n_cells,
+               -- Boolean features for scoring
+               (c.pass1_role IS NOT NULL AND c.pass1_role != 'year') AS f_pattern_match,
+               (ct.table_id IS NOT NULL)                          AS f_in_table,
+               COALESCE(cs.subtends_column, false)                AS f_subtends_col,
+               (c.row_cluster = ct.start_row - 1)                 AS f_row_above_data,
+               (c.row_cluster BETWEEN ct.start_row AND ct.end_row) AS f_in_data_region,
+               (c.weight = 'bold')                                AS f_bold,
+               (c.style_rank >= 3)                                AS f_rare_style,
+               (c.x <= rmc.leftmost_x + 5)                        AS f_leftmost,
+               (rmc.n_measures = 0)                                AS f_no_measures_in_row,
+               -- Continuous features
+               COALESCE(ABS(rmc.n_total - ct.modal_cols), 99)      AS f_cell_count_delta,
+               c.font_size / NULLIF((SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY font_size) FROM cells), 0) AS f_font_size_ratio
+        FROM cells AS c
+        LEFT JOIN CELL_TABLE AS ct USING (page_id, row_cluster, cell_id)
+        LEFT JOIN CELL_COL AS cc USING (page_id, row_cluster, cell_id)
+        LEFT JOIN CELL_SUBTENDS AS cs USING (page_id, row_cluster, cell_id)
         LEFT JOIN ROW_MEASURE_COUNT AS rmc
           ON c.page_id = rmc.page_id
          AND c.row_cluster = rmc.row_cluster
@@ -457,7 +535,9 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     FEATURES_BOOL AS (
         SELECT F.*,
                (f_cell_count_delta <= 2 AND f_in_table) AS f_cell_count_match,
-               (f_font_size_ratio > 1.2) AS f_large_font
+               (f_font_size_ratio > 1.2) AS f_large_font,
+               -- Year-like text: standalone 4-digit year → likely header
+               (F.pass1_role = 'year') AS f_year_text
         FROM FEATURES AS F
     ),
 
@@ -470,7 +550,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
             f_pattern_match, f_in_table, f_subtends_col,
             f_row_above_data, f_in_data_region, f_bold,
             f_rare_style, f_leftmost, f_no_measures_in_row,
-            f_cell_count_match, f_large_font
+            f_cell_count_match, f_large_font, f_year_text
         ))
     ),
 
@@ -555,7 +635,8 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
     TAGGED AS (
         SELECT S.*,
                CASE
-                   WHEN f_pattern_match THEN pass1_role
+                   -- Year cells go through scoring (may be col_header)
+                   WHEN f_pattern_match AND pass1_role != 'year' THEN pass1_role
                    WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
                         = score_col_header     THEN 'col_header'
                    WHEN GREATEST(score_col_header, score_section_label, score_row_label, score_dimension, score_prose)
@@ -701,7 +782,7 @@ def run_pipeline(filepath: str, con: duckdb.DuckDBPyConnection, tag: str = 'defa
                           f_pattern_match, f_in_table, f_subtends_col,
                           f_row_above_data, f_in_data_region, f_bold,
                           f_rare_style, f_leftmost, f_no_measures_in_row,
-                          f_cell_count_match, f_large_font
+                          f_cell_count_match, f_large_font, f_year_text
                       ))) AS u
                 JOIN (
                     SELECT tc.tag AS active_tag, rw.feature, rw.val, rw.role,

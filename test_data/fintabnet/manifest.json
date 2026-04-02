@@ -1,0 +1,402 @@
+{
+  "AAPL_2006_page_67": {
+    "pdf": "AAPL_2006_page_67.pdf",
+    "annotation": "AAPL_2006_page_67_tables.json",
+    "pdf_size_kb": 76.0,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "AIG_2013_page_143": {
+    "pdf": "AIG_2013_page_143.pdf",
+    "annotation": "AIG_2013_page_143_tables.json",
+    "pdf_size_kb": 26.2,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "BWA_2009_page_73": {
+    "pdf": "BWA_2009_page_73.pdf",
+    "annotation": "BWA_2009_page_73_tables.json",
+    "pdf_size_kb": 21.3,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "BWA_2017_page_37": {
+    "pdf": "BWA_2017_page_37.pdf",
+    "annotation": "BWA_2017_page_37_tables.json",
+    "pdf_size_kb": 138.1,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "CFG_2014_page_161": {
+    "pdf": "CFG_2014_page_161.pdf",
+    "annotation": "CFG_2014_page_161_tables.json",
+    "pdf_size_kb": 1314.8,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "CF_2012_page_200": {
+    "pdf": "CF_2012_page_200.pdf",
+    "annotation": "CF_2012_page_200_tables.json",
+    "pdf_size_kb": 20.6,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "CMCSA_2008_page_59": {
+    "pdf": "CMCSA_2008_page_59.pdf",
+    "annotation": "CMCSA_2008_page_59_tables.json",
+    "pdf_size_kb": 30.3,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "CNC_2006_page_37": {
+    "pdf": "CNC_2006_page_37.pdf",
+    "annotation": "CNC_2006_page_37_tables.json",
+    "pdf_size_kb": 25.3,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "C_2018_page_247": {
+    "pdf": "C_2018_page_247.pdf",
+    "annotation": "C_2018_page_247_tables.json",
+    "pdf_size_kb": 180.8,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "DLR_2016_page_142": {
+    "pdf": "DLR_2016_page_142.pdf",
+    "annotation": "DLR_2016_page_142_tables.json",
+    "pdf_size_kb": 25.1,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "DVA_2003_page_40": {
+    "pdf": "DVA_2003_page_40.pdf",
+    "annotation": "DVA_2003_page_40_tables.json",
+    "pdf_size_kb": 37.7,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "val"
+  },
+  "DVA_2013_page_141": {
+    "pdf": "DVA_2013_page_141.pdf",
+    "annotation": "DVA_2013_page_141_tables.json",
+    "pdf_size_kb": 21.2,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "DVN_2014_page_26": {
+    "pdf": "DVN_2014_page_26.pdf",
+    "annotation": "DVN_2014_page_26_tables.json",
+    "pdf_size_kb": 36.7,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "ECL_2016_page_69": {
+    "pdf": "ECL_2016_page_69.pdf",
+    "annotation": "ECL_2016_page_69_tables.json",
+    "pdf_size_kb": 109.0,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "EIX_2009_page_153": {
+    "pdf": "EIX_2009_page_153.pdf",
+    "annotation": "EIX_2009_page_153_tables.json",
+    "pdf_size_kb": 20.6,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "EMN_2007_page_72": {
+    "pdf": "EMN_2007_page_72.pdf",
+    "annotation": "EMN_2007_page_72_tables.json",
+    "pdf_size_kb": 86.7,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "ETR_2004_page_253": {
+    "pdf": "ETR_2004_page_253.pdf",
+    "annotation": "ETR_2004_page_253_tables.json",
+    "pdf_size_kb": 7.4,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "FAST_2016_page_45": {
+    "pdf": "FAST_2016_page_45.pdf",
+    "annotation": "FAST_2016_page_45_tables.json",
+    "pdf_size_kb": 1841.5,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "FRT_2007_page_68": {
+    "pdf": "FRT_2007_page_68.pdf",
+    "annotation": "FRT_2007_page_68_tables.json",
+    "pdf_size_kb": 24.5,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "GL_2012_page_59": {
+    "pdf": "GL_2012_page_59.pdf",
+    "annotation": "GL_2012_page_59_tables.json",
+    "pdf_size_kb": 17.7,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "HAS_2017_page_92": {
+    "pdf": "HAS_2017_page_92.pdf",
+    "annotation": "HAS_2017_page_92_tables.json",
+    "pdf_size_kb": 17.0,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "HBAN_2009_page_112": {
+    "pdf": "HBAN_2009_page_112.pdf",
+    "annotation": "HBAN_2009_page_112_tables.json",
+    "pdf_size_kb": 50.1,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "HBAN_2011_page_77": {
+    "pdf": "HBAN_2011_page_77.pdf",
+    "annotation": "HBAN_2011_page_77_tables.json",
+    "pdf_size_kb": 38.0,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "HES_2014_page_50": {
+    "pdf": "HES_2014_page_50.pdf",
+    "annotation": "HES_2014_page_50_tables.json",
+    "pdf_size_kb": 159.7,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "HRB_2004_page_121": {
+    "pdf": "HRB_2004_page_121.pdf",
+    "annotation": "HRB_2004_page_121_tables.json",
+    "pdf_size_kb": 36.9,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "HRB_2012_page_95": {
+    "pdf": "HRB_2012_page_95.pdf",
+    "annotation": "HRB_2012_page_95_tables.json",
+    "pdf_size_kb": 18.9,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "IEX_2009_page_59": {
+    "pdf": "IEX_2009_page_59.pdf",
+    "annotation": "IEX_2009_page_59_tables.json",
+    "pdf_size_kb": 22.2,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "IRM_2004_page_114": {
+    "pdf": "IRM_2004_page_114.pdf",
+    "annotation": "IRM_2004_page_114_tables.json",
+    "pdf_size_kb": 19.6,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "JPM_2004_page_86": {
+    "pdf": "JPM_2004_page_86.pdf",
+    "annotation": "JPM_2004_page_86_tables.json",
+    "pdf_size_kb": 156.9,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "KSU_2017_page_87": {
+    "pdf": "KSU_2017_page_87.pdf",
+    "annotation": "KSU_2017_page_87_tables.json",
+    "pdf_size_kb": 128.1,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "test"
+  },
+  "LKQ_2012_page_24": {
+    "pdf": "LKQ_2012_page_24.pdf",
+    "annotation": "LKQ_2012_page_24_tables.json",
+    "pdf_size_kb": 640.9,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "L_2009_page_115": {
+    "pdf": "L_2009_page_115.pdf",
+    "annotation": "L_2009_page_115_tables.json",
+    "pdf_size_kb": 114.4,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "MET_2009_page_33": {
+    "pdf": "MET_2009_page_33.pdf",
+    "annotation": "MET_2009_page_33_tables.json",
+    "pdf_size_kb": 34.2,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "MOS_2013_page_62": {
+    "pdf": "MOS_2013_page_62.pdf",
+    "annotation": "MOS_2013_page_62_tables.json",
+    "pdf_size_kb": 120.8,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "MSFT_2017_page_75": {
+    "pdf": "MSFT_2017_page_75.pdf",
+    "annotation": "MSFT_2017_page_75_tables.json",
+    "pdf_size_kb": 111.4,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "val"
+  },
+  "NEE_2009_page_80": {
+    "pdf": "NEE_2009_page_80.pdf",
+    "annotation": "NEE_2009_page_80_tables.json",
+    "pdf_size_kb": 18.1,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "NLOK_2014_page_130": {
+    "pdf": "NLOK_2014_page_130.pdf",
+    "annotation": "NLOK_2014_page_130_tables.json",
+    "pdf_size_kb": 35.4,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "PG_2012_page_72": {
+    "pdf": "PG_2012_page_72.pdf",
+    "annotation": "PG_2012_page_72_tables.json",
+    "pdf_size_kb": 475.4,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "PNC_2011_page_90": {
+    "pdf": "PNC_2011_page_90.pdf",
+    "annotation": "PNC_2011_page_90_tables.json",
+    "pdf_size_kb": 46.7,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "PNR_2016_page_69": {
+    "pdf": "PNR_2016_page_69.pdf",
+    "annotation": "PNR_2016_page_69_tables.json",
+    "pdf_size_kb": 231.7,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "PRU_2007_page_72": {
+    "pdf": "PRU_2007_page_72.pdf",
+    "annotation": "PRU_2007_page_72_tables.json",
+    "pdf_size_kb": 46.1,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "ROP_2017_page_29": {
+    "pdf": "ROP_2017_page_29.pdf",
+    "annotation": "ROP_2017_page_29_tables.json",
+    "pdf_size_kb": 41.9,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "SBAC_2008_page_41": {
+    "pdf": "SBAC_2008_page_41.pdf",
+    "annotation": "SBAC_2008_page_41_tables.json",
+    "pdf_size_kb": 31.8,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "SBUX_2019_page_82": {
+    "pdf": "SBUX_2019_page_82.pdf",
+    "annotation": "SBUX_2019_page_82_tables.json",
+    "pdf_size_kb": 138.0,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  },
+  "STT_2014_page_99": {
+    "pdf": "STT_2014_page_99.pdf",
+    "annotation": "STT_2014_page_99_tables.json",
+    "pdf_size_kb": 93.5,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "train"
+  },
+  "SWKS_2011_page_122": {
+    "pdf": "SWKS_2011_page_122.pdf",
+    "annotation": "SWKS_2011_page_122_tables.json",
+    "pdf_size_kb": 42.3,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "TFX_2014_page_113": {
+    "pdf": "TFX_2014_page_113.pdf",
+    "annotation": "TFX_2014_page_113_tables.json",
+    "pdf_size_kb": 676.0,
+    "has_annotation": true,
+    "num_tables": 2,
+    "split": "train"
+  },
+  "WAB_2010_page_62": {
+    "pdf": "WAB_2010_page_62.pdf",
+    "annotation": "WAB_2010_page_62_tables.json",
+    "pdf_size_kb": 34.4,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "WAB_2012_page_22": {
+    "pdf": "WAB_2012_page_22.pdf",
+    "annotation": "WAB_2012_page_22_tables.json",
+    "pdf_size_kb": 23.5,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "test"
+  },
+  "WMB_2009_page_77": {
+    "pdf": "WMB_2009_page_77.pdf",
+    "annotation": "WMB_2009_page_77_tables.json",
+    "pdf_size_kb": 37.4,
+    "has_annotation": true,
+    "num_tables": 1,
+    "split": "val"
+  }
+}
