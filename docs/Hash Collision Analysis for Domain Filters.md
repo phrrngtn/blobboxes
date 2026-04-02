@@ -91,6 +91,41 @@ size. The costs:
 | WASM bundle | roaring-wasm 32-bit (~300 KB) | 64-bit variant exists, larger | Moderate |
 | Hash speed | FNV-1a-32: byte-at-a-time | FNV-1a-64: same speed, wider prime | Zero cost |
 
+## Many Small Domains vs One Large Domain
+
+The expected false positive count depends only on the **total set bits
+probed against**, not how they're distributed across domains:
+
+```
+10 domains × 100K members × T probes / 2^32  =  T × 1,000,000 / 2^32
+ 1 domain  ×   1M members × T probes / 2^32  =  T × 1,000,000 / 2^32
+```
+
+The math is identical. But the **consequences** differ:
+
+- **Many small domains**: false positives are independent. A token might
+  false-match "us_state" but not "country_code". Downstream logic can
+  filter by requiring agreement across multiple domains, checking that
+  a match is semantically consistent with neighboring cells, or using
+  containment score (what fraction of the token's n-grams match).
+  Individual false matches are cheap to discard.
+
+- **One mega-domain**: a false match is a single event against a broad
+  category. There's no second opinion to cross-check against. The false
+  positive carries more weight and is harder to filter.
+
+This is an argument for **keeping domains granular** rather than merging
+them into large catch-all filters. A "common_english_words" filter at
+50K members is fine, but merging it with "company_names" (100K) and
+"geographic_names" (200K) into a single 350K "known_text" filter would
+lose the ability to distinguish *which* domain matched — and the false
+positive rate would be 7× higher than any individual domain, with no
+way to cross-check.
+
+The design principle: **domains should be semantically cohesive**.
+Membership in a domain should mean something specific enough that a
+false positive is detectable by context.
+
 ## FNV-1a Quality
 
 FNV-1a is adequate for this use case:
