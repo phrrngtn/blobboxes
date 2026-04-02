@@ -13,51 +13,118 @@ Given a PDF or XLSX document rendered as a flat set of bounding boxes
 2. The **hierarchical scope** each content cell belongs to
 3. A **treemap path** that fully qualifies each value — equivalent to a compound key in a normalized table
 
+## Masking vs Removal
+
+A critical distinction: masking a bbox means classifying it and marking
+it as "resolved," but it **still occupies space** in the geometric
+layout. This is different from removing it.
+
+If you *remove* a classified bbox, the gap it leaves can cause false
+column alignments or merge two table regions that were separated by a
+label row. For example, a bold section header "Expenses" at row 15
+separates the Revenue table above from the Expenses data below. Remove
+it, and rows 14 and 16 appear contiguous — downstream column detection
+may merge them into one table. Mask it, and the row remains as a spatial
+boundary. The mask **preserves the spatial topology** while excluding
+the bbox from the classification working set.
+
+This matters most for:
+- **Label rows** that separate table regions
+- **Title rows** that establish scope boundaries
+- **Blank rows** that are structural whitespace
+
+The mask is a tag, not a deletion. Spatial algorithms always see the
+full page; classification algorithms see only the unresolved residual.
+
 ## Progressive Masking
 
 Classification proceeds in rounds. Each round identifies a category of
-bboxes and **masks them out** (removes them from the working set). Later
-rounds operate on a smaller, less ambiguous residual.
+bboxes and **masks them** (tags them as resolved). Later rounds operate
+on a smaller, less ambiguous residual. Earlier rounds are cheaper and
+higher-confidence; later rounds are more expensive and speculative.
 
-### Round 1: Unambiguous types (cheapest)
+### Round 0: Font/style histogram (metadata only, no text analysis)
 
-- `TRY_CAST` probes: pure integers, floats, dates
-- Regex probes: currency (`$12,400`), percentages (`65.8%`), zip codes,
-  UUIDs, ISO dates, phone numbers, email addresses
-- These are **measures** or typed values — mask them immediately
+Before looking at any text content, histogram bboxes by `(font_id,
+font_size, weight, color)`. The dominant style — the highest bin count
+— is almost certainly the body/data style. Styles with low bin counts
+are structural: titles, headers, footnotes, captions.
+
+This works because:
+- Documents use a small number of styles consistently (typically 3-6)
+- Data cells vastly outnumber structural cells in tabular documents
+- Even a single page with 5 headers and 200 data cells gives a clear
+  signal
+
+Assign a **role prior** to each style based on bin rank:
+
+| Bin rank | Likely role | Action |
+|---|---|---|
+| 1st (most common) | Body / data cell | Leave unmasked (default) |
+| 2nd | Column header or row label | Flag as structural candidate |
+| 3rd+ (rare) | Title, subtitle, footnote | Mask as structural |
+
+**Important caveat**: the assumption "more data than non-data" doesn't
+always hold. Cover pages, tables of contents, legal narrative, and forms
+with many labels and few values all violate it. But this doesn't break
+the approach if treated as a **prior rather than an assumption**: the
+dominant style is the *default category*, not necessarily "data." On a
+cover page, the dominant style is body text — all structural, and
+correctly identified as common. The histogram tells you what's common
+(needing less classification effort) vs rare (needing more scrutiny).
+That's the right allocation of attention regardless of page type.
+
+### Round 1: Pattern-based classification (regex, TRY_CAST, stop words)
+
+Fast, high-confidence classification using text content:
+
+- **TRY_CAST probes**: pure integers, floats, dates → mask as `measure`
+  or `date`
+- **Regex probes**: currency (`$12,400`), percentages (`65.8%`), zip
+  codes, UUIDs, ISO dates, phone numbers, email → mask as typed values
+- **Stop words / common vocabulary**: tokens matching a ~50K common
+  English words bitmap AND NOT matching any domain filter → mask as
+  `structural` (prose, labels, boilerplate)
+
+Stop word masking is particularly important here because it blocks
+spatial analysis from finding false column alignments through common
+words that happen to be vertically aligned.
 
 ### Round 2: Page chrome
 
-- **Page title**: largest font size on the page, positioned in the top region
+- **Page title**: largest font size on the page, positioned in the top
+  region (corroborated by round 0 rare-style detection)
 - **Page number**: short numeric text at the bottom of the page
-- **Repeating headers/footers**: identical text at the same `(x, y)` across
-  multiple pages
+- **Repeating headers/footers**: identical text at the same `(x, y)`
+  across multiple pages
 
 Page title and page number form the **outermost scope layer** — they
 apply to every bbox on their page.
 
-### Round 3: Common vocabulary filter (planned)
+### Round 3: Domain filter probing (set-oriented)
 
-- Probe each remaining text bbox against a ~50K common English words
-  bitmap (using the same [[blobfilters]] roaring bitmap infrastructure)
-- Also probe against domain-specific filters (company names, product IDs,
-  geographic names, etc.)
-- **Mask rule**: if a bbox matches common vocab AND does NOT match any
-  domain filter, it's prose/boilerplate/label text — mask it as structural
-- Bboxes that match both common vocab and a domain filter stay visible
-  (e.g., "Apple" is both an English word and a company name)
+This is where the [[blobfilters]] roaring bitmap infrastructure and the
+set-oriented probing advantage (see [[Hash Collision Analysis for Domain
+Filters]]) come together:
 
-### Round 4: Domain filter probing
+- Group unmasked bboxes into columns using spatial alignment
+- Build a query bitmap from each column's values
+- Compute containment against domain filters
+- Columns with high containment (> 0.8) are classified as dimension
+  columns; their values are masked as `dimension:<domain_name>`
 
-- Remaining unmasked text bboxes are probed against domain filters
-- Matches are classified as dimension values (categorical)
-- This layer uses the existing [[blobfilters]] infrastructure
+The table detection from earlier rounds isn't just about structure — it
+assembles the column-shaped sets that make domain probing exponentially
+more reliable (false positive rate drops as ~p^N rather than p).
 
-### Round 5: Embedding / LLM fallback
+### Round 4: Embedding / LLM fallback
 
 - Only genuinely ambiguous bboxes reach this expensive layer
-- The progressive masking typically eliminates 60-80% of bboxes before
+- The progressive masking typically eliminates 70-90% of bboxes before
   this point
+- Set-oriented probing means even this layer can benefit: cluster
+  remaining bboxes by spatial proximity and classify the cluster, not
+  individual tokens
 
 ## Label Scope Propagation
 
