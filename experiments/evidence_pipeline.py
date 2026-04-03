@@ -1301,6 +1301,72 @@ def pass_token_domain_probing(con, doc_id=1):
     con.execute("DROP TABLE IF EXISTS _token_matching_domains")
 
 
+def pass_column_domain_containment(con, doc_id=1):
+    """Aggregate domain hits per putative column.
+
+    For each column (from column_align evidence), compute what fraction
+    of cells match each domain. High containment (> 0.5) means the
+    column is likely of that domain type.
+
+    This is the set-oriented probing from the Hash Collision Analysis
+    doc: exponentially lower FP rate than single-element probing.
+
+    Produces page-level evidence:
+      (source='col_domain', key='col_{id}:{domain_uri}', value=containment)
+    """
+    n_domain_probes = con.execute(
+        "SELECT COUNT(*) FROM probe_registry WHERE kind = 'domain'"
+    ).fetchone()[0]
+    if n_domain_probes == 0:
+        return
+
+    # For each column, count cells and domain token hits
+    con.execute(f"""
+    INSERT INTO page_evidence
+    WITH
+    -- Cells assigned to columns (from column_align evidence)
+    COL_CELLS AS (
+        SELECT DISTINCT e.page_id,
+               CAST(e.value AS INTEGER) AS col_id,
+               e.row_cluster, e.cell_id
+        FROM evidence AS e
+        WHERE e.doc_id = {doc_id}
+          AND e.source = 'column_align' AND e.key = 'col_id'
+          AND e.value IS NOT NULL
+    ),
+    -- Count cells per column
+    COL_SIZES AS (
+        SELECT page_id, col_id, COUNT(*) AS n_cells
+        FROM COL_CELLS
+        GROUP BY page_id, col_id
+    ),
+    -- Token-domain hits per cell (from token_domain evidence)
+    CELL_DOMAINS AS (
+        SELECT e.page_id, e.row_cluster, e.cell_id,
+               e.key AS domain_uri,
+               CAST(e.value AS DOUBLE) AS containment
+        FROM evidence AS e
+        WHERE e.doc_id = {doc_id} AND e.source = 'token_domain'
+    ),
+    -- Aggregate: for each (column, domain), how many cells have hits?
+    COL_DOMAIN_HITS AS (
+        SELECT cc.page_id, cc.col_id, cd.domain_uri,
+               COUNT(*) AS n_hits,
+               ROUND(AVG(cd.containment), 3) AS avg_cell_containment
+        FROM COL_CELLS AS cc
+        JOIN CELL_DOMAINS AS cd USING (page_id, row_cluster, cell_id)
+        GROUP BY cc.page_id, cc.col_id, cd.domain_uri
+    )
+    SELECT {doc_id}, cdh.page_id,
+           'col_domain' AS source,
+           'col_' || cdh.col_id || ':' || cdh.domain_uri AS key,
+           CAST(ROUND(cdh.n_hits::DOUBLE / cs.n_cells, 3) AS VARCHAR) AS value
+    FROM COL_DOMAIN_HITS AS cdh
+    JOIN COL_SIZES AS cs USING (page_id, col_id)
+    WHERE cdh.n_hits >= 2  -- at least 2 cells must match
+    """)
+
+
 # ── All passes in order ────────────────────────────────────────────
 
 ALL_PASSES = [
@@ -1321,6 +1387,8 @@ ALL_PASSES = [
     ("section_scope",     pass_section_scope),
     # Token-level domain probing (valued evidence, not just boolean):
     ("token_domains",     pass_token_domain_probing),
+    # Column-level domain containment (aggregates token hits per column):
+    ("col_domains",       pass_column_domain_containment),
     # Probe bitmap (runs after all other evidence is in place):
     ("cell_probes",       pass_build_cell_probes),
 ]

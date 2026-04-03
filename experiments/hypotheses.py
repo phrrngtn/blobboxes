@@ -477,6 +477,115 @@ def resolve_hypotheses(con, doc_id=1):
     return n_violations
 
 
+def resolve_hypotheses_ilp(con, doc_id=1):
+    """Resolve hypotheses using ILP solver (blobsolver).
+
+    Builds a weighted MAX-SAT problem from the hypotheses table:
+    - Variables: one per (cell, role, detail) hypothesis with net > 0
+    - Objective: maximize sum of (support - against) for assigned variables
+    - Constraints:
+      - exactly_one per cell (only if cell has 2+ hypotheses)
+      - at_most_one header per column
+
+    Falls back to greedy if solver extension not loaded.
+    """
+    import json as _json
+
+    # Check if solver is available
+    try:
+        con.execute("SELECT bs_solve('{\"variables\":[],\"constraints\":[]}')")
+    except Exception:
+        print("  bs_solve not available, falling back to greedy")
+        return resolve_hypotheses(con, doc_id)
+
+    # Build problem from hypotheses
+    hyps = con.execute(f"""
+        SELECT page_id, row_cluster, cell_id, hypothesis, detail,
+               support - against AS net
+        FROM hypotheses
+        WHERE doc_id = {doc_id} AND support > against
+    """).fetchdf()
+
+    variables = []
+    cell_groups = {}
+    col_groups = {}
+    seen = set()
+
+    for _, h in hyps.iterrows():
+        detail_sfx = f"_d{h['detail']}" if h['detail'] is not None else ''
+        var_id = (f"{int(h['page_id'])}_{int(h['row_cluster'])}"
+                  f"_{int(h['cell_id'])}_{h['hypothesis']}{detail_sfx}")
+        if var_id in seen:
+            continue
+        seen.add(var_id)
+        variables.append({
+            'id': var_id,
+            'weight': max(float(h['net']), 0.1)
+        })
+
+        cell_key = f"{int(h['page_id'])}_{int(h['row_cluster'])}_{int(h['cell_id'])}"
+        cell_groups.setdefault(cell_key, []).append(var_id)
+
+        if h['hypothesis'] == 'col_header' and h['detail'] is not None:
+            col_groups.setdefault(str(h['detail']), []).append(var_id)
+
+    # Build constraints — only for cells with 2+ hypotheses
+    constraints = []
+    for vrs in cell_groups.values():
+        if len(vrs) > 1:
+            constraints.append({'type': 'exactly_one', 'vars': vrs})
+    for vrs in col_groups.values():
+        if len(vrs) > 1:
+            constraints.append({'type': 'at_most_one', 'vars': vrs})
+
+    problem = _json.dumps({'variables': variables, 'constraints': constraints})
+
+    # Solve
+    result_json = con.execute("SELECT bs_solve(?)", [problem]).fetchone()[0]
+    result = _json.loads(result_json)
+
+    if result.get('status') != 'optimal':
+        print(f"  Solver status: {result.get('status')}, "
+              f"error: {result.get('error', 'none')}")
+        print("  Falling back to greedy")
+        return resolve_hypotheses(con, doc_id)
+
+    # Parse assignments: assigned variables map to (cell_key, role)
+    assignments = {}
+    for var_id, assigned in result.get('assignments', {}).items():
+        if assigned:
+            parts = var_id.split('_')
+            cell_key = (int(parts[0]), int(parts[1]), int(parts[2]))
+            # Role is parts[3], possibly with _dN suffix
+            role = parts[3].split('_d')[0] if '_d' in '_'.join(parts[3:]) else parts[3]
+            assignments[cell_key] = role
+
+    # Also assign single-hypothesis cells (not in any constraint)
+    for _, h in hyps.iterrows():
+        cell_key = (int(h['page_id']), int(h['row_cluster']), int(h['cell_id']))
+        ck_str = f"{cell_key[0]}_{cell_key[1]}_{cell_key[2]}"
+        if cell_key not in assignments and ck_str not in {
+            ck for ck, vrs in cell_groups.items() if len(vrs) > 1
+        }:
+            assignments[cell_key] = h['hypothesis']
+
+    # Insert into treemap
+    # First get all cells
+    all_cells = con.execute(f"""
+        SELECT page_id, row_cluster, cell_id
+        FROM cells WHERE doc_id = {doc_id}
+    """).fetchall()
+
+    for page_id, row_cluster, cell_id in all_cells:
+        role = assignments.get((page_id, row_cluster, cell_id), 'unresolved')
+        con.execute(
+            "INSERT INTO treemap VALUES (?,?,?,?,NULL,?)",
+            [doc_id, page_id, row_cluster, cell_id, role]
+        )
+
+    return len(constraints)
+
+
 def assemble_treemap_paths(con, doc_id=1):
     """Assemble treemap paths from resolved hypotheses.
 
@@ -668,14 +777,17 @@ ALL_HYPOTHESES = [
 ]
 
 
-def run_hypotheses(con, doc_id=1):
-    """Generate all hypotheses, apply constraints, resolve, assemble paths."""
+def run_hypotheses(con, doc_id=1, use_solver=True):
+    """Generate all hypotheses, resolve (ILP or greedy), assemble paths."""
     for name, fn in ALL_HYPOTHESES:
         fn(con, doc_id)
 
-    n_violations = resolve_hypotheses(con, doc_id)
+    if use_solver:
+        n = resolve_hypotheses_ilp(con, doc_id)
+    else:
+        n = resolve_hypotheses(con, doc_id)
     assemble_treemap_paths(con, doc_id)
-    return n_violations
+    return n
 
 
 def report_hypotheses(con, doc_id=1):
