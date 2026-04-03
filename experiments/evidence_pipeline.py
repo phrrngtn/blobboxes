@@ -906,26 +906,27 @@ def pass_doc_profile(con, doc_id=1):
              '{confidence}')
         """)
 
-    # Write domain group recommendations
-    domain_groups = {
-        'financial':  ['financial', 'corporate', 'sec'],
-        'tabular':    ['geographic', 'code'],
-        'form':       ['geographic', 'code', 'corporate'],
-        'product':    ['mep', 'equipment', 'materials'],
-        'narrative':  ['general'],
-        'general':    [],
-    }
-
-    recommended = set()
-    for profile, _ in profiles:
-        for group in domain_groups.get(profile, []):
-            recommended.add(group)
+    # Write domain group recommendations from PG reference table
+    # Falls back to a minimal default if PG is not available
+    try:
+        profile_names = [p for p, _ in profiles]
+        placeholders = ','.join(f"'{p}'" for p in profile_names)
+        groups = con.execute(f"""
+            SELECT DISTINCT domain_group
+            FROM postgres_scan('dbname=rule4_test host=/tmp',
+                               'domain', 'profile_domain_groups')
+            WHERE profile IN ({placeholders})
+        """).fetchall()
+        recommended = sorted(set(g[0] for g in groups))
+    except Exception:
+        # Fallback if PG not available
+        recommended = []
 
     if recommended:
         con.execute(f"""
         INSERT INTO doc_evidence VALUES
             ({doc_id}, 'doc_profile', 'domain_groups',
-             '{",".join(sorted(recommended))}')
+             '{",".join(recommended)}')
         """)
 
 
@@ -1710,6 +1711,11 @@ def init_connection():
     con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
     con.execute(f"LOAD '{EXT_BBOXES}'")
     con.execute(f"LOAD '{EXT_FILTERS}'")
+    # PostgreSQL for reference data (profile_domain_groups, etc.)
+    try:
+        con.execute("INSTALL postgres; LOAD postgres;")
+    except Exception:
+        pass  # PG optional — fallbacks exist
     create_schema(con)
     seed_probe_registry(con)
     n_domains = seed_domain_probes(con)
