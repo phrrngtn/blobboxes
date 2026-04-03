@@ -207,6 +207,12 @@ if(BUILD_DUCKDB_EXTENSION)
       "$<TARGET_FILE:bboxes_duckdb>"
       "$<TARGET_FILE_DIR:bboxes_duckdb>/bboxes.duckdb_extension"
     COMMENT "Appending DuckDB extension metadata")
+
+  # Stage into ext/ package directory for wheel builds
+  install(FILES "${CMAKE_BINARY_DIR}/duckdb/bboxes.duckdb_extension"
+          DESTINATION "${CMAKE_SOURCE_DIR}/ext/duckdb/blobboxes_duckdb/")
+  install(FILES "${pdfium_SOURCE_DIR}/lib/libpdfium${CMAKE_SHARED_LIBRARY_SUFFIX}"
+          DESTINATION "${CMAKE_SOURCE_DIR}/ext/duckdb/blobboxes_duckdb/")
 endif()
 
 # ── SQLite extension ────────────────────────────────────────────────
@@ -227,4 +233,16 @@ if(BUILD_SQLITE_EXTENSION)
         bboxes.so "$<TARGET_FILE_DIR:bboxes_sqlite>/bboxes.dylib")
   endif()
   bboxes_runtime(bboxes_sqlite "$<IF:$<PLATFORM_ID:Darwin>,@loader_path,$ORIGIN>")
+
+  # Stage into ext/ package directory for wheel builds
+  install(FILES "$<TARGET_FILE:bboxes_sqlite>"
+          DESTINATION "${CMAKE_SOURCE_DIR}/ext/sqlite/blobboxes_sqlite/")
+  if(APPLE)
+    install(CODE "
+      execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink
+        bboxes.so \"${CMAKE_SOURCE_DIR}/ext/sqlite/blobboxes_sqlite/bboxes.dylib\")
+    ")
+  endif()
+  install(FILES "${pdfium_SOURCE_DIR}/lib/libpdfium${CMAKE_SHARED_LIBRARY_SUFFIX}"
+          DESTINATION "${CMAKE_SOURCE_DIR}/ext/sqlite/blobboxes_sqlite/")
 endif()
