@@ -69,12 +69,14 @@ def seed_roles(con):
         ('chrome',        1, 'Page chrome: headers, footers, page numbers',        'dim red'),
         ('col_header',    2, 'Column header above a data region',                  'bold cyan'),
         ('section_label', 3, 'Section/scope label (bold, leftmost, non-data)',     'bold yellow'),
-        ('field_label',   4, 'Key in a key-value pair (left cell of 2-cell row)',  'magenta'),
-        ('field_value',   5, 'Value in a key-value pair (right cell of 2-cell row)', 'bright_magenta'),
-        ('measure',       6, 'Numeric data value in a table',                      'green'),
-        ('row_label',     7, 'Row label (leftmost non-numeric cell in data row)',  'blue'),
-        ('prose',         8, 'Body text / narrative (dominant style, non-numeric)', 'white'),
-        ('unresolved',    9, 'No hypothesis survived constraints',                 'dim white'),
+        ('total_label',   4, 'Total/summary row label (bold, leftmost, in data)',  'bold blue'),
+        ('field_label',   5, 'Key in a key-value pair (left cell of 2-cell row)',  'magenta'),
+        ('field_value',   6, 'Value in a key-value pair (right cell of 2-cell row)', 'bright_magenta'),
+        ('measure',       7, 'Numeric data value in a table',                      'green'),
+        ('dimension',     8, 'Categorical value in a data column (non-numeric)',   'bright_green'),
+        ('row_label',     9, 'Row label (leftmost non-numeric cell in data row)',  'blue'),
+        ('prose',        10, 'Body text / narrative (dominant style, non-numeric)', 'white'),
+        ('unresolved',   11, 'No hypothesis survived constraints',                 'dim white'),
     ]
     con.executemany(
         "INSERT OR IGNORE INTO roles VALUES (?,?,?,?)",
@@ -337,6 +339,70 @@ def hypothesize_measures(con, doc_id=1):
      AND e_pat.source = 'pattern' AND e_pat.key = 'type'
     WHERE c.doc_id = {doc_id}
       AND bf_contains(cp.probes, 0::UINTEGER)  -- numeric
+    """)
+
+
+def hypothesize_dimensions(con, doc_id=1):
+    """Hypothesize dimension values: non-numeric cells in table data columns.
+
+    A dimension is a categorical value (e.g., "United States", "Q1 2024")
+    that sits in a putative column within a table region but isn't numeric.
+    Distinguished from row_label by NOT being leftmost.
+    """
+    con.execute(f"""
+    INSERT INTO hypotheses
+    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
+           'dimension' AS hypothesis,
+           e_col.value AS detail,  -- col_id
+           -- Support: in table + subtends column + not numeric + not leftmost
+           (CASE WHEN bf_contains(cp.probes, 203::UINTEGER) THEN 1 ELSE 0 END  -- in_table
+            + CASE WHEN bf_contains(cp.probes, 205::UINTEGER) THEN 1 ELSE 0 END -- subtends_col
+            + CASE WHEN NOT bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END -- not numeric
+           ) AS support,
+           -- Against: leftmost (that's a row_label), or bold (section_label)
+           (CASE WHEN bf_contains(cp.probes, 202::UINTEGER) THEN 1 ELSE 0 END  -- leftmost
+            + CASE WHEN bf_contains(cp.probes, 100::UINTEGER) THEN 1 ELSE 0 END -- bold
+           ) AS against
+    FROM cells AS c
+    JOIN cell_probes AS cp USING (doc_id, page_id, row_cluster, cell_id)
+    LEFT JOIN evidence AS e_col
+      ON c.doc_id = e_col.doc_id AND c.page_id = e_col.page_id
+     AND c.row_cluster = e_col.row_cluster AND c.cell_id = e_col.cell_id
+     AND e_col.source = 'column_align' AND e_col.key = 'col_id'
+    WHERE c.doc_id = {doc_id}
+      AND bf_contains(cp.probes, 203::UINTEGER)     -- in_table
+      AND bf_contains(cp.probes, 206::UINTEGER)     -- in_data_rows
+      AND NOT bf_contains(cp.probes, 0::UINTEGER)   -- not numeric
+      AND NOT bf_contains(cp.probes, 202::UINTEGER)  -- not leftmost
+    """)
+
+
+def hypothesize_total_rows(con, doc_id=1):
+    """Hypothesize total/summary rows: bold + leftmost + has measures in row.
+
+    "Total Revenue", "Net Income", "Total Assets" etc. — bold row labels
+    in data rows that aggregate the rows above them.
+    """
+    con.execute(f"""
+    INSERT INTO hypotheses
+    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
+           'total_label' AS hypothesis,
+           NULL AS detail,
+           -- Support: bold + leftmost + in data rows with measures
+           (CASE WHEN bf_contains(cp.probes, 100::UINTEGER) THEN 1 ELSE 0 END  -- bold
+            + CASE WHEN bf_contains(cp.probes, 202::UINTEGER) THEN 1 ELSE 0 END -- leftmost
+            + CASE WHEN bf_contains(cp.probes, 206::UINTEGER) THEN 1 ELSE 0 END -- in_data_rows
+           ) AS support,
+           -- Against: numeric (it's a measure, not a label)
+           (CASE WHEN bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END
+           ) AS against
+    FROM cells AS c
+    JOIN cell_probes AS cp USING (doc_id, page_id, row_cluster, cell_id)
+    WHERE c.doc_id = {doc_id}
+      AND bf_contains(cp.probes, 100::UINTEGER)     -- bold
+      AND bf_contains(cp.probes, 202::UINTEGER)     -- leftmost
+      AND bf_contains(cp.probes, 206::UINTEGER)     -- in_data_rows
+      AND NOT bf_contains(cp.probes, 0::UINTEGER)   -- not numeric
     """)
 
 
@@ -770,8 +836,10 @@ ALL_HYPOTHESES = [
     ("chrome",         hypothesize_chrome),
     ("column_headers", hypothesize_column_headers),
     ("section_labels", hypothesize_section_labels),
+    ("total_rows",     hypothesize_total_rows),
     ("row_labels",     hypothesize_row_labels),
     ("measures",       hypothesize_measures),
+    ("dimensions",     hypothesize_dimensions),
     ("key_value_pairs", hypothesize_key_value_pairs),
     ("prose",           hypothesize_prose),
 ]
