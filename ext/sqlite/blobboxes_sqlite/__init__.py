@@ -16,3 +16,8 @@ def extension_path() -> str:
         if (base.parent / f"bboxes{suffix}").exists():
             return str(base)
     raise FileNotFoundError(f"Extension not found at {base}.*")
+
+
+def load(con) -> None:
+    """Load the bboxes extension into a SQLite connection."""
+    con.load_extension(extension_path())

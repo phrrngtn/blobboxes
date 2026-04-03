@@ -15,3 +15,8 @@ def extension_path() -> str:
     if not ext.exists():
         raise FileNotFoundError(f"Extension not found at {ext}")
     return str(ext)
+
+
+def load(con) -> None:
+    """Load the blobboxes extension into a DuckDB connection."""
+    con.execute(f"LOAD '{extension_path()}'")
