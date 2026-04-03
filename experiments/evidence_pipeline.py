@@ -29,12 +29,41 @@ Tables:
 import duckdb
 from pathlib import Path
 
-EXT = "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension"
+EXT_BBOXES = "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension"
+EXT_FILTERS = "/Users/paulharrington/checkouts/blobfilters/build/duckdb/blobfilters.duckdb_extension"
 
 
 def create_schema(con):
     """Create the evidence accumulation schema."""
     con.execute("""
+
+    -- ── Probe registry ─────────────────────────────────────────────
+    -- Each row is a named check that can be applied to a cell.
+    -- The ordinal is the bit position in per-cell roaring bitmaps.
+    -- URIs are stable identifiers; ordinals are local to this database.
+    CREATE TABLE IF NOT EXISTS probe_registry (
+        ordinal     INTEGER PRIMARY KEY,
+        uri         VARCHAR UNIQUE NOT NULL,  -- e.g. 'pattern:year', 'domain:country_code'
+        name        VARCHAR NOT NULL,         -- short display name
+        kind        VARCHAR NOT NULL,         -- 'regex', 'try_cast', 'domain', 'style', 'spatial'
+        definition  VARCHAR,                  -- the regex, SQL expression, domain filter path, etc.
+        description VARCHAR,                  -- human-readable explanation
+        tags        VARCHAR                   -- JSON array of taxonomy tags, e.g. '["numeric","temporal"]'
+    );
+
+    -- ── Cell probe results ─────────────────────────────────────────
+    -- One roaring bitmap per cell: which probes matched.
+    -- Join to probe_registry via bf_contains(probes, ordinal) or
+    -- bf_to_array(probes) → UNNEST → JOIN probe_registry.
+    CREATE TABLE IF NOT EXISTS cell_probes (
+        doc_id      INTEGER NOT NULL DEFAULT 1,
+        page_id     INTEGER NOT NULL,
+        row_cluster INTEGER NOT NULL,
+        cell_id     INTEGER NOT NULL,
+        probes      BLOB NOT NULL,            -- roaring bitmap of matching ordinals
+        PRIMARY KEY (doc_id, page_id, row_cluster, cell_id)
+    );
+
     CREATE TABLE IF NOT EXISTS cells (
         doc_id      INTEGER NOT NULL DEFAULT 1,
         page_id     INTEGER NOT NULL,
@@ -234,6 +263,186 @@ def ingest(con, filepath, doc_id=1):
 # Each pass reads cells (and possibly earlier evidence) and appends to
 # the appropriate evidence table.  Passes are order-independent unless
 # noted otherwise.
+
+
+def seed_probe_registry(con):
+    """Populate the probe registry with built-in probes.
+
+    Ordinal ranges by convention:
+      0-99:    text pattern probes (regex, TRY_CAST)
+      100-199: style/visual probes
+      200-299: spatial/geometric probes
+      300-399: cross-page probes
+      1000+:   domain filter probes (loaded from blobfilters)
+    """
+    con.execute("""
+    INSERT OR IGNORE INTO probe_registry VALUES
+    -- ── Text pattern probes (0-99) ──────────────────────────────
+    (0,  'pattern:numeric',    'Numeric',      'try_cast',
+     'TRY_CAST(REPLACE(REPLACE(REPLACE(text,'','',''),''$'',''''),'' '','''') AS DOUBLE) IS NOT NULL',
+     'Cell text is castable to a number (after stripping $, comma, space)',
+     '["numeric"]'),
+    (1,  'pattern:year',       'Year',         'regex',
+     '^\\d{4}$ AND BETWEEN 1900 AND 2099',
+     'Standalone 4-digit year',
+     '["numeric","temporal"]'),
+    (2,  'pattern:date',       'Date',         'try_cast',
+     'TRY_CAST(text AS DATE) IS NOT NULL',
+     'Cell text parses as a date',
+     '["temporal"]'),
+    (3,  'pattern:currency',   'Currency',     'regex',
+     '^\\$[\\d,.]+$',
+     'Dollar-prefixed number',
+     '["numeric","financial"]'),
+    (4,  'pattern:percentage',  'Percentage',  'regex',
+     '^[\\d,.]+\\s*%$',
+     'Number followed by percent sign',
+     '["numeric"]'),
+    (5,  'pattern:zip_code',   'ZIP Code',     'regex',
+     '^\\d{5}(-\\d{4})?$',
+     'US ZIP code (5 or 5+4 digit)',
+     '["geographic","code"]'),
+    (6,  'pattern:iso_date',   'ISO Date',     'regex',
+     '^\\d{4}-\\d{2}-\\d{2}',
+     'ISO 8601 date prefix',
+     '["temporal"]'),
+    (7,  'pattern:integer',    'Integer',      'try_cast',
+     'TRY_CAST(REPLACE(text,'','','''') AS BIGINT) IS NOT NULL',
+     'Cell text is a pure integer (after stripping commas)',
+     '["numeric"]'),
+    (8,  'pattern:negative',   'Negative',     'regex',
+     '^\\([\\d,.]+\\)$',
+     'Parenthesized number (accounting negative)',
+     '["numeric","financial"]'),
+    (9,  'pattern:em_dash',    'Em Dash',      'regex',
+     '^[—–-]$',
+     'Single dash/em-dash (null marker in financial tables)',
+     '["financial","null_marker"]'),
+
+    -- ── Style/visual probes (100-199) ───────────────────────────
+    (100, 'style:bold',         'Bold',         'style',
+     'weight = ''bold''',
+     'Cell uses bold font weight',
+     '["style"]'),
+    (101, 'style:italic',       'Italic',       'style',
+     'font_name ILIKE ''%italic%''',
+     'Cell uses italic font',
+     '["style"]'),
+    (102, 'style:dominant',     'Dominant Style','style',
+     'style_rank = 1',
+     'Cell uses the most common style on the page',
+     '["style"]'),
+    (103, 'style:rare',         'Rare Style',   'style',
+     'style_rank >= 3',
+     'Cell uses a style with rank >= 3 (uncommon)',
+     '["style","structural"]'),
+    (104, 'style:color_outlier','Color Outlier', 'style',
+     'color != dominant_color',
+     'Cell color differs from the dominant style color',
+     '["style","structural"]'),
+
+    -- ── Spatial/geometric probes (200-299) ───────────────────────
+    (200, 'spatial:top_10pct',   'Top 10%',     'spatial',
+     'y_frac < 0.1',
+     'Cell is in the top 10% of page content area',
+     '["position","chrome"]'),
+    (201, 'spatial:bottom_10pct','Bottom 10%',  'spatial',
+     'y_frac > 0.9',
+     'Cell is in the bottom 10% of page content area',
+     '["position","chrome"]'),
+    (202, 'spatial:leftmost',    'Leftmost',    'spatial',
+     'x <= row_min_x + 5',
+     'Cell is at or near the left edge of its row',
+     '["position","label"]'),
+    (203, 'spatial:in_table',    'In Table',    'spatial',
+     'row is within a detected table region',
+     'Cell belongs to a detected table region',
+     '["table"]'),
+    (204, 'spatial:above_data',  'Above Data',  'spatial',
+     'row is 1-5 rows above a data region',
+     'Cell is in header position relative to a table',
+     '["table","header"]'),
+    (205, 'spatial:subtends_col','Subtends Col', 'spatial',
+     'cell x-range overlaps a putative column',
+     'Cell horizontally overlaps an x-aligned column of typed cells',
+     '["table","column"]'),
+    (206, 'spatial:in_data_rows','In Data Rows', 'spatial',
+     'row is a data row (>= 2 typed cells)',
+     'Cell is in a row with multiple typed (numeric/date) cells',
+     '["table"]'),
+
+    -- ── Cross-page probes (300-399) ──────────────────────────────
+    (300, 'cross_page:repeated', 'Repeated Text','cross_page',
+     'same text at same y on multiple pages',
+     'Cell text appears at the same vertical position on 2+ pages',
+     '["chrome","header","footer"]')
+    """)
+
+
+def pass_build_cell_probes(con, doc_id=1):
+    """Build per-cell roaring bitmaps from probe results.
+
+    Runs all probes against cells and stores the matching ordinals
+    as a roaring bitmap in cell_probes.
+    """
+    con.execute(f"""
+    INSERT INTO cell_probes
+    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
+           bf_from_array(LIST(DISTINCT ordinal ORDER BY ordinal)::UINTEGER[]) AS probes
+    FROM cells AS c
+
+    -- Text pattern probes
+    CROSS JOIN LATERAL (
+        SELECT UNNEST(CASE
+            WHEN TRY_CAST(REPLACE(REPLACE(REPLACE(c.text, ',', ''), '$', ''), ' ', '') AS DOUBLE) IS NOT NULL
+            THEN [0::INTEGER] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(TRIM(c.text), '^\\d{{4}}$')
+                      AND TRY_CAST(TRIM(c.text) AS INTEGER) BETWEEN 1900 AND 2099
+            THEN [1] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN TRY_CAST(c.text AS DATE) IS NOT NULL
+            THEN [2] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(c.text, '^\\$[\\d,.]+$')
+            THEN [3] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(c.text, '^[\\d,.]+\\s*%$')
+            THEN [4] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(c.text, '^\\d{{5}}(-\\d{{4}})?$')
+            THEN [5] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(c.text, '^\\d{{4}}-\\d{{2}}-\\d{{2}}')
+            THEN [6] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN TRY_CAST(REPLACE(c.text, ',', '') AS BIGINT) IS NOT NULL
+            THEN [7] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(c.text, '^\\([\\d,.]+\\)$')
+            THEN [8] ELSE []::INTEGER[] END
+            ||
+            CASE WHEN regexp_matches(TRIM(c.text), '^[—–-]$')
+            THEN [9] ELSE []::INTEGER[] END
+
+            -- Style probes
+            || CASE WHEN c.weight = 'bold' THEN [100] ELSE []::INTEGER[] END
+            || CASE WHEN c.font_name ILIKE '%italic%' THEN [101] ELSE []::INTEGER[] END
+            || CASE WHEN c.style_rank = 1 THEN [102] ELSE []::INTEGER[] END
+            || CASE WHEN c.style_rank >= 3 THEN [103] ELSE []::INTEGER[] END
+
+            -- Spatial probes (basic ones — position-based)
+            || CASE WHEN c.x <= (SELECT MIN(x) + 5 FROM cells AS c2
+                                  WHERE c2.doc_id = {doc_id}
+                                    AND c2.page_id = c.page_id
+                                    AND c2.row_cluster = c.row_cluster)
+               THEN [202] ELSE []::INTEGER[] END
+        ) AS ordinal
+    ) AS probes_lateral
+
+    WHERE c.doc_id = {doc_id}
+    GROUP BY c.page_id, c.row_cluster, c.cell_id
+    """)
 
 
 def pass_style_histogram(con, doc_id=1):
@@ -563,18 +772,285 @@ def pass_table_regions(con, doc_id=1):
     """)
 
 
+def pass_blocks(con, doc_id=1):
+    """Spatial proximity blocks: rectangular regions separated by whitespace.
+
+    Group rows into blocks by detecting large vertical gaps between them.
+    A block is a contiguous run of rows without a gap > 2×body_height.
+    This is coarser than table_regions — blocks exist before we know
+    if they contain tables.
+    """
+    con.execute(f"""
+    INSERT INTO row_evidence
+    WITH
+    ROW_POSITIONS AS (
+        SELECT page_id, row_cluster,
+               MIN(y) AS row_y, MAX(y + h) AS row_bottom,
+               MIN(x) AS row_left, MAX(x + w) AS row_right,
+               COUNT(*) AS n_cells
+        FROM cells WHERE doc_id = {doc_id}
+        GROUP BY page_id, row_cluster
+    ),
+    BODY_H AS (
+        SELECT GREATEST(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY h)
+                        FILTER (WHERE h > 2), 4.0) AS bh
+        FROM cells WHERE doc_id = {doc_id}
+    ),
+    GAPS AS (
+        SELECT *,
+               row_y - LAG(row_bottom)
+                   OVER (PARTITION BY page_id ORDER BY row_y) AS row_gap,
+               LAG(page_id)
+                   OVER (PARTITION BY page_id ORDER BY row_y) AS prev_page
+        FROM ROW_POSITIONS
+    ),
+    BLOCK_IDS AS (
+        SELECT page_id, row_cluster, row_y, row_left, row_right, n_cells,
+               SUM(CASE
+                   WHEN row_gap IS NULL THEN 1
+                   WHEN row_gap > (SELECT bh FROM BODY_H) * 2 THEN 1
+                   ELSE 0
+               END) OVER (PARTITION BY page_id ORDER BY row_y) AS block_id
+        FROM GAPS
+    ),
+    BLOCK_STATS AS (
+        SELECT page_id, block_id,
+               COUNT(*) AS n_rows,
+               MIN(row_left) AS block_left,
+               MAX(row_right) AS block_right,
+               MODE(n_cells) AS modal_cells
+        FROM BLOCK_IDS
+        GROUP BY page_id, block_id
+    )
+    SELECT {doc_id}, bi.page_id, bi.row_cluster,
+           'block' AS source, key, value
+    FROM BLOCK_IDS AS bi
+    JOIN BLOCK_STATS AS bs
+      ON bi.page_id = bs.page_id AND bi.block_id = bs.block_id
+    CROSS JOIN LATERAL (VALUES
+        ('block_id',     CAST(bi.block_id AS VARCHAR)),
+        ('block_n_rows', CAST(bs.n_rows AS VARCHAR)),
+        ('block_left',   CAST(bs.block_left AS VARCHAR)),
+        ('block_right',  CAST(bs.block_right AS VARCHAR)),
+        ('block_modal_cells', CAST(bs.modal_cells AS VARCHAR))
+    ) AS kv(key, value)
+    """)
+
+
+def pass_indent_levels(con, doc_id=1):
+    """Left-edge clustering → indent level evidence.
+
+    Cluster the distinct left-edge x-positions of non-dominant-style
+    or leftmost cells into indent levels using gap-based binning.
+    Indent level encodes hierarchy: level 0 = outermost scope.
+    """
+    con.execute(f"""
+    INSERT INTO evidence
+    WITH
+    -- Collect distinct left-edge x positions for structural cells
+    -- (bold, rare, or leftmost in their row)
+    LEFT_EDGES AS (
+        SELECT DISTINCT ROUND(c.x, 0) AS x_rounded
+        FROM cells AS c
+        WHERE c.doc_id = {doc_id}
+          AND (c.weight = 'bold'
+               OR c.style_rank >= 2
+               OR c.x <= (SELECT MIN(x) + 5 FROM cells
+                          WHERE doc_id = {doc_id}
+                            AND page_id = c.page_id
+                            AND row_cluster = c.row_cluster))
+    ),
+    SORTED_EDGES AS (
+        SELECT x_rounded,
+               x_rounded - LAG(x_rounded) OVER (ORDER BY x_rounded) AS x_gap
+        FROM LEFT_EDGES
+    ),
+    INDENT_BINS AS (
+        SELECT x_rounded,
+               SUM(CASE WHEN x_gap IS NULL OR x_gap > 10
+                        THEN 1 ELSE 0 END)
+                   OVER (ORDER BY x_rounded) - 1 AS indent_level
+        FROM SORTED_EDGES
+    )
+    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
+           'indent' AS source,
+           'indent_level' AS key,
+           CAST(ib.indent_level AS VARCHAR) AS value
+    FROM cells AS c
+    JOIN INDENT_BINS AS ib
+      ON ROUND(c.x, 0) = ib.x_rounded
+    WHERE c.doc_id = {doc_id}
+    """)
+
+
+def pass_alignment(con, doc_id=1):
+    """Cell alignment within columns: left, right, center, or decimal.
+
+    Right-alignment is a strong signal for numeric data.
+    Left-alignment signals labels. Center-alignment may indicate headers.
+    Determined by comparing cell edges to putative column boundaries.
+    """
+    con.execute(f"""
+    INSERT INTO evidence
+    WITH
+    -- Get column boundaries from column_align evidence
+    COL_BOUNDS AS (
+        SELECT DISTINCT e_id.page_id,
+               CAST(e_id.value AS INTEGER) AS col_id,
+               CAST(e_ctr.value AS DOUBLE) AS col_center
+        FROM evidence AS e_id
+        JOIN evidence AS e_ctr
+          ON e_id.doc_id = e_ctr.doc_id AND e_id.page_id = e_ctr.page_id
+         AND e_id.row_cluster = e_ctr.row_cluster
+         AND e_id.cell_id = e_ctr.cell_id
+         AND e_ctr.source = 'column_align' AND e_ctr.key = 'col_center'
+        WHERE e_id.doc_id = {doc_id}
+          AND e_id.source = 'column_align' AND e_id.key = 'col_id'
+          AND e_id.value IS NOT NULL
+    ),
+    -- For cells that subtend a column, compute alignment
+    ALIGNED AS (
+        SELECT c.page_id, c.row_cluster, c.cell_id,
+               c.x AS cell_left,
+               c.x + c.w AS cell_right,
+               c.x + c.w / 2 AS cell_center,
+               cb.col_center,
+               -- Alignment: compare cell center vs column center
+               -- If cell right-edge aligns across rows → right-aligned
+               -- If cell left-edge aligns → left-aligned
+               ABS(cell_center - cb.col_center) AS center_offset,
+               c.w AS cell_width
+        FROM cells AS c
+        JOIN evidence AS e_col
+          ON c.doc_id = e_col.doc_id AND c.page_id = e_col.page_id
+         AND c.row_cluster = e_col.row_cluster
+         AND c.cell_id = e_col.cell_id
+         AND e_col.source = 'column_align' AND e_col.key = 'col_id'
+         AND e_col.value IS NOT NULL
+        JOIN COL_BOUNDS AS cb
+          ON c.page_id = cb.page_id
+         AND CAST(e_col.value AS INTEGER) = cb.col_id
+        WHERE c.doc_id = {doc_id}
+    )
+    SELECT {doc_id}, page_id, row_cluster, cell_id,
+           'alignment' AS source,
+           'type' AS key,
+           CASE
+               -- Narrow cell near column center → centered (likely header)
+               WHEN cell_width < 30 AND center_offset < 5 THEN 'center'
+               -- Cell right edge near column center → right-aligned (numeric)
+               WHEN ABS(cell_right - col_center) < ABS(cell_left - col_center)
+               THEN 'right'
+               -- Otherwise → left-aligned (label)
+               ELSE 'left'
+           END AS value
+    FROM ALIGNED
+    """)
+
+
+def pass_section_scope(con, doc_id=1):
+    """Section scope propagation: bold/rare leftmost cells define scopes.
+
+    A section label is a cell that is:
+    - Bold or rare style
+    - Leftmost (or near-leftmost) in its row
+    - Row has no or few typed cells (not a data row)
+
+    Section labels propagate "down and to the right" until the next
+    label at the same or lesser indent level.
+    """
+    # Identify section label candidates
+    con.execute(f"""
+    INSERT INTO evidence
+    WITH
+    LABEL_CANDIDATES AS (
+        SELECT c.page_id, c.row_cluster, c.cell_id, c.text,
+               c.x, c.y, c.weight, c.style_rank
+        FROM cells AS c
+        LEFT JOIN row_evidence AS re
+          ON c.doc_id = re.doc_id AND c.page_id = re.page_id
+         AND c.row_cluster = re.row_cluster
+         AND re.source = 'row_geom' AND re.key = 'n_typed'
+        WHERE c.doc_id = {doc_id}
+          AND (c.weight = 'bold' OR c.style_rank >= 2)
+          AND c.x <= (SELECT MIN(x) + 10 FROM cells AS c2
+                      WHERE c2.doc_id = {doc_id}
+                        AND c2.page_id = c.page_id
+                        AND c2.row_cluster = c.row_cluster)
+          AND COALESCE(CAST(re.value AS INTEGER), 0) <= 1
+    )
+    SELECT {doc_id}, page_id, row_cluster, cell_id,
+           'section' AS source,
+           'is_section_label' AS key,
+           'true' AS value
+    FROM LABEL_CANDIDATES
+    """)
+
+    # Propagate scope via indent levels
+    # For each cell, find the nearest section label above it at each
+    # indent level, using the evidence already accumulated
+    con.execute(f"""
+    INSERT INTO evidence
+    WITH
+    LABELS AS (
+        SELECT c.page_id, c.row_cluster, c.cell_id, c.text, c.y,
+               COALESCE(CAST(ind.value AS INTEGER), 0) AS indent_level
+        FROM cells AS c
+        JOIN evidence AS sec
+          ON c.doc_id = sec.doc_id AND c.page_id = sec.page_id
+         AND c.row_cluster = sec.row_cluster AND c.cell_id = sec.cell_id
+         AND sec.source = 'section' AND sec.key = 'is_section_label'
+         AND sec.value = 'true'
+        LEFT JOIN evidence AS ind
+          ON c.doc_id = ind.doc_id AND c.page_id = ind.page_id
+         AND c.row_cluster = ind.row_cluster AND c.cell_id = ind.cell_id
+         AND ind.source = 'indent' AND ind.key = 'indent_level'
+        WHERE c.doc_id = {doc_id}
+    ),
+    -- For level 0: last label at indent 0 above each row
+    SCOPE_L0 AS (
+        SELECT c.page_id, c.row_cluster, c.cell_id,
+               LAST_VALUE(l.text IGNORE NULLS) OVER (
+                   PARTITION BY c.page_id
+                   ORDER BY c.row_cluster
+                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+               ) AS scope_text
+        FROM cells AS c
+        LEFT JOIN LABELS AS l
+          ON c.page_id = l.page_id
+         AND c.row_cluster = l.row_cluster
+         AND l.indent_level = 0
+        WHERE c.doc_id = {doc_id}
+    )
+    SELECT {doc_id}, page_id, row_cluster, cell_id,
+           'section' AS source,
+           'scope_l0' AS key,
+           scope_text AS value
+    FROM SCOPE_L0
+    WHERE scope_text IS NOT NULL
+    """)
+
+
 # ── All passes in order ────────────────────────────────────────────
 
 ALL_PASSES = [
+    # No dependencies:
     ("style_histogram",   pass_style_histogram),
     ("pattern_match",     pass_pattern_match),
     ("page_position",     pass_page_position),
     ("color_outlier",     pass_color_outlier),
     ("cross_page",        pass_cross_page),
-    # These depend on pattern evidence existing:
+    # Depends on pattern:
     ("row_geometry",      pass_row_geometry),
     ("column_alignment",  pass_column_alignment),
     ("table_regions",     pass_table_regions),
+    # Depends on row_geometry / column_alignment:
+    ("blocks",            pass_blocks),
+    ("indent_levels",     pass_indent_levels),
+    ("alignment",         pass_alignment),
+    ("section_scope",     pass_section_scope),
+    # Probe bitmap (runs after all other evidence is in place):
+    ("cell_probes",       pass_build_cell_probes),
 ]
 
 
@@ -675,6 +1151,43 @@ def report(con, doc_id=1):
             print(f"    rank={int(r['style_rank'])} p{int(r['page_id'])} "
                   f"y={yf} {repr(r['text'][:50])}")
 
+    # Blocks
+    blocks = con.execute(f"""
+        SELECT DISTINCT value FROM row_evidence
+        WHERE doc_id = {doc_id} AND source = 'block' AND key = 'block_id'
+    """).fetchdf()
+    print(f"  Blocks: {len(blocks)}")
+
+    # Alignment distribution
+    align = con.execute(f"""
+        SELECT value, COUNT(*) AS n FROM evidence
+        WHERE doc_id = {doc_id} AND source = 'alignment' AND key = 'type'
+        GROUP BY value ORDER BY n DESC
+    """).fetchdf()
+    if len(align) > 0:
+        print(f"  Alignment: {dict(zip(align['value'], align['n']))}")
+
+    # Section labels
+    sections = con.execute(f"""
+        SELECT c.text, c.page_id, c.row_cluster,
+               ind.value AS indent
+        FROM evidence AS e
+        JOIN cells AS c USING (doc_id, page_id, row_cluster, cell_id)
+        LEFT JOIN evidence AS ind
+          ON c.doc_id = ind.doc_id AND c.page_id = ind.page_id
+         AND c.row_cluster = ind.row_cluster AND c.cell_id = ind.cell_id
+         AND ind.source = 'indent' AND ind.key = 'indent_level'
+        WHERE e.doc_id = {doc_id} AND e.source = 'section'
+          AND e.key = 'is_section_label' AND e.value = 'true'
+        ORDER BY c.page_id, c.row_cluster
+        LIMIT 15
+    """).fetchdf()
+    if len(sections) > 0:
+        print(f"\n  Section labels:")
+        for _, s in sections.iterrows():
+            ind = f"L{s['indent']}" if s['indent'] else '?'
+            print(f"    p{int(s['page_id'])} {ind} {repr(s['text'][:60])}")
+
     # Evidence summary for a sample cell: show all evidence for
     # the first typed cell
     sample = con.execute(f"""
@@ -700,6 +1213,38 @@ def report(con, doc_id=1):
         for _, e in cell_ev.iterrows():
             print(f"    {e['source']:<16s} {e['key']:<25s} {e['value']}")
 
+        # Show probe bitmap for same cell
+        probes = con.execute(f"""
+            SELECT pr.ordinal, pr.uri, pr.name
+            FROM cell_probes AS cp,
+                 LATERAL UNNEST(bf_to_array(cp.probes)) AS t(ordinal)
+            JOIN probe_registry AS pr ON pr.ordinal = t.ordinal::INTEGER
+            WHERE cp.doc_id = {doc_id}
+              AND cp.page_id = {int(s['page_id'])}
+              AND cp.row_cluster = {int(s['row_cluster'])}
+              AND cp.cell_id = {int(s['cell_id'])}
+            ORDER BY pr.ordinal
+        """).fetchdf()
+        if len(probes) > 0:
+            print(f"\n  Probe bitmap ({len(probes)} probes matched):")
+            for _, p in probes.iterrows():
+                print(f"    [{int(p['ordinal']):3d}] {p['uri']:<30s} {p['name']}")
+
+    # Probe coverage summary
+    probe_stats = con.execute(f"""
+        SELECT pr.uri, pr.name, COUNT(*) AS n_cells
+        FROM cell_probes AS cp,
+             LATERAL UNNEST(bf_to_array(cp.probes)) AS t(ordinal)
+        JOIN probe_registry AS pr ON pr.ordinal = t.ordinal::INTEGER
+        WHERE cp.doc_id = {doc_id}
+        GROUP BY pr.uri, pr.name
+        ORDER BY n_cells DESC
+    """).fetchdf()
+    if len(probe_stats) > 0:
+        print(f"\n  Probe coverage (cells matching each probe):")
+        for _, p in probe_stats.iterrows():
+            print(f"    {p['uri']:<30s} {int(p['n_cells']):5d}")
+
 
 # ── Main ────────────────────────────────────────────────────────────
 
@@ -719,10 +1264,12 @@ def run(con, filepath, doc_id=1):
 
 
 def init_connection():
-    """Create a DuckDB connection with extension loaded and schema ready."""
+    """Create a DuckDB connection with extensions loaded, schema and registry ready."""
     con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
-    con.execute(f"LOAD '{EXT}'")
+    con.execute(f"LOAD '{EXT_BBOXES}'")
+    con.execute(f"LOAD '{EXT_FILTERS}'")
     create_schema(con)
+    seed_probe_registry(con)
     return con
 
 
