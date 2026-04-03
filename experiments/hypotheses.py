@@ -45,6 +45,13 @@ def create_hypothesis_tables(con):
         detail      VARCHAR
     );
 
+    CREATE TABLE IF NOT EXISTS roles (
+        role        VARCHAR PRIMARY KEY,
+        priority    INTEGER NOT NULL,    -- lower = stronger (wins ties)
+        description VARCHAR,
+        color       VARCHAR              -- for visualization
+    );
+
     CREATE TABLE IF NOT EXISTS treemap (
         doc_id      INTEGER NOT NULL DEFAULT 1,
         page_id     INTEGER NOT NULL,
@@ -54,6 +61,25 @@ def create_hypothesis_tables(con):
         role        VARCHAR              -- winning hypothesis
     );
     """)
+
+
+def seed_roles(con):
+    """Populate the role priority table."""
+    roles = [
+        ('chrome',        1, 'Page chrome: headers, footers, page numbers',        'dim red'),
+        ('col_header',    2, 'Column header above a data region',                  'bold cyan'),
+        ('section_label', 3, 'Section/scope label (bold, leftmost, non-data)',     'bold yellow'),
+        ('field_label',   4, 'Key in a key-value pair (left cell of 2-cell row)',  'magenta'),
+        ('field_value',   5, 'Value in a key-value pair (right cell of 2-cell row)', 'bright_magenta'),
+        ('measure',       6, 'Numeric data value in a table',                      'green'),
+        ('row_label',     7, 'Row label (leftmost non-numeric cell in data row)',  'blue'),
+        ('prose',         8, 'Body text / narrative (dominant style, non-numeric)', 'white'),
+        ('unresolved',    9, 'No hypothesis survived constraints',                 'dim white'),
+    ]
+    con.executemany(
+        "INSERT OR IGNORE INTO roles VALUES (?,?,?,?)",
+        roles
+    )
 
 
 def seed_constraints(con):
@@ -418,18 +444,9 @@ def resolve_hypotheses(con, doc_id=1):
     WITH
     SURVIVING AS (
         SELECT h.*, h.support - h.against AS net,
-               CASE h.hypothesis
-                   WHEN 'chrome'        THEN 1
-                   WHEN 'col_header'    THEN 2
-                   WHEN 'section_label' THEN 3
-                   WHEN 'field_label'   THEN 4
-                   WHEN 'field_value'   THEN 5
-                   WHEN 'measure'       THEN 6
-                   WHEN 'row_label'     THEN 7
-                   WHEN 'prose'         THEN 8
-                   ELSE 9
-               END AS priority
+               COALESCE(r.priority, 99) AS priority
         FROM hypotheses AS h
+        LEFT JOIN roles AS r ON h.hypothesis = r.role
         WHERE h.doc_id = {doc_id}
           AND h.support > h.against
           -- Exclude violated hypotheses
@@ -739,6 +756,7 @@ if __name__ == "__main__":
 
     con = init_connection()
     create_hypothesis_tables(con)
+    seed_roles(con)
     seed_constraints(con)
 
     cases = [
