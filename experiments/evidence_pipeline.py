@@ -29,8 +29,27 @@ Tables:
 import duckdb
 from pathlib import Path
 
-EXT_BBOXES = "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension"
-EXT_FILTERS = "/Users/paulharrington/checkouts/blobfilters/build/duckdb/blobfilters.duckdb_extension"
+
+def _find_extension(package_name, fallback_path):
+    """Find extension: prefer local build (freshest), then installed package."""
+    # Local build is always freshest during development
+    if Path(fallback_path).exists():
+        return fallback_path
+    try:
+        mod = __import__(package_name)
+        return mod.extension_path()
+    except (ImportError, FileNotFoundError):
+        raise FileNotFoundError(
+            f"Extension not found: build at {fallback_path} "
+            f"or install {package_name} package")
+
+
+EXT_BBOXES = _find_extension(
+    "blobboxes_duckdb",
+    "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension")
+EXT_FILTERS = _find_extension(
+    "blobfilters_duckdb",
+    "/Users/paulharrington/checkouts/blobfilters/build/duckdb/blobfilters.duckdb_extension")
 DOMAIN_DB = "/Users/paulharrington/checkouts/blobfilters/data/domains.duckdb"
 
 
