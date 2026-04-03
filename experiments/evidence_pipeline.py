@@ -1185,6 +1185,103 @@ def pass_section_scope(con, doc_id=1):
     """)
 
 
+def pass_token_domain_probing(con, doc_id=1):
+    """Tokenize cell text, probe tokens against domain filters.
+
+    Unlike the boolean cell-level probe (which hashes the whole cell),
+    this splits cell text into tokens and checks each token individually.
+    Produces valued evidence:
+      - domain_token_hits: how many tokens matched this domain
+      - domain_containment: fraction of tokens that matched
+
+    This catches multi-token cells like "Sunnyvale, California 94086 USA"
+    where individual tokens match different domains.
+    """
+    n_domain_probes = con.execute(
+        "SELECT COUNT(*) FROM probe_registry WHERE kind = 'domain'"
+    ).fetchone()[0]
+    if n_domain_probes == 0:
+        return
+
+    # Step 1: tokenize cells — split on whitespace and common punctuation
+    # Keep only tokens with length > 1 (skip single chars)
+    con.execute(f"""
+    CREATE OR REPLACE TEMP TABLE _cell_tokens AS
+    SELECT c.page_id, c.row_cluster, c.cell_id,
+           t.token,
+           bf_hash_normalized(t.token)::UINTEGER AS token_hash
+    FROM cells AS c,
+         LATERAL UNNEST(
+             string_split_regex(TRIM(c.text), '[\\s,;:()\\[\\]/]+')
+         ) AS t(token)
+    WHERE c.doc_id = {doc_id}
+      AND LENGTH(TRIM(c.text)) > 1
+      AND LENGTH(t.token) > 1
+    """)
+
+    n_tokens = con.execute("SELECT COUNT(*) FROM _cell_tokens").fetchone()[0]
+    if n_tokens == 0:
+        con.execute("DROP TABLE IF EXISTS _cell_tokens")
+        return
+
+    # Step 2: build doc-level token bitmap for fast domain screening
+    con.execute("""
+    CREATE OR REPLACE TEMP TABLE _token_bitmap AS
+    SELECT bf_from_array(LIST(DISTINCT token_hash)::UINTEGER[]) AS bm
+    FROM _cell_tokens
+    """)
+
+    # Step 3: find domains with any intersection
+    con.execute("""
+    CREATE OR REPLACE TEMP TABLE _token_matching_domains AS
+    SELECT pr.ordinal, pr.uri, d.bitmap
+    FROM probe_registry AS pr
+    JOIN domaindb.domains AS d ON d.uri = pr.uri
+    WHERE pr.kind = 'domain'
+      AND bf_intersection_card(d.bitmap,
+          (SELECT bm FROM _token_bitmap)) > 0
+    """)
+
+    n_matching = con.execute(
+        "SELECT COUNT(*) FROM _token_matching_domains"
+    ).fetchone()[0]
+
+    if n_matching > 0:
+        # Step 4: for each cell, count how many tokens hit each domain
+        # and compute containment (hits / total tokens in cell)
+        con.execute(f"""
+        INSERT INTO evidence
+        WITH
+        TOKEN_HITS AS (
+            SELECT ct.page_id, ct.row_cluster, ct.cell_id,
+                   md.uri AS domain_uri, md.ordinal,
+                   COUNT(*) AS n_hits
+            FROM _cell_tokens AS ct
+            JOIN _token_matching_domains AS md
+              ON bf_contains(md.bitmap, ct.token_hash)
+            GROUP BY ct.page_id, ct.row_cluster, ct.cell_id,
+                     md.uri, md.ordinal
+        ),
+        CELL_TOKEN_COUNTS AS (
+            SELECT page_id, row_cluster, cell_id,
+                   COUNT(*) AS n_tokens
+            FROM _cell_tokens
+            GROUP BY page_id, row_cluster, cell_id
+        )
+        SELECT {doc_id}, th.page_id, th.row_cluster, th.cell_id,
+               'token_domain' AS source,
+               th.domain_uri AS key,
+               CAST(ROUND(th.n_hits::DOUBLE / tc.n_tokens, 3) AS VARCHAR) AS value
+        FROM TOKEN_HITS AS th
+        JOIN CELL_TOKEN_COUNTS AS tc USING (page_id, row_cluster, cell_id)
+        WHERE th.n_hits >= 1
+        """)
+
+    con.execute("DROP TABLE IF EXISTS _cell_tokens")
+    con.execute("DROP TABLE IF EXISTS _token_bitmap")
+    con.execute("DROP TABLE IF EXISTS _token_matching_domains")
+
+
 # ── All passes in order ────────────────────────────────────────────
 
 ALL_PASSES = [
@@ -1203,6 +1300,8 @@ ALL_PASSES = [
     ("indent_levels",     pass_indent_levels),
     ("alignment",         pass_alignment),
     ("section_scope",     pass_section_scope),
+    # Token-level domain probing (valued evidence, not just boolean):
+    ("token_domains",     pass_token_domain_probing),
     # Probe bitmap (runs after all other evidence is in place):
     ("cell_probes",       pass_build_cell_probes),
 ]
