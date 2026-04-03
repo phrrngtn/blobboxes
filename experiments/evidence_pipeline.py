@@ -31,6 +31,7 @@ from pathlib import Path
 
 EXT_BBOXES = "/Users/paulharrington/checkouts/blobboxes/build/duckdb/bboxes.duckdb_extension"
 EXT_FILTERS = "/Users/paulharrington/checkouts/blobfilters/build/duckdb/blobfilters.duckdb_extension"
+DOMAIN_DB = "/Users/paulharrington/checkouts/blobfilters/data/domains.duckdb"
 
 
 def create_schema(con):
@@ -273,176 +274,292 @@ def seed_probe_registry(con):
       100-199: style/visual probes
       200-299: spatial/geometric probes
       300-399: cross-page probes
-      1000+:   domain filter probes (loaded from blobfilters)
+      1000+:   domain filter probes (loaded from ATTACHed databases)
     """
-    con.execute("""
-    INSERT OR IGNORE INTO probe_registry VALUES
-    -- ── Text pattern probes (0-99) ──────────────────────────────
-    (0,  'pattern:numeric',    'Numeric',      'try_cast',
-     'TRY_CAST(REPLACE(REPLACE(REPLACE(text,'','',''),''$'',''''),'' '','''') AS DOUBLE) IS NOT NULL',
-     'Cell text is castable to a number (after stripping $, comma, space)',
-     '["numeric"]'),
-    (1,  'pattern:year',       'Year',         'regex',
-     '^\\d{4}$ AND BETWEEN 1900 AND 2099',
-     'Standalone 4-digit year',
-     '["numeric","temporal"]'),
-    (2,  'pattern:date',       'Date',         'try_cast',
-     'TRY_CAST(text AS DATE) IS NOT NULL',
-     'Cell text parses as a date',
-     '["temporal"]'),
-    (3,  'pattern:currency',   'Currency',     'regex',
-     '^\\$[\\d,.]+$',
-     'Dollar-prefixed number',
-     '["numeric","financial"]'),
-    (4,  'pattern:percentage',  'Percentage',  'regex',
-     '^[\\d,.]+\\s*%$',
-     'Number followed by percent sign',
-     '["numeric"]'),
-    (5,  'pattern:zip_code',   'ZIP Code',     'regex',
-     '^\\d{5}(-\\d{4})?$',
-     'US ZIP code (5 or 5+4 digit)',
-     '["geographic","code"]'),
-    (6,  'pattern:iso_date',   'ISO Date',     'regex',
-     '^\\d{4}-\\d{2}-\\d{2}',
-     'ISO 8601 date prefix',
-     '["temporal"]'),
-    (7,  'pattern:integer',    'Integer',      'try_cast',
-     'TRY_CAST(REPLACE(text,'','','''') AS BIGINT) IS NOT NULL',
-     'Cell text is a pure integer (after stripping commas)',
-     '["numeric"]'),
-    (8,  'pattern:negative',   'Negative',     'regex',
-     '^\\([\\d,.]+\\)$',
-     'Parenthesized number (accounting negative)',
-     '["numeric","financial"]'),
-    (9,  'pattern:em_dash',    'Em Dash',      'regex',
-     '^[—–-]$',
-     'Single dash/em-dash (null marker in financial tables)',
-     '["financial","null_marker"]'),
+    # Use parameterized inserts to avoid quoting hell
+    probes = [
+        # ── Text pattern probes (0-99) ───────────────────────────
+        # Regex probes: definition is a DuckDB-compatible regexp
+        (0,  'pattern:numeric',    'Numeric',     'try_cast', None,
+         'Cell text castable to number (after stripping $, comma, space)',
+         '["numeric"]'),
+        (1,  'pattern:year',       'Year',        'regex',    r'^\d{4}$',
+         'Standalone 4-digit year (1900-2099)',
+         '["numeric","temporal"]'),
+        (2,  'pattern:date',       'Date',        'try_cast', None,
+         'Cell text parses as a date',
+         '["temporal"]'),
+        (3,  'pattern:currency',   'Currency',    'regex',    r'^\$[\d,.]+$',
+         'Dollar-prefixed number',
+         '["numeric","financial"]'),
+        (4,  'pattern:percentage', 'Percentage',  'regex',    r'^[\d,.]+\s*%$',
+         'Number followed by percent sign',
+         '["numeric"]'),
+        (5,  'pattern:zip_code',   'ZIP Code',    'regex',    r'^\d{5}(-\d{4})?$',
+         'US ZIP code (5 or 5+4 digit)',
+         '["geographic","code"]'),
+        (6,  'pattern:iso_date',   'ISO Date',    'regex',    r'^\d{4}-\d{2}-\d{2}',
+         'ISO 8601 date prefix',
+         '["temporal"]'),
+        (7,  'pattern:integer',    'Integer',     'try_cast', None,
+         'Cell text is a pure integer (after stripping commas)',
+         '["numeric"]'),
+        (8,  'pattern:negative',   'Negative',    'regex',    r'^\([\d,.]+\)$',
+         'Parenthesized number (accounting negative)',
+         '["numeric","financial"]'),
+        (9,  'pattern:em_dash',    'Em Dash',     'regex',    r'^[—–\-]$',
+         'Single dash/em-dash (null marker in financial tables)',
+         '["financial","null_marker"]'),
 
-    -- ── Style/visual probes (100-199) ───────────────────────────
-    (100, 'style:bold',         'Bold',         'style',
-     'weight = ''bold''',
-     'Cell uses bold font weight',
-     '["style"]'),
-    (101, 'style:italic',       'Italic',       'style',
-     'font_name ILIKE ''%italic%''',
-     'Cell uses italic font',
-     '["style"]'),
-    (102, 'style:dominant',     'Dominant Style','style',
-     'style_rank = 1',
-     'Cell uses the most common style on the page',
-     '["style"]'),
-    (103, 'style:rare',         'Rare Style',   'style',
-     'style_rank >= 3',
-     'Cell uses a style with rank >= 3 (uncommon)',
-     '["style","structural"]'),
-    (104, 'style:color_outlier','Color Outlier', 'style',
-     'color != dominant_color',
-     'Cell color differs from the dominant style color',
-     '["style","structural"]'),
+        # ── Style/visual probes (100-199) ────────────────────────
+        (100, 'style:bold',         'Bold',           'style', None,
+         'Cell uses bold font weight', '["style"]'),
+        (101, 'style:italic',       'Italic',         'style', None,
+         'Cell uses italic font', '["style"]'),
+        (102, 'style:dominant',     'Dominant Style', 'style', None,
+         'Most common style on the page', '["style"]'),
+        (103, 'style:rare',         'Rare Style',     'style', None,
+         'Style rank >= 3 (uncommon)', '["style","structural"]'),
+        (104, 'style:color_outlier','Color Outlier',  'style', None,
+         'Color differs from dominant style', '["style","structural"]'),
 
-    -- ── Spatial/geometric probes (200-299) ───────────────────────
-    (200, 'spatial:top_10pct',   'Top 10%',     'spatial',
-     'y_frac < 0.1',
-     'Cell is in the top 10% of page content area',
-     '["position","chrome"]'),
-    (201, 'spatial:bottom_10pct','Bottom 10%',  'spatial',
-     'y_frac > 0.9',
-     'Cell is in the bottom 10% of page content area',
-     '["position","chrome"]'),
-    (202, 'spatial:leftmost',    'Leftmost',    'spatial',
-     'x <= row_min_x + 5',
-     'Cell is at or near the left edge of its row',
-     '["position","label"]'),
-    (203, 'spatial:in_table',    'In Table',    'spatial',
-     'row is within a detected table region',
-     'Cell belongs to a detected table region',
-     '["table"]'),
-    (204, 'spatial:above_data',  'Above Data',  'spatial',
-     'row is 1-5 rows above a data region',
-     'Cell is in header position relative to a table',
-     '["table","header"]'),
-    (205, 'spatial:subtends_col','Subtends Col', 'spatial',
-     'cell x-range overlaps a putative column',
-     'Cell horizontally overlaps an x-aligned column of typed cells',
-     '["table","column"]'),
-    (206, 'spatial:in_data_rows','In Data Rows', 'spatial',
-     'row is a data row (>= 2 typed cells)',
-     'Cell is in a row with multiple typed (numeric/date) cells',
-     '["table"]'),
+        # ── Spatial/geometric probes (200-299) ───────────────────
+        (200, 'spatial:top_10pct',   'Top 10%',      'spatial', None,
+         'In the top 10% of page content area', '["position","chrome"]'),
+        (201, 'spatial:bottom_10pct','Bottom 10%',   'spatial', None,
+         'In the bottom 10% of page content area', '["position","chrome"]'),
+        (202, 'spatial:leftmost',    'Leftmost',     'spatial', None,
+         'At or near the left edge of its row', '["position","label"]'),
+        (203, 'spatial:in_table',    'In Table',     'spatial', None,
+         'Within a detected table region', '["table"]'),
+        (204, 'spatial:above_data',  'Above Data',   'spatial', None,
+         'In header position (1-5 rows above data)', '["table","header"]'),
+        (205, 'spatial:subtends_col','Subtends Col', 'spatial', None,
+         'Horizontally overlaps a putative column', '["table","column"]'),
+        (206, 'spatial:in_data_rows','In Data Rows', 'spatial', None,
+         'In a row with >= 2 typed cells', '["table"]'),
 
-    -- ── Cross-page probes (300-399) ──────────────────────────────
-    (300, 'cross_page:repeated', 'Repeated Text','cross_page',
-     'same text at same y on multiple pages',
-     'Cell text appears at the same vertical position on 2+ pages',
-     '["chrome","header","footer"]')
-    """)
+        # ── Cross-page probes (300-399) ──────────────────────────
+        (300, 'cross_page:repeated','Repeated Text', 'cross_page', None,
+         'Same text at same y on 2+ pages', '["chrome","header","footer"]'),
+    ]
+    con.executemany(
+        "INSERT OR IGNORE INTO probe_registry VALUES (?,?,?,?,?,?,?)",
+        probes
+    )
+
+
+def seed_domain_probes(con, domain_db_path=DOMAIN_DB):
+    """Seed probe_registry with domain probes from an ATTACHed database.
+
+    Each domain gets an ordinal starting at 1000. The URI from the
+    domains table becomes the probe URI. The bitmap stays in the
+    attached database — probed at query time via bf_contains.
+    """
+    db_path = Path(domain_db_path)
+    if not db_path.exists():
+        return 0
+
+    con.execute(f"ATTACH '{db_path}' AS domaindb (READ_ONLY)")
+
+    # Assign ordinals starting at 1000, ordered by URI for stability
+    n = con.execute("""
+    INSERT OR IGNORE INTO probe_registry
+    SELECT 1000 + ROW_NUMBER() OVER (ORDER BY uri) - 1 AS ordinal,
+           uri,
+           name,
+           'domain' AS kind,
+           uri AS definition,   -- self-referencing: used to look up bitmap
+           source AS description,
+           tags
+    FROM domaindb.domains
+    ORDER BY uri
+    """).fetchone()
+
+    count = con.execute(
+        "SELECT COUNT(*) FROM probe_registry WHERE kind = 'domain'"
+    ).fetchone()[0]
+    return count
 
 
 def pass_build_cell_probes(con, doc_id=1):
     """Build per-cell roaring bitmaps from probe results.
 
-    Runs all probes against cells and stores the matching ordinals
-    as a roaring bitmap in cell_probes.
+    Drives off the probe_registry table:
+    - kind='regex':    JOIN cells × registry, filter by regexp_matches
+    - kind='try_cast': individual SQL expressions per probe URI
+    - kind='style':    cell metadata checks
+    - kind='spatial':  queries against accumulated evidence
+    - kind='domain':   bf_contains against ATTACHed domain bitmaps
+    - kind='cross_page': queries against cross_page evidence
+
+    Each kind produces (page_id, row_cluster, cell_id, ordinal) rows.
+    These are UNIONed, grouped per cell, and packed into a roaring bitmap.
     """
+    # Collect all matching (cell, ordinal) pairs into a temp table
+    con.execute(f"CREATE OR REPLACE TEMP TABLE _probe_hits (page_id INTEGER, row_cluster INTEGER, cell_id INTEGER, ordinal INTEGER)")
+
+    # ── Regex probes: driven entirely by registry ────────────────
+    con.execute(f"""
+    INSERT INTO _probe_hits
+    SELECT c.page_id, c.row_cluster, c.cell_id, pr.ordinal
+    FROM cells AS c
+    CROSS JOIN probe_registry AS pr
+    WHERE c.doc_id = {doc_id}
+      AND pr.kind = 'regex'
+      AND pr.definition IS NOT NULL
+      AND regexp_matches(TRIM(c.text), pr.definition)
+    """)
+
+    # ── Regex year needs extra range check ───────────────────────
+    con.execute(f"""
+    DELETE FROM _probe_hits
+    WHERE ordinal = (SELECT ordinal FROM probe_registry WHERE uri = 'pattern:year')
+      AND (page_id, row_cluster, cell_id) IN (
+          SELECT page_id, row_cluster, cell_id FROM cells
+          WHERE doc_id = {doc_id}
+            AND (TRY_CAST(TRIM(text) AS INTEGER) < 1900
+                 OR TRY_CAST(TRIM(text) AS INTEGER) > 2099)
+      )
+    """)
+
+    # ── TRY_CAST probes: each has its own SQL ────────────────────
+    # Read ordinals from registry so they're not hardcoded
+    try_cast_probes = con.execute(
+        "SELECT ordinal, uri FROM probe_registry WHERE kind = 'try_cast'"
+    ).fetchall()
+
+    for ordinal, uri in try_cast_probes:
+        if uri == 'pattern:numeric':
+            expr = "TRY_CAST(REPLACE(REPLACE(REPLACE(text, ',', ''), '$', ''), ' ', '') AS DOUBLE) IS NOT NULL"
+        elif uri == 'pattern:date':
+            expr = "TRY_CAST(text AS DATE) IS NOT NULL"
+        elif uri == 'pattern:integer':
+            expr = "TRY_CAST(REPLACE(text, ',', '') AS BIGINT) IS NOT NULL"
+        else:
+            continue
+        con.execute(f"""
+        INSERT INTO _probe_hits
+        SELECT page_id, row_cluster, cell_id, {ordinal}
+        FROM cells WHERE doc_id = {doc_id} AND {expr}
+        """)
+
+    # ── Style probes: cell metadata ──────────────────────────────
+    style_checks = {
+        'style:bold':          "weight = 'bold'",
+        'style:italic':        "font_name ILIKE '%italic%'",
+        'style:dominant':      "style_rank = 1",
+        'style:rare':          "style_rank >= 3",
+    }
+    for uri, expr in style_checks.items():
+        row = con.execute(
+            "SELECT ordinal FROM probe_registry WHERE uri = ?", [uri]
+        ).fetchone()
+        if row:
+            con.execute(f"""
+            INSERT INTO _probe_hits
+            SELECT page_id, row_cluster, cell_id, {row[0]}
+            FROM cells WHERE doc_id = {doc_id} AND {expr}
+            """)
+
+    # style:color_outlier — needs dominant color subquery
+    row = con.execute(
+        "SELECT ordinal FROM probe_registry WHERE uri = 'style:color_outlier'"
+    ).fetchone()
+    if row:
+        con.execute(f"""
+        INSERT INTO _probe_hits
+        SELECT page_id, row_cluster, cell_id, {row[0]}
+        FROM cells
+        WHERE doc_id = {doc_id}
+          AND color != (SELECT color FROM cells
+                        WHERE doc_id = {doc_id} AND style_rank = 1
+                        GROUP BY color ORDER BY COUNT(*) DESC LIMIT 1)
+        """)
+
+    # ── Spatial probes: from accumulated evidence ────────────────
+    spatial_evidence_checks = {
+        'spatial:top_10pct':    ("position", "is_top_10pct", "true"),
+        'spatial:bottom_10pct': ("position", "is_bottom_10pct", "true"),
+        'spatial:in_table':     ("table_region", "in_table", "true"),
+        'spatial:above_data':   ("table_region", "above_data", "true"),
+        'spatial:in_data_rows': ("table_region", "in_data_rows", "true"),
+        'spatial:subtends_col': ("column_align", "subtends_column", "true"),
+    }
+    for uri, (source, key, val) in spatial_evidence_checks.items():
+        row = con.execute(
+            "SELECT ordinal FROM probe_registry WHERE uri = ?", [uri]
+        ).fetchone()
+        if row:
+            con.execute(f"""
+            INSERT INTO _probe_hits
+            SELECT DISTINCT page_id, row_cluster, cell_id, {row[0]}
+            FROM evidence
+            WHERE doc_id = {doc_id}
+              AND source = '{source}' AND key = '{key}' AND value = '{val}'
+            """)
+
+    # spatial:leftmost — from row_geom evidence
+    row = con.execute(
+        "SELECT ordinal FROM probe_registry WHERE uri = 'spatial:leftmost'"
+    ).fetchone()
+    if row:
+        con.execute(f"""
+        INSERT INTO _probe_hits
+        SELECT DISTINCT page_id, row_cluster, cell_id, {row[0]}
+        FROM evidence
+        WHERE doc_id = {doc_id}
+          AND source = 'row_geom' AND key = 'is_leftmost' AND value = 'true'
+        """)
+
+    # ── Cross-page probes ────────────────────────────────────────
+    row = con.execute(
+        "SELECT ordinal FROM probe_registry WHERE uri = 'cross_page:repeated'"
+    ).fetchone()
+    if row:
+        con.execute(f"""
+        INSERT INTO _probe_hits
+        SELECT DISTINCT page_id, row_cluster, cell_id, {row[0]}
+        FROM evidence
+        WHERE doc_id = {doc_id}
+          AND source = 'cross_page' AND key = 'repeated_text_pages'
+        """)
+
+    # ── Domain probes (from ATTACHed databases) ──────────────────
+    # Hash each cell's text (normalized), then check bf_contains
+    # against each domain bitmap. This is a cross join but filtered
+    # by the bitmap check, so only actual matches produce rows.
+    n_domain_probes = con.execute(
+        "SELECT COUNT(*) FROM probe_registry WHERE kind = 'domain'"
+    ).fetchone()[0]
+
+    if n_domain_probes > 0:
+        con.execute(f"""
+        INSERT INTO _probe_hits
+        SELECT c.page_id, c.row_cluster, c.cell_id, pr.ordinal
+        FROM cells AS c
+        JOIN probe_registry AS pr ON pr.kind = 'domain'
+        JOIN domaindb.domains AS d ON d.uri = pr.uri
+        WHERE c.doc_id = {doc_id}
+          AND LENGTH(TRIM(c.text)) > 1
+          AND bf_contains(
+              d.bitmap,
+              bf_to_array(bf_build_json_normalized(
+                  '["' || REPLACE(REPLACE(c.text, '\\', '\\\\'), '"', '\\"') || '"]'
+              ))[1]::UINTEGER
+          )
+        """)
+
+    # ── Pack hits into roaring bitmaps ───────────────────────────
     con.execute(f"""
     INSERT INTO cell_probes
-    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
-           bf_from_array(LIST(DISTINCT ordinal ORDER BY ordinal)::UINTEGER[]) AS probes
-    FROM cells AS c
-
-    -- Text pattern probes
-    CROSS JOIN LATERAL (
-        SELECT UNNEST(CASE
-            WHEN TRY_CAST(REPLACE(REPLACE(REPLACE(c.text, ',', ''), '$', ''), ' ', '') AS DOUBLE) IS NOT NULL
-            THEN [0::INTEGER] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(TRIM(c.text), '^\\d{{4}}$')
-                      AND TRY_CAST(TRIM(c.text) AS INTEGER) BETWEEN 1900 AND 2099
-            THEN [1] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN TRY_CAST(c.text AS DATE) IS NOT NULL
-            THEN [2] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(c.text, '^\\$[\\d,.]+$')
-            THEN [3] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(c.text, '^[\\d,.]+\\s*%$')
-            THEN [4] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(c.text, '^\\d{{5}}(-\\d{{4}})?$')
-            THEN [5] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(c.text, '^\\d{{4}}-\\d{{2}}-\\d{{2}}')
-            THEN [6] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN TRY_CAST(REPLACE(c.text, ',', '') AS BIGINT) IS NOT NULL
-            THEN [7] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(c.text, '^\\([\\d,.]+\\)$')
-            THEN [8] ELSE []::INTEGER[] END
-            ||
-            CASE WHEN regexp_matches(TRIM(c.text), '^[—–-]$')
-            THEN [9] ELSE []::INTEGER[] END
-
-            -- Style probes
-            || CASE WHEN c.weight = 'bold' THEN [100] ELSE []::INTEGER[] END
-            || CASE WHEN c.font_name ILIKE '%italic%' THEN [101] ELSE []::INTEGER[] END
-            || CASE WHEN c.style_rank = 1 THEN [102] ELSE []::INTEGER[] END
-            || CASE WHEN c.style_rank >= 3 THEN [103] ELSE []::INTEGER[] END
-
-            -- Spatial probes (basic ones — position-based)
-            || CASE WHEN c.x <= (SELECT MIN(x) + 5 FROM cells AS c2
-                                  WHERE c2.doc_id = {doc_id}
-                                    AND c2.page_id = c.page_id
-                                    AND c2.row_cluster = c.row_cluster)
-               THEN [202] ELSE []::INTEGER[] END
-        ) AS ordinal
-    ) AS probes_lateral
-
-    WHERE c.doc_id = {doc_id}
-    GROUP BY c.page_id, c.row_cluster, c.cell_id
+    SELECT {doc_id}, page_id, row_cluster, cell_id,
+           bf_from_array(LIST(DISTINCT ordinal ORDER BY ordinal)::UINTEGER[])
+    FROM _probe_hits
+    GROUP BY page_id, row_cluster, cell_id
     """)
+
+    con.execute("DROP TABLE IF EXISTS _probe_hits")
 
 
 def pass_style_histogram(con, doc_id=1):
@@ -1270,6 +1387,9 @@ def init_connection():
     con.execute(f"LOAD '{EXT_FILTERS}'")
     create_schema(con)
     seed_probe_registry(con)
+    n_domains = seed_domain_probes(con)
+    if n_domains:
+        print(f"  Loaded {n_domains} domain probes from {DOMAIN_DB}")
     return con
 
 
