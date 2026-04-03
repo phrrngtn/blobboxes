@@ -126,6 +126,13 @@ def ingest(con, filepath, doc_id=1):
     """Extract bboxes, merge into cells, populate cells table."""
     fp = str(filepath)
 
+    # Extract to temp tables first — avoids a bug where calling bb(),
+    # bb_styles(), bb_fonts() as table functions inside the same CTE
+    # fails after many prior file extractions in the same connection.
+    con.execute(f"CREATE OR REPLACE TEMP TABLE _ingest_bb AS SELECT * FROM bb('{fp}')")
+    con.execute(f"CREATE OR REPLACE TEMP TABLE _ingest_st AS SELECT * FROM bb_styles('{fp}')")
+    con.execute(f"CREATE OR REPLACE TEMP TABLE _ingest_fn AS SELECT * FROM bb_fonts('{fp}')")
+
     con.execute(f"""
     INSERT INTO cells
     WITH
@@ -134,9 +141,9 @@ def ingest(con, filepath, doc_id=1):
                s.font_size, s.color, f.name AS font_name,
                CASE WHEN f.name ILIKE '%bold%' OR s.weight = 'bold'
                     THEN 'bold' ELSE 'normal' END AS eff_weight
-        FROM bb('{fp}') AS b
-        JOIN bb_styles('{fp}') AS s USING (style_id)
-        JOIN bb_fonts('{fp}') AS f USING (font_id)
+        FROM _ingest_bb AS b
+        JOIN _ingest_st AS s USING (style_id)
+        JOIN _ingest_fn AS f USING (font_id)
     ),
 
     STYLE_HIST AS (
@@ -250,6 +257,10 @@ def ingest(con, filepath, doc_id=1):
     FROM MERGED AS m
     LEFT JOIN STYLE_HIST AS sh USING (style_id)
     """)
+
+    con.execute("DROP TABLE IF EXISTS _ingest_bb")
+    con.execute("DROP TABLE IF EXISTS _ingest_st")
+    con.execute("DROP TABLE IF EXISTS _ingest_fn")
 
     n = con.execute(
         f"SELECT COUNT(*) FROM cells WHERE doc_id = {doc_id}"
