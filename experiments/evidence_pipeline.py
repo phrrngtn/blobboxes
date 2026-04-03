@@ -526,24 +526,55 @@ def pass_build_cell_probes(con, doc_id=1):
         """)
 
     # ── Domain probes (from ATTACHed databases) ──────────────────
-    # Hash each cell's text (normalized), then check bf_contains
-    # against each domain bitmap. This is a cross join but filtered
-    # by the bitmap check, so only actual matches produce rows.
+    # Strategy: compute hash once per cell into a temp table, then
+    # check each domain bitmap against the set of hashes. This avoids
+    # repeated bf_hash_normalized calls in the cross join.
     n_domain_probes = con.execute(
         "SELECT COUNT(*) FROM probe_registry WHERE kind = 'domain'"
     ).fetchone()[0]
 
     if n_domain_probes > 0:
+        # Step 1: hash each cell's text once
+        con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE _cell_hashes AS
+        SELECT page_id, row_cluster, cell_id,
+               bf_hash_normalized(text)::UINTEGER AS text_hash
+        FROM cells
+        WHERE doc_id = {doc_id} AND LENGTH(TRIM(text)) > 1
+        """)
+
+        # Step 2: build one bitmap of all doc hashes, then find which
+        # domains have ANY intersection. This is O(n_domains) bitmap
+        # intersections instead of O(n_cells × n_domains) bf_contains calls.
+        con.execute("""
+        CREATE OR REPLACE TEMP TABLE _doc_hash_bitmap AS
+        SELECT bf_from_array(LIST(DISTINCT text_hash)::UINTEGER[]) AS bm
+        FROM _cell_hashes
+        """)
+
+        # Step 3: find domains with non-zero intersection (cheap)
+        con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE _matching_domains AS
+        SELECT pr.ordinal, d.bitmap
+        FROM probe_registry AS pr
+        JOIN domaindb.domains AS d ON d.uri = pr.uri
+        WHERE pr.kind = 'domain'
+          AND bf_intersection_card(d.bitmap,
+              (SELECT bm FROM _doc_hash_bitmap)) > 0
+        """)
+
+        # Step 4: only for matching domains, check individual cells
         con.execute(f"""
         INSERT INTO _probe_hits
-        SELECT c.page_id, c.row_cluster, c.cell_id, pr.ordinal
-        FROM cells AS c
-        JOIN probe_registry AS pr ON pr.kind = 'domain'
-        JOIN domaindb.domains AS d ON d.uri = pr.uri
-        WHERE c.doc_id = {doc_id}
-          AND LENGTH(TRIM(c.text)) > 1
-          AND bf_contains(d.bitmap, bf_hash_normalized(c.text)::UINTEGER)
+        SELECT ch.page_id, ch.row_cluster, ch.cell_id, md.ordinal
+        FROM _cell_hashes AS ch
+        JOIN _matching_domains AS md
+          ON bf_contains(md.bitmap, ch.text_hash)
         """)
+
+        con.execute("DROP TABLE IF EXISTS _cell_hashes")
+        con.execute("DROP TABLE IF EXISTS _doc_hash_bitmap")
+        con.execute("DROP TABLE IF EXISTS _matching_domains")
 
     # ── Pack hits into roaring bitmaps ───────────────────────────
     con.execute(f"""
