@@ -167,24 +167,26 @@ def hypothesize_chrome(con, doc_id=1):
     -- Count supporting and contradicting evidence
     SCORED AS (
         SELECT cc.*,
-               -- Support: each of these counts as +1
-               (SELECT COUNT(*) FROM cell_probes AS cp
+               -- Support: count individual signals + cross-page repeat count
+               (SELECT
+                   CASE WHEN bf_contains(cp.probes, 300::UINTEGER) THEN 3 ELSE 0 END -- cross-page (strong)
+                 + CASE WHEN bf_contains(cp.probes, 103::UINTEGER) THEN 1 ELSE 0 END -- rare style
+                 + CASE WHEN bf_contains(cp.probes, 200::UINTEGER) THEN 1 ELSE 0 END -- top 10%
+                 + CASE WHEN bf_contains(cp.probes, 201::UINTEGER) THEN 1 ELSE 0 END -- bottom 10%
+                FROM cell_probes AS cp
                 WHERE cp.doc_id = {doc_id}
                   AND cp.page_id = cc.page_id
                   AND cp.row_cluster = cc.row_cluster
                   AND cp.cell_id = cc.cell_id
-                  AND (bf_contains(cp.probes, 300::UINTEGER)   -- cross-page repeated
-                       OR bf_contains(cp.probes, 103::UINTEGER) -- rare style
-                       OR bf_contains(cp.probes, 200::UINTEGER) -- top 10%
-                       OR bf_contains(cp.probes, 201::UINTEGER) -- bottom 10%
-                  )) AS support,
+               ) AS support,
                -- Against: in a table region
-               (SELECT COUNT(*) FROM cell_probes AS cp
+               (SELECT
+                   CASE WHEN bf_contains(cp.probes, 203::UINTEGER) THEN 1 ELSE 0 END
+                FROM cell_probes AS cp
                 WHERE cp.doc_id = {doc_id}
                   AND cp.page_id = cc.page_id
                   AND cp.row_cluster = cc.row_cluster
                   AND cp.cell_id = cc.cell_id
-                  AND bf_contains(cp.probes, 203::UINTEGER)  -- in_table
                ) AS against
         FROM CHROME_CANDIDATES AS cc
     )
@@ -626,40 +628,32 @@ def hypothesize_key_value_pairs(con, doc_id=1):
 
 
 def hypothesize_prose(con, doc_id=1):
-    """Hypothesize prose: cells not in table regions, not structural.
+    """Hypothesize prose: the catch-all default.
 
-    Prose is the default for cells that are:
-    - Not in a table region
-    - Not bold or rare style (those are structural)
-    - Not numeric (those are measures)
-    - Dominant style (body text)
+    Every cell gets a prose hypothesis. It has low support (1) so any
+    more specific hypothesis will beat it. But it ensures nothing stays
+    unresolved — "unresolved" should only mean "no hypothesis survived
+    constraint checking," not "we didn't bother to hypothesize."
 
-    This is a low-confidence catch-all — anything unresolved that
-    looks like body text.
+    Higher support for cells that look like body text (dominant style,
+    not numeric, not bold). Lower for cells that have structural signals.
     """
     con.execute(f"""
     INSERT INTO hypotheses
     SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
            'prose' AS hypothesis,
            NULL AS detail,
-           -- Support: dominant style + not in table + not numeric
-           (CASE WHEN bf_contains(cp.probes, 102::UINTEGER) THEN 1 ELSE 0 END  -- dominant
-            + CASE WHEN NOT bf_contains(cp.probes, 203::UINTEGER) THEN 1 ELSE 0 END  -- not in table
-            + CASE WHEN NOT bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END    -- not numeric
+           -- Support: baseline 1, bonus for prose-like features
+           1 + (CASE WHEN bf_contains(cp.probes, 102::UINTEGER) THEN 1 ELSE 0 END  -- dominant style
+              + CASE WHEN NOT bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END -- not numeric
            ) AS support,
-           -- Against: bold, rare, or numeric
-           (CASE WHEN bf_contains(cp.probes, 100::UINTEGER) THEN 1 ELSE 0 END  -- bold
-            + CASE WHEN bf_contains(cp.probes, 103::UINTEGER) THEN 1 ELSE 0 END -- rare
-            + CASE WHEN bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END   -- numeric
+           -- Against: signals that something else should claim this cell
+           (CASE WHEN bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END    -- numeric → measure
+            + CASE WHEN bf_contains(cp.probes, 206::UINTEGER) THEN 1 ELSE 0 END -- in data rows → table cell
            ) AS against
     FROM cells AS c
     JOIN cell_probes AS cp USING (doc_id, page_id, row_cluster, cell_id)
     WHERE c.doc_id = {doc_id}
-      -- Dominant style, not numeric, not bold
-      AND bf_contains(cp.probes, 102::UINTEGER)
-      AND NOT bf_contains(cp.probes, 0::UINTEGER)
-      AND NOT bf_contains(cp.probes, 100::UINTEGER)
-      AND LENGTH(TRIM(c.text)) > 1
     """)
 
 
