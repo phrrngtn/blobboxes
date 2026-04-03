@@ -829,6 +829,106 @@ def pass_column_alignment(con, doc_id=1):
     """)
 
 
+def pass_doc_profile(con, doc_id=1):
+    """Cheap coarse-level document classification from early evidence.
+
+    Runs after style_histogram and pattern_match. Uses the ratio of
+    measures, style count, KV-like rows, etc. to classify the document
+    into a profile that guides which domains to probe.
+
+    Profiles:
+      financial   — high measure ratio, few styles, bold section labels
+      tabular     — high measure ratio, many columns detected
+      form        — many KV pairs, structured layout, few measures
+      product     — mixed measures + text, sustainability terms likely
+      narrative   — low measure ratio, dominant style, mostly prose
+    """
+    stats = con.execute(f"""
+        SELECT
+            COUNT(*) AS n_cells,
+            COUNT(DISTINCT page_id) AS n_pages,
+            COUNT(DISTINCT style_id) AS n_styles,
+            SUM(CASE WHEN weight = 'bold' THEN 1 ELSE 0 END)::DOUBLE
+                / GREATEST(COUNT(*), 1) AS bold_ratio,
+            -- Pattern-based counts from evidence
+            (SELECT COUNT(*) FROM evidence
+             WHERE doc_id = {doc_id} AND source = 'pattern'
+               AND key = 'type' AND value IN ('measure','currency'))
+                ::DOUBLE / GREATEST(COUNT(*), 1) AS measure_ratio,
+            (SELECT COUNT(*) FROM evidence
+             WHERE doc_id = {doc_id} AND source = 'pattern'
+               AND key = 'type' AND value = 'year')
+                AS n_years,
+            (SELECT COUNT(*) FROM evidence
+             WHERE doc_id = {doc_id} AND source = 'pattern'
+               AND key = 'type' AND value = 'percentage')
+                AS n_percentages,
+            -- 2-cell rows (KV candidates)
+            (SELECT COUNT(*) FROM (
+                SELECT page_id, row_cluster
+                FROM cells WHERE doc_id = {doc_id}
+                GROUP BY page_id, row_cluster
+                HAVING COUNT(*) = 2
+            ))::DOUBLE / GREATEST(
+                (SELECT COUNT(DISTINCT (page_id, row_cluster))
+                 FROM cells WHERE doc_id = {doc_id}), 1) AS kv_row_ratio
+        FROM cells WHERE doc_id = {doc_id}
+    """).fetchone()
+
+    n_cells, n_pages, n_styles, bold_ratio, measure_ratio, \
+        n_years, n_pcts, kv_ratio = stats
+
+    # Classify profile
+    profiles = []
+    if measure_ratio > 0.3 and n_years > 0:
+        profiles.append(('financial', 0.8))
+    if measure_ratio > 0.2:
+        profiles.append(('tabular', 0.6))
+    if kv_ratio > 0.3 and measure_ratio < 0.2:
+        profiles.append(('form', 0.7))
+    if n_styles >= 4 and kv_ratio > 0.1 and measure_ratio > 0.05:
+        profiles.append(('product', 0.6))
+    if measure_ratio < 0.1 and bold_ratio < 0.1:
+        profiles.append(('narrative', 0.7))
+
+    if not profiles:
+        profiles.append(('general', 0.5))
+
+    # Write doc-level evidence
+    for profile, confidence in profiles:
+        con.execute(f"""
+        INSERT INTO doc_evidence VALUES
+            ({doc_id}, 'doc_profile', 'profile', '{profile}')
+        """)
+        con.execute(f"""
+        INSERT INTO doc_evidence VALUES
+            ({doc_id}, 'doc_profile', '{profile}_confidence',
+             '{confidence}')
+        """)
+
+    # Write domain group recommendations
+    domain_groups = {
+        'financial':  ['financial', 'corporate', 'sec'],
+        'tabular':    ['geographic', 'code'],
+        'form':       ['geographic', 'code', 'corporate'],
+        'product':    ['mep', 'equipment', 'materials'],
+        'narrative':  ['general'],
+        'general':    [],
+    }
+
+    recommended = set()
+    for profile, _ in profiles:
+        for group in domain_groups.get(profile, []):
+            recommended.add(group)
+
+    if recommended:
+        con.execute(f"""
+        INSERT INTO doc_evidence VALUES
+            ({doc_id}, 'doc_profile', 'domain_groups',
+             '{",".join(sorted(recommended))}')
+        """)
+
+
 def pass_cross_page(con, doc_id=1):
     """Repeated text at same y-position across pages → chrome."""
     n_pages = con.execute(
@@ -1373,6 +1473,8 @@ ALL_PASSES = [
     # No dependencies:
     ("style_histogram",   pass_style_histogram),
     ("pattern_match",     pass_pattern_match),
+    # Doc profile (depends on style + pattern):
+    ("doc_profile",       pass_doc_profile),
     ("page_position",     pass_page_position),
     ("color_outlier",     pass_color_outlier),
     ("cross_page",        pass_cross_page),
