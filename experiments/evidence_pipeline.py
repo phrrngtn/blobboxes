@@ -1367,7 +1367,25 @@ def pass_token_domain_probing(con, doc_id=1):
     """)
 
     # Step 3: find domains with any intersection
-    con.execute("""
+    # Optionally filter by doc profile's recommended domain groups
+    domain_group_filter = ""
+    try:
+        groups = con.execute(f"""
+            SELECT value FROM doc_evidence
+            WHERE doc_id = {doc_id} AND source = 'doc_profile'
+              AND key = 'domain_groups'
+        """).fetchone()
+        if groups and groups[0]:
+            group_list = groups[0].split(',')
+            # Build a tag filter: domain tags must overlap with recommended groups
+            tag_conditions = " OR ".join(
+                f"d.tags LIKE '%\"{g}\"%'" for g in group_list
+            )
+            domain_group_filter = f"AND ({tag_conditions} OR d.tags LIKE '%\"general\"%')"
+    except Exception:
+        pass  # no filtering if doc_profile not available
+
+    con.execute(f"""
     CREATE OR REPLACE TEMP TABLE _token_matching_domains AS
     SELECT pr.ordinal, pr.uri, d.bitmap
     FROM probe_registry AS pr
@@ -1375,6 +1393,7 @@ def pass_token_domain_probing(con, doc_id=1):
     WHERE pr.kind = 'domain'
       AND bf_intersection_card(d.bitmap,
           (SELECT bm FROM _token_bitmap)) > 0
+      {domain_group_filter}
     """)
 
     n_matching = con.execute(
