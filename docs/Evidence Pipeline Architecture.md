@@ -320,8 +320,7 @@ Aggregate token-domain hits per putative column. "90% of cells in
 column 3 match `domain:fips_state_codes`" is a high-confidence
 classification that individual cell probes can't achieve.
 
-This is the **set-oriented probing** from [[Hash Collision Analysis
-for Domain Filters#Set-Oriented Probing vs Single-Element Probing]] —
+This is the **set-oriented probing** from [[Hash Collision Analysis for Domain Filters#Set-Oriented Probing vs Single-Element Probing]] —
 the false positive rate drops exponentially with column size.
 
 ### Pass 15: Cell probes (`pass_build_cell_probes`)
