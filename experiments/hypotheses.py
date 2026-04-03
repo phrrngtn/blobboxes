@@ -422,9 +422,12 @@ def resolve_hypotheses(con, doc_id=1):
                    WHEN 'chrome'        THEN 1
                    WHEN 'col_header'    THEN 2
                    WHEN 'section_label' THEN 3
-                   WHEN 'measure'       THEN 4
-                   WHEN 'row_label'     THEN 5
-                   ELSE 6
+                   WHEN 'field_label'   THEN 4
+                   WHEN 'field_value'   THEN 5
+                   WHEN 'measure'       THEN 6
+                   WHEN 'row_label'     THEN 7
+                   WHEN 'prose'         THEN 8
+                   ELSE 9
                END AS priority
         FROM hypotheses AS h
         WHERE h.doc_id = {doc_id}
@@ -533,12 +536,124 @@ def assemble_treemap_paths(con, doc_id=1):
     """)
 
 
+def hypothesize_key_value_pairs(con, doc_id=1):
+    """Hypothesize key-value pairs: 2-cell rows outside table regions.
+
+    Pattern: a row with exactly 2 cells where the left cell is a label
+    and the right cell is a value. Common in forms, metadata sections,
+    product specifications, header blocks.
+
+    The left cell becomes 'field_label', the right becomes 'field_value'.
+
+    Support: 2-cell row, not in table, leftmost (for label)
+    Against: in data rows (that's a table, not a KV pair)
+    """
+    # First: find 2-cell rows outside table regions
+    con.execute(f"""
+    INSERT INTO hypotheses
+    WITH
+    ROW_CELL_COUNTS AS (
+        SELECT page_id, row_cluster, COUNT(*) AS n_cells
+        FROM cells WHERE doc_id = {doc_id}
+        GROUP BY page_id, row_cluster
+    ),
+    -- Rows with exactly 2 cells
+    KV_ROWS AS (
+        SELECT rcc.page_id, rcc.row_cluster
+        FROM ROW_CELL_COUNTS AS rcc
+        WHERE rcc.n_cells = 2
+    ),
+    -- Tag each cell in a KV row as label (leftmost) or value (other)
+    KV_CELLS AS (
+        SELECT c.page_id, c.row_cluster, c.cell_id, c.x, c.text,
+               ROW_NUMBER() OVER (
+                   PARTITION BY c.page_id, c.row_cluster ORDER BY c.x
+               ) AS pos
+        FROM cells AS c
+        JOIN KV_ROWS AS kv USING (page_id, row_cluster)
+        WHERE c.doc_id = {doc_id}
+    )
+    SELECT {doc_id}, kvc.page_id, kvc.row_cluster, kvc.cell_id,
+           CASE WHEN kvc.pos = 1 THEN 'field_label'
+                ELSE 'field_value' END AS hypothesis,
+           -- Detail: for field_value, store the label text as context
+           CASE WHEN kvc.pos = 2
+                THEN (SELECT kv2.text FROM KV_CELLS AS kv2
+                      WHERE kv2.page_id = kvc.page_id
+                        AND kv2.row_cluster = kvc.row_cluster
+                        AND kv2.pos = 1)
+                ELSE NULL END AS detail,
+           -- Support: 2-cell row + not in table
+           2 + CASE WHEN NOT EXISTS (
+               SELECT 1 FROM cell_probes AS cp
+               WHERE cp.doc_id = {doc_id}
+                 AND cp.page_id = kvc.page_id
+                 AND cp.row_cluster = kvc.row_cluster
+                 AND cp.cell_id = kvc.cell_id
+                 AND bf_contains(cp.probes, 203::UINTEGER)  -- in_table
+           ) THEN 1 ELSE 0 END AS support,
+           -- Against: in data rows (this is a table row, not KV)
+           CASE WHEN EXISTS (
+               SELECT 1 FROM cell_probes AS cp
+               WHERE cp.doc_id = {doc_id}
+                 AND cp.page_id = kvc.page_id
+                 AND cp.row_cluster = kvc.row_cluster
+                 AND cp.cell_id = kvc.cell_id
+                 AND bf_contains(cp.probes, 206::UINTEGER)  -- in_data_rows
+           ) THEN 2 ELSE 0 END AS against
+    FROM KV_CELLS AS kvc
+    """)
+
+    # Also handle rows with 3-4 cells that look like "Label: value unit"
+    # or multi-column KV grids — but start simple with 2-cell rows.
+
+
+def hypothesize_prose(con, doc_id=1):
+    """Hypothesize prose: cells not in table regions, not structural.
+
+    Prose is the default for cells that are:
+    - Not in a table region
+    - Not bold or rare style (those are structural)
+    - Not numeric (those are measures)
+    - Dominant style (body text)
+
+    This is a low-confidence catch-all — anything unresolved that
+    looks like body text.
+    """
+    con.execute(f"""
+    INSERT INTO hypotheses
+    SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
+           'prose' AS hypothesis,
+           NULL AS detail,
+           -- Support: dominant style + not in table + not numeric
+           (CASE WHEN bf_contains(cp.probes, 102::UINTEGER) THEN 1 ELSE 0 END  -- dominant
+            + CASE WHEN NOT bf_contains(cp.probes, 203::UINTEGER) THEN 1 ELSE 0 END  -- not in table
+            + CASE WHEN NOT bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END    -- not numeric
+           ) AS support,
+           -- Against: bold, rare, or numeric
+           (CASE WHEN bf_contains(cp.probes, 100::UINTEGER) THEN 1 ELSE 0 END  -- bold
+            + CASE WHEN bf_contains(cp.probes, 103::UINTEGER) THEN 1 ELSE 0 END -- rare
+            + CASE WHEN bf_contains(cp.probes, 0::UINTEGER) THEN 1 ELSE 0 END   -- numeric
+           ) AS against
+    FROM cells AS c
+    JOIN cell_probes AS cp USING (doc_id, page_id, row_cluster, cell_id)
+    WHERE c.doc_id = {doc_id}
+      -- Dominant style, not numeric, not bold
+      AND bf_contains(cp.probes, 102::UINTEGER)
+      AND NOT bf_contains(cp.probes, 0::UINTEGER)
+      AND NOT bf_contains(cp.probes, 100::UINTEGER)
+      AND LENGTH(TRIM(c.text)) > 1
+    """)
+
+
 ALL_HYPOTHESES = [
     ("chrome",         hypothesize_chrome),
     ("column_headers", hypothesize_column_headers),
     ("section_labels", hypothesize_section_labels),
     ("row_labels",     hypothesize_row_labels),
     ("measures",       hypothesize_measures),
+    ("key_value_pairs", hypothesize_key_value_pairs),
+    ("prose",           hypothesize_prose),
 ]
 
 
