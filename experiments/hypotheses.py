@@ -28,6 +28,23 @@ def create_hypothesis_tables(con):
         against     INTEGER DEFAULT 0    -- evidence AGAINST
     );
 
+    CREATE TABLE IF NOT EXISTS constraints (
+        name        VARCHAR PRIMARY KEY,
+        scope       VARCHAR NOT NULL,    -- 'cell', 'column', 'row', 'page'
+        type        VARCHAR NOT NULL,    -- 'uniqueness', 'exclusion', 'implication'
+        description VARCHAR
+    );
+
+    CREATE TABLE IF NOT EXISTS violations (
+        doc_id      INTEGER NOT NULL DEFAULT 1,
+        page_id     INTEGER NOT NULL,
+        row_cluster INTEGER NOT NULL,
+        cell_id     INTEGER NOT NULL,
+        hypothesis  VARCHAR NOT NULL,
+        constraint_name VARCHAR NOT NULL,
+        detail      VARCHAR
+    );
+
     CREATE TABLE IF NOT EXISTS treemap (
         doc_id      INTEGER NOT NULL DEFAULT 1,
         page_id     INTEGER NOT NULL,
@@ -37,6 +54,64 @@ def create_hypothesis_tables(con):
         role        VARCHAR              -- winning hypothesis
     );
     """)
+
+
+def seed_constraints(con):
+    """Declare structural constraints.
+
+    Each constraint eliminates impossible hypothesis assignments.
+    Types:
+      uniqueness  — at most N of this hypothesis per scope
+      exclusion   — two hypotheses can't coexist on the same cell
+      implication — if H1 then H2 must also hold (or not hold)
+    """
+    constraints = [
+        # ── Uniqueness constraints ───────────────────────────────
+        ('one_header_per_column',  'column', 'uniqueness',
+         'Each putative column has at most one header cell. '
+         'Keep the one closest to (immediately above) the data rows.'),
+
+        ('one_role_per_cell',      'cell',   'uniqueness',
+         'Each cell has exactly one role. '
+         'If multiple hypotheses survive, pick highest net support.'),
+
+        ('one_page_title',         'page',   'uniqueness',
+         'Each page has at most one title. '
+         'Keep the topmost chrome cell.'),
+
+        # ── Exclusion constraints ────────────────────────────────
+        ('measure_not_header',     'cell',   'exclusion',
+         'A cell cannot be both a measure and a column header. '
+         'Numeric cells subtending columns above data are ambiguous — '
+         'prefer measure if support is higher.'),
+
+        ('chrome_not_data',        'cell',   'exclusion',
+         'Chrome cells (headers/footers) cannot also be data cells '
+         '(measure, row_label, dimension).'),
+
+        ('section_not_in_data',    'row',    'exclusion',
+         'Section labels do not appear in data rows. '
+         'If a bold leftmost cell is in a row with >= 2 measures, '
+         'it is a row label (e.g., "Total Revenue"), not a section label.'),
+
+        # ── Implication constraints ──────────────────────────────
+        ('header_implies_column',  'cell',   'implication',
+         'A col_header must subtend at least one putative column. '
+         'Reject col_header hypothesis if no column alignment evidence.'),
+
+        ('data_rows_contiguous',   'row',    'implication',
+         'Data rows within a table should be contiguous. '
+         'A non-data row between two data rows is likely a sub-header '
+         'or total row, not a break in the table.'),
+
+        ('scope_resets_on_peer',   'page',   'implication',
+         'A section label at indent level N resets all deeper scopes. '
+         '"Expenses" at L0 clears any L1/L2 scope from the "Revenue" section.'),
+    ]
+    con.executemany(
+        "INSERT OR IGNORE INTO constraints VALUES (?,?,?,?)",
+        constraints
+    )
 
 
 def hypothesize_chrome(con, doc_id=1):
@@ -237,18 +312,113 @@ def hypothesize_measures(con, doc_id=1):
     """)
 
 
-def resolve_hypotheses(con, doc_id=1):
-    """Pick the winning hypothesis per cell.
+def apply_constraints(con, doc_id=1):
+    """Apply constraints to eliminate invalid hypotheses.
 
-    Priority: chrome > col_header > section_label > row_label > measure > unresolved
-    Within same hypothesis type: highest (support - against) wins.
+    Each constraint check finds violating hypotheses and records them
+    in the violations table. Violated hypotheses are then excluded
+    from resolution.
     """
+
+    # ── one_header_per_column: keep best header per column ───────
+    # For each (page, col_id), keep the header closest to (just above)
+    # the data rows. Eliminate others.
+    con.execute(f"""
+    INSERT INTO violations
+    WITH
+    RANKED_HEADERS AS (
+        SELECT h.doc_id, h.page_id, h.row_cluster, h.cell_id,
+               h.hypothesis, h.detail AS col_id,
+               h.support - h.against AS net,
+               ROW_NUMBER() OVER (
+                   PARTITION BY h.page_id, h.detail
+                   ORDER BY h.support - h.against DESC, h.row_cluster DESC
+               ) AS rn
+        FROM hypotheses AS h
+        WHERE h.doc_id = {doc_id} AND h.hypothesis = 'col_header'
+          AND h.detail IS NOT NULL
+    )
+    SELECT doc_id, page_id, row_cluster, cell_id, hypothesis,
+           'one_header_per_column' AS constraint_name,
+           'displaced by better header for col ' || col_id AS detail
+    FROM RANKED_HEADERS
+    WHERE rn > 1
+    """)
+
+    # ── measure_not_header: if both exist, keep higher net ───────
+    con.execute(f"""
+    INSERT INTO violations
+    WITH
+    CONFLICTS AS (
+        SELECT m.page_id, m.row_cluster, m.cell_id,
+               m.support - m.against AS measure_net,
+               h.support - h.against AS header_net
+        FROM hypotheses AS m
+        JOIN hypotheses AS h
+          ON m.doc_id = h.doc_id AND m.page_id = h.page_id
+         AND m.row_cluster = h.row_cluster AND m.cell_id = h.cell_id
+        WHERE m.doc_id = {doc_id}
+          AND m.hypothesis = 'measure' AND h.hypothesis = 'col_header'
+    )
+    -- Eliminate the loser
+    SELECT {doc_id}, page_id, row_cluster, cell_id,
+           CASE WHEN measure_net >= header_net
+                THEN 'col_header' ELSE 'measure' END AS hypothesis,
+           'measure_not_header' AS constraint_name,
+           'conflicting measure/header on same cell' AS detail
+    FROM CONFLICTS
+    """)
+
+    # ── section_not_in_data: bold leftmost in data row = row_label ─
+    con.execute(f"""
+    INSERT INTO violations
+    SELECT {doc_id}, h.page_id, h.row_cluster, h.cell_id,
+           'section_label' AS hypothesis,
+           'section_not_in_data' AS constraint_name,
+           'section_label in a data row — should be row_label' AS detail
+    FROM hypotheses AS h
+    JOIN cell_probes AS cp
+      ON h.doc_id = cp.doc_id AND h.page_id = cp.page_id
+     AND h.row_cluster = cp.row_cluster AND h.cell_id = cp.cell_id
+    WHERE h.doc_id = {doc_id}
+      AND h.hypothesis = 'section_label'
+      AND bf_contains(cp.probes, 206::UINTEGER)  -- in_data_rows
+    """)
+
+    # ── header_implies_column: reject headers without column evidence ─
+    con.execute(f"""
+    INSERT INTO violations
+    SELECT {doc_id}, h.page_id, h.row_cluster, h.cell_id,
+           'col_header' AS hypothesis,
+           'header_implies_column' AS constraint_name,
+           'col_header without column alignment evidence' AS detail
+    FROM hypotheses AS h
+    WHERE h.doc_id = {doc_id}
+      AND h.hypothesis = 'col_header'
+      AND h.detail IS NULL
+    """)
+
+    n_violations = con.execute(
+        f"SELECT COUNT(*) FROM violations WHERE doc_id = {doc_id}"
+    ).fetchone()[0]
+    return n_violations
+
+
+def resolve_hypotheses(con, doc_id=1):
+    """Pick the winning hypothesis per cell after constraint elimination.
+
+    1. Apply constraints to find violations
+    2. Remove violated hypotheses from consideration
+    3. Among remaining: pick by (support - against), break ties by type priority
+    """
+    n_violations = apply_constraints(con, doc_id)
+
     con.execute(f"""
     INSERT INTO treemap
     WITH
-    PRIORITY AS (
-        SELECT *, support - against AS net,
-               CASE hypothesis
+    SURVIVING AS (
+        SELECT h.*, h.support - h.against AS net,
+               CASE h.hypothesis
                    WHEN 'chrome'        THEN 1
                    WHEN 'col_header'    THEN 2
                    WHEN 'section_label' THEN 3
@@ -256,23 +426,33 @@ def resolve_hypotheses(con, doc_id=1):
                    WHEN 'row_label'     THEN 5
                    ELSE 6
                END AS priority
-        FROM hypotheses
-        WHERE doc_id = {doc_id} AND support > against
+        FROM hypotheses AS h
+        WHERE h.doc_id = {doc_id}
+          AND h.support > h.against
+          -- Exclude violated hypotheses
+          AND NOT EXISTS (
+              SELECT 1 FROM violations AS v
+              WHERE v.doc_id = h.doc_id AND v.page_id = h.page_id
+                AND v.row_cluster = h.row_cluster AND v.cell_id = h.cell_id
+                AND v.hypothesis = h.hypothesis
+          )
     ),
     BEST AS (
         SELECT DISTINCT ON (page_id, row_cluster, cell_id)
                page_id, row_cluster, cell_id,
                hypothesis, detail, net
-        FROM PRIORITY
-        ORDER BY page_id, row_cluster, cell_id, priority, net DESC
+        FROM SURVIVING
+        ORDER BY page_id, row_cluster, cell_id, net DESC, priority
     )
     SELECT {doc_id}, c.page_id, c.row_cluster, c.cell_id,
-           NULL AS path,  -- assembled later
+           NULL AS path,
            COALESCE(b.hypothesis, 'unresolved') AS role
     FROM cells AS c
     LEFT JOIN BEST AS b USING (page_id, row_cluster, cell_id)
     WHERE c.doc_id = {doc_id}
     """)
+
+    return n_violations
 
 
 def assemble_treemap_paths(con, doc_id=1):
@@ -363,12 +543,13 @@ ALL_HYPOTHESES = [
 
 
 def run_hypotheses(con, doc_id=1):
-    """Generate all hypotheses, resolve, and assemble treemap paths."""
+    """Generate all hypotheses, apply constraints, resolve, assemble paths."""
     for name, fn in ALL_HYPOTHESES:
         fn(con, doc_id)
 
-    resolve_hypotheses(con, doc_id)
+    n_violations = resolve_hypotheses(con, doc_id)
     assemble_treemap_paths(con, doc_id)
+    return n_violations
 
 
 def report_hypotheses(con, doc_id=1):
@@ -393,6 +574,17 @@ def report_hypotheses(con, doc_id=1):
     print(f"\n  Hypotheses generated:")
     for _, r in hyp.iterrows():
         print(f"    {r['hypothesis']:<20s} {int(r['n']):5d}  avg_net={r['avg_net']}")
+
+    # Constraint violations
+    violations = con.execute(f"""
+        SELECT constraint_name, COUNT(*) AS n
+        FROM violations WHERE doc_id = {doc_id}
+        GROUP BY constraint_name ORDER BY n DESC
+    """).fetchdf()
+    if len(violations) > 0:
+        print(f"\n  Constraint violations:")
+        for _, r in violations.iterrows():
+            print(f"    {r['constraint_name']:<30s} {int(r['n']):4d} eliminated")
 
     # Sample treemap paths for measures
     paths = con.execute(f"""
@@ -432,6 +624,7 @@ if __name__ == "__main__":
 
     con = init_connection()
     create_hypothesis_tables(con)
+    seed_constraints(con)
 
     cases = [
         ("CFG_2014_page_161", "test_data/fintabnet/pdf/CFG_2014_page_161.pdf"),
