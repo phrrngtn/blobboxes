@@ -542,12 +542,7 @@ def pass_build_cell_probes(con, doc_id=1):
         JOIN domaindb.domains AS d ON d.uri = pr.uri
         WHERE c.doc_id = {doc_id}
           AND LENGTH(TRIM(c.text)) > 1
-          AND bf_contains(
-              d.bitmap,
-              bf_to_array(bf_build_json_normalized(
-                  '["' || REPLACE(REPLACE(c.text, '\\', '\\\\'), '"', '\\"') || '"]'
-              ))[1]::UINTEGER
-          )
+          AND bf_contains(d.bitmap, bf_hash_normalized(c.text)::UINTEGER)
         """)
 
     # ── Pack hits into roaring bitmaps ───────────────────────────
