@@ -987,22 +987,36 @@ def pass_color_outlier(con, doc_id=1):
 def pass_table_regions(con, doc_id=1):
     """Contiguous runs of data rows → table region evidence.
 
-    A data row has >= 2 typed cells. Contiguous runs of >= 2 data rows
-    form a table region. Cells in/near a region get tagged.
+    A data row has >= 2 typed cells. Adjacent data rows form a table
+    region. "Adjacent" means no non-data row between them (using row
+    ordering, not cluster ID arithmetic — cluster IDs can have large
+    gaps from the max-height split).
     """
     # Identify table regions as row-level evidence
     con.execute(f"""
     INSERT INTO row_evidence
-    WITH DATA_ROWS AS (
-        SELECT page_id, row_cluster, CAST(value AS INTEGER) AS n_typed
-        FROM row_evidence
-        WHERE doc_id = {doc_id} AND source = 'row_geom'
-          AND key = 'is_data_row' AND value = 'true'
+    WITH
+    -- All rows with their position ordinal
+    ALL_ROWS AS (
+        SELECT DISTINCT page_id, row_cluster,
+               ROW_NUMBER() OVER (PARTITION BY page_id
+                                  ORDER BY row_cluster) AS row_ord
+        FROM cells WHERE doc_id = {doc_id}
     ),
+    DATA_ROWS AS (
+        SELECT ar.page_id, ar.row_cluster, ar.row_ord
+        FROM ALL_ROWS AS ar
+        JOIN row_evidence AS re
+          ON re.doc_id = {doc_id} AND ar.page_id = re.page_id
+         AND ar.row_cluster = re.row_cluster
+         AND re.source = 'row_geom' AND re.key = 'is_data_row'
+         AND re.value = 'true'
+    ),
+    -- Contiguity: use row_ord (sequential) not row_cluster (sparse)
     NUMBERED AS (
         SELECT *,
-               row_cluster - ROW_NUMBER()
-                   OVER (PARTITION BY page_id ORDER BY row_cluster) AS grp
+               row_ord - ROW_NUMBER()
+                   OVER (PARTITION BY page_id ORDER BY row_ord) AS grp
         FROM DATA_ROWS
     ),
     REGIONS AS (
@@ -1012,7 +1026,8 @@ def pass_table_regions(con, doc_id=1):
                COUNT(*) AS n_rows
         FROM NUMBERED
         GROUP BY page_id, grp
-        HAVING COUNT(*) >= 2
+        -- A single data row is still a table candidate
+        HAVING COUNT(*) >= 1
     )
     -- Tag rows in/near table regions
     SELECT {doc_id}, c.page_id, c.row_cluster,
