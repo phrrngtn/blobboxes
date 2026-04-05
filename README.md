@@ -287,6 +287,28 @@ Design docs live in `docs/`:
 - [browser-table-extraction.md](docs/browser-table-extraction.md) — Columnar JSON response format, domain classification pipeline
 - [design-critique.md](docs/design-critique.md) — Good faith objections and genuine weaknesses
 
+## Acknowledgements
+
+PDF extraction uses [PDFium](https://pdfium.googlesource.com/pdfium/),
+Google's open-source PDF rendering library, via pre-built binaries from
+[bblanchon/pdfium-binaries](https://github.com/bblanchon/pdfium-binaries).
+
+XLSX extraction uses [xlnt](https://github.com/tfussell/xlnt) (Fussell),
+a C++ library for reading and writing Excel files, distributed under the
+MIT license.
+
+DOCX extraction uses [miniz](https://github.com/richgel999/miniz) for
+ZIP decompression and [pugixml](https://pugixml.org/) for XML parsing.
+
+The evidence pipeline architecture is documented in
+[[Evidence Pipeline Architecture]]. The progressive masking concept
+is described in [[Progressive Masking and Treemap Layout]]. Domain
+probing analysis is in [[Hash Collision Analysis for Domain Filters]].
+
+Font name trait inference for bold/italic detection follows PostScript
+and TrueType naming conventions documented in the
+[OpenType specification](https://learn.microsoft.com/en-us/typography/opentype/spec/).
+
 ## License
 
 [MIT](LICENSE)
