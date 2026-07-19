@@ -196,6 +196,17 @@ static nb::str bboxes_json(nb::bytes data, std::optional<std::string> pw, int sp
     return get_json(data, pw, sp, ep, bboxes_get_bboxes_json, "[]");
 }
 
+/* ── document-metadata helpers (not cursor-based) ───────────────────── */
+
+static nb::str meta_from_bytes(nb::bytes data, const char* (*fn)(const void*, size_t)) {
+    const char* j = fn(data.c_str(), data.size());
+    return nb::str(j ? j : "null");
+}
+static nb::str meta_from_path(const std::string& path, const char* (*fn)(const char*)) {
+    const char* j = fn(path.c_str());
+    return nb::str(j ? j : "null");
+}
+
 /* ── module definition ──────────────────────────────────────────────── */
 
 NB_MODULE(blobboxes_ext, m) {
@@ -273,6 +284,18 @@ NB_MODULE(blobboxes_ext, m) {
     /* detect + info */
     m.def("detect", &detect_format, nb::arg("data"));
     m.def("info", &info, nb::arg("data"));
+
+    /* Document-metadata (JSON string). Each is overloaded: pass bytes (in-memory)
+       or a str path (streaming — reads only what it needs off the file). */
+    #define META_FN(NAME, BLOB_FN, PATH_FN)                                        \
+        m.def(NAME, [](nb::bytes d) { return meta_from_bytes(d, BLOB_FN); }, nb::arg("data")); \
+        m.def(NAME, [](const std::string& p) { return meta_from_path(p, PATH_FN); }, nb::arg("path"))
+    META_FN("xlsx_metadata",   bboxes_xlsx_metadata_json,  bboxes_xlsx_metadata_json_file);
+    META_FN("pdf_metadata",    bboxes_pdf_metadata_json,   bboxes_pdf_metadata_json_file);
+    META_FN("xlsx_manifest",   bboxes_xlsx_manifest_json,  bboxes_xlsx_manifest_json_file);
+    META_FN("container_walk",  bboxes_container_walk_json, bboxes_container_walk_json_file);
+    META_FN("xlsx_vba_base64", bboxes_xlsx_vba_base64,     bboxes_xlsx_vba_base64_file);
+    #undef META_FN
 
     /* PDF JSON functions (original) */
     m.def("doc_json", &doc_json,

@@ -329,6 +329,37 @@ static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json
 static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json} };
 
 /* ══════════════════════════════════════════════════════════════════════
+ * Document-metadata scalars (not cursor-based). One SQLite function accepts
+ * either a file path (TEXT → streaming *_file) or raw bytes (BLOB).
+ * ══════════════════════════════════════════════════════════════════════ */
+
+struct MetaDesc {
+    const char* (*path_fn)(const char*);
+    const char* (*blob_fn)(const void*, size_t);
+};
+
+static void meta_json_func(sqlite3_context* ctx, int, sqlite3_value** argv) {
+    auto* d = static_cast<MetaDesc*>(sqlite3_user_data(ctx));
+    const char* json = nullptr;
+    if (sqlite3_value_type(argv[0]) == SQLITE_BLOB) {
+        const void* blob = sqlite3_value_blob(argv[0]);
+        int sz = sqlite3_value_bytes(argv[0]);
+        if (blob && sz > 0) json = d->blob_fn(blob, static_cast<size_t>(sz));
+    } else {
+        const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
+        if (path) json = d->path_fn(path);
+    }
+    if (json) sqlite3_result_text(ctx, json, -1, SQLITE_TRANSIENT);
+    else      sqlite3_result_null(ctx);
+}
+
+static MetaDesc s_xlsx_meta_desc     = { bboxes_xlsx_metadata_json_file, bboxes_xlsx_metadata_json };
+static MetaDesc s_pdf_meta_desc      = { bboxes_pdf_metadata_json_file,  bboxes_pdf_metadata_json };
+static MetaDesc s_xlsx_manifest_desc = { bboxes_xlsx_manifest_json_file, bboxes_xlsx_manifest_json };
+static MetaDesc s_container_desc     = { bboxes_container_walk_json_file, bboxes_container_walk_json };
+static MetaDesc s_vba_b64_desc       = { bboxes_xlsx_vba_base64_file,     bboxes_xlsx_vba_base64 };
+
+/* ══════════════════════════════════════════════════════════════════════
  * Table-driven registration
  * ══════════════════════════════════════════════════════════════════════ */
 
@@ -415,6 +446,21 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
     /* bb_info — auto-detecting doc info scalar */
     rc = sqlite3_create_function(db, "bb_info", 1, SQLITE_UTF8,
                                   &s_doc_desc[4], generic_json_func, nullptr, nullptr);
-    return rc;
+    if (rc != SQLITE_OK) return rc;
+
+    /* Document-metadata scalars (path TEXT or bytes BLOB) */
+    struct { const char* name; MetaDesc* desc; } metas[] = {
+        { "xlsx_metadata",   &s_xlsx_meta_desc },
+        { "pdf_metadata",    &s_pdf_meta_desc },
+        { "xlsx_manifest",   &s_xlsx_manifest_desc },
+        { "container_walk",  &s_container_desc },
+        { "xlsx_vba_base64", &s_vba_b64_desc },
+    };
+    for (auto& m : metas) {
+        rc = sqlite3_create_function(db, m.name, 1, SQLITE_UTF8, m.desc,
+                                     meta_json_func, nullptr, nullptr);
+        if (rc != SQLITE_OK) return rc;
+    }
+    return SQLITE_OK;
 }
 }
