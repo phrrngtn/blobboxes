@@ -7,9 +7,12 @@
 #include <miniz.h>
 #include <pugixml.hpp>
 #include <nlohmann/json.hpp>
+#include "sha1.h"
 #include <string>
 #include <vector>
 #include <cstring>
+#include <cstdio>
+#include <cstdint>
 
 using json = nlohmann::json;
 
@@ -57,6 +60,35 @@ bool zip_load(mz_zip_archive& z, const char* part, pugi::xml_document& doc) {
     bool ok = doc.load_buffer(p, sz);
     mz_free(p);
     return ok;
+}
+bool zip_bytes(mz_zip_archive& z, const char* part, std::string& out) {
+    int idx = mz_zip_reader_locate_file(&z, part, nullptr, 0);
+    if (idx < 0) return false;
+    size_t sz = 0;
+    void* p = mz_zip_reader_extract_to_heap(&z, idx, &sz, 0);
+    if (!p) return false;
+    out.assign(static_cast<char*>(p), sz);
+    mz_free(p);
+    return true;
+}
+std::string base64(const std::string& in) {
+    static const char* T = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    out.reserve((in.size() + 2) / 3 * 4);
+    size_t i = 0;
+    for (; i + 3 <= in.size(); i += 3) {
+        uint32_t v = ((uint8_t)in[i] << 16) | ((uint8_t)in[i + 1] << 8) | (uint8_t)in[i + 2];
+        out += T[(v >> 18) & 63]; out += T[(v >> 12) & 63];
+        out += T[(v >> 6) & 63];  out += T[v & 63];
+    }
+    if (i + 1 == in.size()) {
+        uint32_t v = (uint8_t)in[i] << 16;
+        out += T[(v >> 18) & 63]; out += T[(v >> 12) & 63]; out += "==";
+    } else if (i + 2 == in.size()) {
+        uint32_t v = ((uint8_t)in[i] << 16) | ((uint8_t)in[i + 1] << 8);
+        out += T[(v >> 18) & 63]; out += T[(v >> 12) & 63]; out += T[(v >> 6) & 63]; out += "=";
+    }
+    return out;
 }
 
 // ── the actual extraction over an already-opened zip archive ─────────────
@@ -178,8 +210,154 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
                         {"columns", cols}});
     }
     if (!tabs.empty()) out["tables"] = tabs;
-    out["vba"] = {{"present", has("xl/vbaProject.bin")}};
+    // VBA: surface identity only (present / size / SHA-1). The vbaProject.bin
+    // is an OLE2/CFB container — its parsing (modules, references, source) is
+    // deliberately left to a dedicated downstream library (olefile/oletools);
+    // xlsx_vba_base64() hands out the raw bytes for that. The SHA-1 lets you
+    // JOIN/cluster identical VBA projects across a corpus without shipping bytes.
+    if (has("xl/vbaProject.bin")) {
+        std::string bin;
+        if (zip_bytes(z, "xl/vbaProject.bin", bin)) {
+            SHA1 sha1;
+            out["vba"] = {{"present", true},
+                          {"size", static_cast<uint64_t>(bin.size())},
+                          {"sha1", sha1(bin.data(), bin.size())}};
+        } else {
+            out["vba"] = {{"present", true}};
+        }
+    } else {
+        out["vba"] = {{"present", false}};
+    }
     return out.dump(1);
+}
+
+// ── manifest: central-directory-only view (the "last N bytes" tier) ──────
+// The zip EOCD + central directory live at the file tail; enumerating them
+// yields every part's name without reading a single part body. From that
+// alone we derive structural facts (has VBA? worksheet count? external links?).
+std::string xlsx_manifest_from_zip(mz_zip_archive& z) {
+    auto parts = zip_list(z);
+    auto has = [&](const char* p) { for (auto& q : parts) if (q == p) return true; return false; };
+    auto count = [&](const char* pre, const char* suf) {
+        int n = 0; size_t pl = std::strlen(pre), sl = std::strlen(suf);
+        for (auto& q : parts)
+            if (q.size() >= pl + sl && q.compare(0, pl, pre) == 0 &&
+                q.compare(q.size() - sl, sl, suf) == 0) n++;
+        return n;
+    };
+    json out;
+    out["dialect"] = "xlsx";
+    out["part_count"] = static_cast<int>(parts.size());
+    out["worksheet_parts"]   = count("xl/worksheets/sheet", ".xml");
+    out["chartsheet_parts"]  = count("xl/chartsheets/sheet", ".xml");
+    out["table_parts"]       = count("xl/tables/table", ".xml");
+    out["pivot_parts"]       = count("xl/pivotTables/pivotTable", ".xml");
+    out["has_vba"]           = has("xl/vbaProject.bin");
+    out["has_external_links"] = count("xl/externalLinks/externalLink", ".xml") > 0;
+    out["has_connections"]   = has("xl/connections.xml");
+    out["has_xml_maps"]      = has("xl/xmlMaps.xml");
+    out["has_custom_props"]  = has("docProps/custom.xml");
+    json list = json::array();
+    for (auto& q : parts) list.push_back(q);
+    out["parts"] = list;
+    return out.dump(1);
+}
+
+// ── recursive container walk ─────────────────────────────────────────────
+// A blob is a tree of typed blobs: a plain zip holds files (some themselves
+// zips/PDFs), an OOXML package is a dialect leaf. Sniff each node by magic
+// bytes, dispatch to the matching extractor, recurse into nested containers.
+constexpr int kMaxDepth = 8;
+
+enum Kind { K_ZIP, K_PDF, K_OLE, K_XML, K_OTHER };
+Kind sniff(const unsigned char* b, size_t n) {
+    if (n >= 4 && b[0] == 0x25 && b[1] == 0x50 && b[2] == 0x44 && b[3] == 0x46) return K_PDF; // %PDF
+    if (n >= 4 && b[0] == 'P' && b[1] == 'K' && (b[2] == 3 || b[2] == 5 || b[2] == 7)) return K_ZIP;
+    if (n >= 8 && b[0] == 0xD0 && b[1] == 0xCF && b[2] == 0x11 && b[3] == 0xE0) return K_OLE;
+    if (n >= 5 && b[0] == '<' && b[1] == '?' && b[2] == 'x' && b[3] == 'm' && b[4] == 'l') return K_XML;
+    return K_OTHER;
+}
+
+json walk_bytes(const void* data, size_t len, const std::string& name, int depth);
+
+json walk_zip(const void* data, size_t len, const std::string& name, int depth) {
+    json node; node["name"] = name;
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) {
+        node["dialect"] = "zip"; node["error"] = "unreadable zip"; return node;
+    }
+    auto parts = zip_list(z);
+    auto has = [&](const char* p) { for (auto& q : parts) if (q == p) return true; return false; };
+    if (has("[Content_Types].xml")) {                 // an OOXML package → dialect leaf
+        if (has("xl/workbook.xml")) {
+            node["dialect"] = "xlsx";
+            node["metadata"] = json::parse(xlsx_meta_from_zip(z));
+        } else if (has("word/document.xml")) {
+            node["dialect"] = "docx";
+        } else if (has("ppt/presentation.xml")) {
+            node["dialect"] = "pptx";
+        } else {
+            node["dialect"] = "ooxml";
+        }
+        mz_zip_reader_end(&z);
+        return node;
+    }
+    node["dialect"] = "zip";                           // plain archive → recurse members
+    node["member_count"] = static_cast<int>(parts.size());
+    if (depth >= kMaxDepth) {
+        node["truncated"] = "max depth";
+        mz_zip_reader_end(&z);
+        return node;
+    }
+    json kids = json::array();
+    for (auto& part : parts) {
+        if (!part.empty() && part.back() == '/') continue;   // directory entry
+        std::string mb;
+        if (!zip_bytes(z, part.c_str(), mb)) continue;
+        kids.push_back(walk_bytes(mb.data(), mb.size(), part, depth + 1));
+    }
+    node["children"] = kids;
+    mz_zip_reader_end(&z);
+    return node;
+}
+
+json walk_bytes(const void* data, size_t len, const std::string& name, int depth) {
+    const unsigned char* b = static_cast<const unsigned char*>(data);
+    switch (sniff(b, len)) {
+        case K_ZIP: return walk_zip(data, len, name, depth);
+        case K_PDF: {
+            json n; n["name"] = name; n["dialect"] = "pdf";
+            n["metadata"] = json::parse(bboxes_pdf_metadata_json(data, len));
+            return n;
+        }
+        case K_OLE: {   // legacy .xls/.doc or a bare vbaProject.bin — leaf for now
+            json n; n["name"] = name; n["dialect"] = "ole";
+            n["size"] = static_cast<uint64_t>(len); return n;
+        }
+        case K_XML: {
+            json n; n["name"] = name; n["dialect"] = "xml";
+            n["size"] = static_cast<uint64_t>(len); return n;
+        }
+        default: {
+            json n; n["name"] = name; n["dialect"] = "binary";
+            n["size"] = static_cast<uint64_t>(len); return n;
+        }
+    }
+}
+
+// read a whole file into a string (walk must recurse; nested members need inflating)
+bool slurp(const char* path, std::string& out) {
+    FILE* f = std::fopen(path, "rb");
+    if (!f) return false;
+    std::fseek(f, 0, SEEK_END);
+    long sz = std::ftell(f);
+    std::fseek(f, 0, SEEK_SET);
+    if (sz < 0) { std::fclose(f); return false; }
+    out.resize(static_cast<size_t>(sz));
+    size_t got = std::fread(&out[0], 1, out.size(), f);
+    std::fclose(f);
+    out.resize(got);
+    return true;
 }
 } // namespace
 
@@ -206,6 +384,67 @@ const char* bboxes_xlsx_metadata_json(const void* data, size_t len) {
     }
     g_result = xlsx_meta_from_zip(z);
     mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+
+// Manifest (tail-only tier): central directory → part list + structural facts.
+const char* bboxes_xlsx_manifest_json_file(const char* path) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_file(&z, path, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"integrity\":{\"status\":\"failed\",\"error\":\"not a zip / unreadable\"}}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_manifest_from_zip(z);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+const char* bboxes_xlsx_manifest_json(const void* data, size_t len) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"integrity\":{\"status\":\"failed\",\"error\":\"not a zip\"}}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_manifest_from_zip(z);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+
+// Raw vbaProject.bin as base64 (empty string when absent) — the "get it out"
+// hook so a downstream OLE library parses modules/references/source.
+const char* bboxes_xlsx_vba_base64_file(const char* path) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_file(&z, path, 0)) { g_result.clear(); return g_result.c_str(); }
+    std::string bin;
+    bool got = zip_bytes(z, "xl/vbaProject.bin", bin);
+    mz_zip_reader_end(&z);
+    g_result = got ? base64(bin) : std::string();
+    return g_result.c_str();
+}
+const char* bboxes_xlsx_vba_base64(const void* data, size_t len) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) { g_result.clear(); return g_result.c_str(); }
+    std::string bin;
+    bool got = zip_bytes(z, "xl/vbaProject.bin", bin);
+    mz_zip_reader_end(&z);
+    g_result = got ? base64(bin) : std::string();
+    return g_result.c_str();
+}
+
+// Recursive container walk → tree of typed nodes.
+const char* bboxes_container_walk_json(const void* data, size_t len) {
+    g_result = walk_bytes(data, len, "<root>", 0).dump(1);
+    return g_result.c_str();
+}
+const char* bboxes_container_walk_json_file(const char* path) {
+    std::string buf;
+    if (!slurp(path, buf)) {
+        g_result = "{\"error\":\"file not found / unreadable\"}";
+        return g_result.c_str();
+    }
+    std::string base = path;
+    auto p = base.rfind('/');
+    if (p != std::string::npos) base = base.substr(p + 1);
+    g_result = walk_bytes(buf.data(), buf.size(), base, 0).dump(1);
     return g_result.c_str();
 }
 

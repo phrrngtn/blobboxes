@@ -8,11 +8,13 @@
 #include <fpdf_catalog.h>
 
 #include <nlohmann/json.hpp>
+#include <pugixml.hpp>
 
 #include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -458,8 +460,73 @@ static std::string pdf_date_iso(const std::string& s) {
     return iso;
 }
 
-/* Build the JSON from an opened (or NULL) document. Caller holds the mutex. */
-static std::string pdf_meta_build(FPDF_DOCUMENT doc) {
+/* ── XMP (/Metadata) via raw-byte scan ──────────────────────────────────
+   The XMP packet is stored uncompressed and delimited by <?xpacket ... ?>,
+   so we locate it in the file bytes and parse with pugixml — no fragile
+   PDFium internals. Best-effort: absent/garbled XMP simply yields {}. */
+
+static const char* xmp_local(const char* n) { const char* p = std::strchr(n, ':'); return p ? p + 1 : n; }
+
+static std::string xmp_leaf_text(const pugi::xml_node& n) {
+    std::string t = n.text().as_string();
+    if (!t.empty()) return t;
+    for (auto c : n.children()) { std::string r = xmp_leaf_text(c); if (!r.empty()) return r; }
+    return {};
+}
+static pugi::xml_node xmp_find(const pugi::xml_node& n, const char* ln) {
+    for (auto c : n.children()) {
+        if (!std::strcmp(xmp_local(c.name()), ln)) return c;
+        if (auto r = xmp_find(c, ln)) return r;
+    }
+    return {};
+}
+/* compact form: XMP values as attributes on rdf:Description elements */
+static void xmp_attrs(const pugi::xml_node& n, json& xmp,
+                      const std::map<std::string, std::string>& want) {
+    for (auto a : n.attributes()) {
+        auto it = want.find(xmp_local(a.name()));
+        if (it != want.end() && !xmp.contains(it->second)) xmp[it->second] = a.value();
+    }
+    for (auto c : n.children()) xmp_attrs(c, xmp, want);
+}
+
+static json pdf_xmp_scan(const void* data, size_t len) {
+    json xmp = json::object();
+    const char* p = static_cast<const char*>(data);
+    static const char kBegin[] = "<?xpacket begin";
+    const void* sp = memmem(p, len, kBegin, sizeof(kBegin) - 1);
+    if (!sp) return xmp;
+    const char* s = static_cast<const char*>(sp);
+    size_t rem = len - (s - p);
+    const void* ep = memmem(s, rem, "<?xpacket end", 13);
+    const char* e = ep ? static_cast<const char*>(ep) : (s + rem);
+    if (ep) { const void* q = memmem(e, len - (e - p), "?>", 2); if (q) e = static_cast<const char*>(q) + 2; }
+
+    pugi::xml_document doc;
+    if (!doc.load_buffer(s, static_cast<size_t>(e - s))) return xmp;
+
+    static const struct { const char* ln; const char* key; } kFields[] = {
+        {"CreatorTool", "creator_tool"}, {"CreateDate", "created"}, {"ModifyDate", "modified"},
+        {"MetadataDate", "metadata_date"}, {"Producer", "producer"}, {"title", "title"},
+        {"creator", "creator"}, {"description", "description"}, {"DocumentID", "document_id"},
+        {"InstanceID", "instance_id"}, {"OriginalDocumentID", "original_document_id"},
+        {"part", "pdfa_part"}, {"conformance", "pdfa_conformance"},
+    };
+    std::map<std::string, std::string> want;
+    for (auto& f : kFields) {
+        want[f.ln] = f.key;
+        auto n = xmp_find(doc, f.ln);
+        if (n) { std::string v = xmp_leaf_text(n); if (!v.empty()) xmp[f.key] = v; }
+    }
+    xmp_attrs(doc, xmp, want);                     /* fill any still-missing from attributes */
+    if (xmp_find(doc, "History")) xmp["has_history"] = true;
+    if (xmp_find(doc, "DerivedFrom") && !xmp.contains("derived_from")) xmp["has_derived_from"] = true;
+    return xmp;
+}
+
+/* Build the JSON from an opened (or NULL) document. Caller holds the mutex.
+   Info dict + structural only; XMP is added by the buffer entry point. */
+static json pdf_meta_build(FPDF_DOCUMENT doc) {
     json out;
     out["dialect"] = "pdf";
     if (!doc) {
@@ -471,7 +538,7 @@ static std::string pdf_meta_build(FPDF_DOCUMENT doc) {
             e == FPDF_ERR_SECURITY ? "unsupported security scheme" : "unknown";
         out["integrity"] = {{"status", e == FPDF_ERR_PASSWORD ? "encrypted" : "failed"},
                             {"error", reason}};
-        return out.dump(1);
+        return out;
     }
     out["integrity"] = {{"status", "clean"}};
 
@@ -516,7 +583,7 @@ static std::string pdf_meta_build(FPDF_DOCUMENT doc) {
     }
     st["tagged"] = (bool)FPDFCatalog_IsTagged(doc);
     out["structural"] = st;
-    return out.dump(1);
+    return out;
 }
 
 /* Streaming block reader for FPDF_LoadCustomDocument — PDFium requests only
@@ -536,8 +603,13 @@ const char* bboxes_pdf_metadata_json(const void* buf, size_t len) {
     /* FPDF_LoadMemDocument borrows `buf` (no copy); it stays valid for the
        whole call, and we close the doc before returning. */
     FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), nullptr);
-    g_pdf_meta = pdf_meta_build(doc);
-    if (doc) FPDF_CloseDocument(doc);
+    json out = pdf_meta_build(doc);
+    if (doc) {
+        json xmp = pdf_xmp_scan(buf, len);   /* bytes in hand → full-take incl. XMP */
+        if (!xmp.empty()) out["xmp"] = xmp;
+        FPDF_CloseDocument(doc);
+    }
+    g_pdf_meta = out.dump(1);
     return g_pdf_meta.c_str();
 }
 
@@ -562,8 +634,10 @@ const char* bboxes_pdf_metadata_json_file(const char* path) {
     fa.m_GetBlock = pdf_file_getblock;
     fa.m_Param = fp;                     /* kept alive on the stack below */
 
+    /* Streaming tier: Info + structural only (XMP needs a full-byte scan and
+       is offered by the buffer overload). */
     FPDF_DOCUMENT doc = FPDF_LoadCustomDocument(&fa, nullptr);
-    g_pdf_meta = pdf_meta_build(doc);
+    g_pdf_meta = pdf_meta_build(doc).dump(1);
     if (doc) FPDF_CloseDocument(doc);
     fclose(fp);
     return g_pdf_meta.c_str();

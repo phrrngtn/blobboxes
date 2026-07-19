@@ -629,5 +629,29 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
                          reinterpret_cast<void*>(bboxes_pdf_metadata_json),
                          meta_blob_scalar);
 
+    /* xlsx_manifest — tail-only structural view (part list + booleans) */
+    register_meta_scalar(connection, "xlsx_manifest", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_manifest_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_manifest", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_manifest_json),
+                         meta_blob_scalar);
+
+    /* container_walk — recursive tree of typed nodes (zip-in-zip, pdf, ...) */
+    register_meta_scalar(connection, "container_walk", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_container_walk_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "container_walk", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_container_walk_json),
+                         meta_blob_scalar);
+
+    /* xlsx_vba_base64 — raw vbaProject.bin (base64) for downstream OLE parsing */
+    register_meta_scalar(connection, "xlsx_vba_base64", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_vba_base64_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_vba_base64", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_vba_base64),
+                         meta_blob_scalar);
+
     return true;
 }

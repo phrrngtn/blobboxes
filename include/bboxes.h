@@ -84,6 +84,22 @@ const char* bboxes_detect(const void* buf, size_t len);
 const char* bboxes_xlsx_metadata_json(const void* buf, size_t len);
 const char* bboxes_xlsx_metadata_json_file(const char* path);
 
+/* Manifest: central-directory-only structural view (the tail tier) — part
+   list + booleans (has_vba, worksheet_parts, ...), no part bodies read. */
+const char* bboxes_xlsx_manifest_json(const void* buf, size_t len);
+const char* bboxes_xlsx_manifest_json_file(const char* path);
+
+/* Recursive container walk: a blob is a tree of typed blobs. Sniffs each node
+   by magic bytes, dispatches to the matching extractor, recurses into nested
+   containers (zip-in-zip). Returns a nested JSON tree. */
+const char* bboxes_container_walk_json(const void* buf, size_t len);
+const char* bboxes_container_walk_json_file(const char* path);
+
+/* Raw xl/vbaProject.bin as base64 ("" when absent). blobboxes does not parse
+   the OLE2/CFB container — this hands the bytes to a downstream library. */
+const char* bboxes_xlsx_vba_base64(const void* buf, size_t len);
+const char* bboxes_xlsx_vba_base64_file(const char* path);
+
 /* PDF metadata: Info dict + structural (version, pages, encryption, tagged).
    The *_file variant streams via FPDF_LoadCustomDocument — PDFium reads only
    the trailer/xref/referenced objects, not the whole file. Assumes

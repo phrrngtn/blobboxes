@@ -112,14 +112,19 @@ None of this needs the (optional, off-by-default) xlnt cell backend.
 | freeze/split panes | `<sheetView><pane>` |
 | outline (grouping) levels | `<outlinePr>`, row/col `outlineLevel` |
 
-### VBA project (for **porting** — effort gradient)
-| tier | what | cost |
+### VBA project — surface, don't parse
+`vbaProject.bin` is an OLE2/CFB container. blobboxes deliberately does **not** parse it
+(no in-house CFB/MS-OVBA code); that is left to a mature downstream library
+(`olefile` / `oletools`). blobboxes provides two things:
+| field / fn | what | why |
 |---|---|---|
-| `has_vba` | `vbaProject.bin` present | trivial |
-| `modules` | name + type (Standard/Class/**Document**(ThisWorkbook,Sheet_n)/Form) | OLE `dir` stream — medium |
-| **`references`** | external lib deps (GUID, name, path — Scripting, ADODB, Office…) | OLE `dir` stream — medium; **key for porting** |
-| `source` | module code (`CodeModule.Lines`) | OLE + VBA decompression — **heavy → separate "source extraction", later** |
-| project protection | locked / password | flag |
+| `vba.present` | `vbaProject.bin` present | trivial flag |
+| `vba.size` | byte size of the bin | near-match signal |
+| **`vba.sha1`** | SHA-1 of the bin | **JOIN/cluster identical VBA across a corpus** without shipping bytes |
+| **`xlsx_vba_base64(p)`** | the raw bin, base64 | the "get it out" hook → `from_base64()` → BLOB → feed `olefile` |
+
+Downstream (Python `oletools`) does modules / references (GUIDs) / source — the symbol
+table and porting analysis live there, over the bytes blobboxes hands out.
 
 ### JSON shape (sketch)
 ```jsonc
@@ -132,7 +137,7 @@ None of this needs the (optional, off-by-default) xlnt cell backend.
   "names":  [{"name":"SalesTotal","refers_to":"Jan!$H$120","scope":"workbook","visible":true}],
   "external_links": [{"target":"[Budget.xlsx]","sheets":["Q1"],"names":[…],"cells":["A1"]}],
   "connections": [...], "tables": [...],
-  "vba": {"present":true,"modules":[…],"references":[{"name":"Scripting","guid":…,"path":…}]} }
+  "vba": {"present":true,"size":32256,"sha1":"b5db7a6b…"} }   // parse bytes downstream
 ```
 
 ### Triangulation (macros over the blob)
