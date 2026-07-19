@@ -100,6 +100,13 @@ const char* bboxes_container_walk_json_file(const char* path);
 const char* bboxes_xlsx_vba_base64(const void* buf, size_t len);
 const char* bboxes_xlsx_vba_base64_file(const char* path);
 
+/* XFDF overlay emitter (the inverse of extraction): classification annotations
+   as JSON → an XFDF document a PDF viewer renders as overlays without mutating
+   the file. Input is {href?, annots:[{page,x,y,w,h,page_height,type,color,
+   subject,contents,...}]} (or a bare annots array); top-left-origin rects are
+   flipped to PDF bottom-left space per annot via page_height. */
+const char* bboxes_xfdf_from_json(const char* annots_json);
+
 /* PDF metadata: Info dict + structural (version, pages, encryption, tagged).
    The *_file variant streams via FPDF_LoadCustomDocument — PDFium reads only
    the trailer/xref/referenced objects, not the whole file. Assumes

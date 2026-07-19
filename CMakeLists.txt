@@ -112,7 +112,7 @@ endif()
 # ── Sources used by all targets ──────────────────────────────────────
 # bboxes_meta.cpp (document metadata extractors) is always built; it uses
 # pugixml + miniz, which are fetched unconditionally above.
-set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp src/bboxes_meta.cpp)
+set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp src/bboxes_meta.cpp src/bboxes_xfdf.cpp)
 set(BBOXES_INCLUDES include)
 set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json hash_library pugixml miniz)
 set(BBOXES_DEFS "")

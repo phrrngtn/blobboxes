@@ -344,7 +344,7 @@ static void meta_json_func(sqlite3_context* ctx, int, sqlite3_value** argv) {
     if (sqlite3_value_type(argv[0]) == SQLITE_BLOB) {
         const void* blob = sqlite3_value_blob(argv[0]);
         int sz = sqlite3_value_bytes(argv[0]);
-        if (blob && sz > 0) json = d->blob_fn(blob, static_cast<size_t>(sz));
+        if (blob && sz > 0 && d->blob_fn) json = d->blob_fn(blob, static_cast<size_t>(sz));
     } else {
         const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));
         if (path) json = d->path_fn(path);
@@ -358,6 +358,7 @@ static MetaDesc s_pdf_meta_desc      = { bboxes_pdf_metadata_json_file,  bboxes_
 static MetaDesc s_xlsx_manifest_desc = { bboxes_xlsx_manifest_json_file, bboxes_xlsx_manifest_json };
 static MetaDesc s_container_desc     = { bboxes_container_walk_json_file, bboxes_container_walk_json };
 static MetaDesc s_vba_b64_desc       = { bboxes_xlsx_vba_base64_file,     bboxes_xlsx_vba_base64 };
+static MetaDesc s_xfdf_desc          = { bboxes_xfdf_from_json,           nullptr };  /* text in */
 
 /* ══════════════════════════════════════════════════════════════════════
  * Table-driven registration
@@ -455,6 +456,7 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
         { "xlsx_manifest",   &s_xlsx_manifest_desc },
         { "container_walk",  &s_container_desc },
         { "xlsx_vba_base64", &s_vba_b64_desc },
+        { "xfdf",            &s_xfdf_desc },      /* JSON annots -> XFDF (text only) */
     };
     for (auto& m : metas) {
         rc = sqlite3_create_function(db, m.name, 1, SQLITE_UTF8, m.desc,

@@ -653,5 +653,10 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
                          reinterpret_cast<void*>(bboxes_xlsx_vba_base64),
                          meta_blob_scalar);
 
+    /* xfdf — annotations JSON -> XFDF overlay (VARCHAR in, VARCHAR out) */
+    register_meta_scalar(connection, "xfdf", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xfdf_from_json),
+                         meta_path_scalar);
+
     return true;
 }

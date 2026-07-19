@@ -297,6 +297,12 @@ NB_MODULE(blobboxes_ext, m) {
     META_FN("xlsx_vba_base64", bboxes_xlsx_vba_base64,     bboxes_xlsx_vba_base64_file);
     #undef META_FN
 
+    /* xfdf: annotations JSON (str) -> XFDF overlay document (str) */
+    m.def("xfdf", [](const std::string& annots_json) {
+        const char* r = bboxes_xfdf_from_json(annots_json.c_str());
+        return nb::str(r ? r : "");
+    }, nb::arg("annots_json"));
+
     /* PDF JSON functions (original) */
     m.def("doc_json", &doc_json,
           nb::arg("data"), nb::arg("password") = nb::none(),
