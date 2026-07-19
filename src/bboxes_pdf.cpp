@@ -4,7 +4,12 @@
 #include <fpdfview.h>
 #include <fpdf_text.h>
 #include <fpdf_edit.h>
+#include <fpdf_doc.h>
+#include <fpdf_catalog.h>
 
+#include <nlohmann/json.hpp>
+
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -384,6 +389,187 @@ BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
     FPDF_CloseDocument(doc);
     return result;
 }
+
+/* ── document metadata (JSON clob) ──────────────────────────────────────
+   Full-take PDF metadata: Info dict + structural (version, page_count,
+   encryption + permissions, tagged). Shares g_pdfium_mutex and the
+   append_codepoint UTF-16 decoder above; assumes bboxes_pdf_init() has
+   run (same contract as extract_pdf — no FPDF_InitLibrary here).
+
+   XMP (/Metadata stream) is deliberately deferred — PDFium exposes no
+   simple public accessor for the raw stream; it is a later increment. */
+
+using json = nlohmann::json;
+
+/* Thread-local storage backing the returned const char* (valid until the
+   next metadata call on the same thread). */
+static thread_local std::string g_pdf_meta;
+
+/* FPDF_GetMetaText → UTF-8. Returns "" when the tag is absent. */
+static std::string pdf_meta_text(FPDF_DOCUMENT doc, const char* tag) {
+    unsigned long n = FPDF_GetMetaText(doc, tag, nullptr, 0);
+    if (n <= 2) return {};                       /* just the UTF-16 NUL */
+    std::vector<unsigned short> buf(n / 2);
+    FPDF_GetMetaText(doc, tag, buf.data(), n);
+    std::string out;
+    for (size_t k = 0; k < buf.size(); ++k) {
+        unsigned int cp = buf[k];
+        if (cp == 0) break;
+        if (cp >= 0xD800 && cp <= 0xDBFF && k + 1 < buf.size()) {
+            unsigned int lo = buf[k + 1];
+            if (lo >= 0xDC00 && lo <= 0xDFFF) {
+                cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                ++k;
+            }
+        }
+        append_codepoint(out, cp);
+    }
+    return out;
+}
+
+/* "D:20211025160858+05'30'" → "2021-10-25T16:08:58+05:30" (lossless).
+   Returns the input unchanged if it does not look like a PDF date. */
+static std::string pdf_date_iso(const std::string& s) {
+    size_t i = (s.size() >= 2 && s[0] == 'D' && s[1] == ':') ? 2 : 0;
+    auto grab = [&](int count) {
+        std::string r;
+        for (int k = 0; k < count && i < s.size() && std::isdigit((unsigned char)s[i]); ++k)
+            r += s[i++];
+        return r;
+    };
+    std::string Y = grab(4);
+    if (Y.size() < 4) return s;
+    auto pad = [](std::string v, const char* def) { return v.size() == 2 ? v : std::string(def); };
+    std::string Mo = pad(grab(2), "01"), D = pad(grab(2), "01");
+    std::string H = pad(grab(2), "00"), Mi = pad(grab(2), "00"), S = pad(grab(2), "00");
+    std::string iso = Y + "-" + Mo + "-" + D + "T" + H + ":" + Mi + ":" + S;
+    if (i < s.size()) {
+        char o = s[i];
+        if (o == 'Z' || o == 'z') {
+            iso += "Z";
+        } else if (o == '+' || o == '-') {
+            ++i;
+            std::string oh = grab(2);
+            if (i < s.size() && s[i] == '\'') ++i;
+            std::string om = grab(2);
+            if (oh.size() == 2) iso += std::string(1, o) + oh + ":" + (om.size() == 2 ? om : "00");
+        }
+    }
+    return iso;
+}
+
+/* Build the JSON from an opened (or NULL) document. Caller holds the mutex. */
+static std::string pdf_meta_build(FPDF_DOCUMENT doc) {
+    json out;
+    out["dialect"] = "pdf";
+    if (!doc) {
+        unsigned long e = FPDF_GetLastError();
+        const char* reason =
+            e == FPDF_ERR_PASSWORD ? "encrypted (password required)" :
+            e == FPDF_ERR_FORMAT   ? "not a PDF / corrupted" :
+            e == FPDF_ERR_FILE     ? "file not found / unreadable" :
+            e == FPDF_ERR_SECURITY ? "unsupported security scheme" : "unknown";
+        out["integrity"] = {{"status", e == FPDF_ERR_PASSWORD ? "encrypted" : "failed"},
+                            {"error", reason}};
+        return out.dump(1);
+    }
+    out["integrity"] = {{"status", "clean"}};
+
+    /* Info dict */
+    static const struct { const char* tag; const char* key; bool date; } kInfo[] = {
+        {"Title", "title", false},     {"Author", "author", false},
+        {"Subject", "subject", false}, {"Keywords", "keywords", false},
+        {"Creator", "creator", false}, {"Producer", "producer", false},
+        {"CreationDate", "created", true}, {"ModDate", "modified", true},
+        {"Trapped", "trapped", false},
+    };
+    json info = json::object();
+    for (const auto& m : kInfo) {
+        std::string v = pdf_meta_text(doc, m.tag);
+        if (!v.empty()) info[m.key] = m.date ? pdf_date_iso(v) : v;
+    }
+    if (!info.empty()) out["info"] = info;
+
+    /* Structural */
+    json st = json::object();
+    int ver = 0;
+    if (FPDF_GetFileVersion(doc, &ver))
+        st["version"] = std::to_string(ver / 10) + "." + std::to_string(ver % 10);
+    st["page_count"] = FPDF_GetPageCount(doc);
+    int rev = FPDF_GetSecurityHandlerRevision(doc);   /* -1 if not encrypted */
+    bool encrypted = rev >= 0;
+    st["encrypted"] = encrypted;
+    if (encrypted) {
+        st["security_revision"] = rev;
+        /* Permission bits are 1-based in the PDF spec (bit 1 = LSB). */
+        unsigned long p = FPDF_GetDocPermissions(doc);
+        st["permissions"] = {
+            {"print",              (bool)(p & (1u << 2))},
+            {"modify",             (bool)(p & (1u << 3))},
+            {"copy",               (bool)(p & (1u << 4))},
+            {"annotate",           (bool)(p & (1u << 5))},
+            {"fill_forms",         (bool)(p & (1u << 8))},
+            {"extract_accessible", (bool)(p & (1u << 9))},
+            {"assemble",           (bool)(p & (1u << 10))},
+            {"print_high_res",     (bool)(p & (1u << 11))},
+        };
+    }
+    st["tagged"] = (bool)FPDFCatalog_IsTagged(doc);
+    out["structural"] = st;
+    return out.dump(1);
+}
+
+/* Streaming block reader for FPDF_LoadCustomDocument — PDFium requests only
+   the byte ranges it needs (trailer, xref, referenced objects), so a large
+   PDF is never read whole. */
+static int pdf_file_getblock(void* param, unsigned long pos,
+                             unsigned char* buf, unsigned long size) {
+    FILE* fp = static_cast<FILE*>(param);
+    if (fseeko(fp, static_cast<off_t>(pos), SEEK_SET) != 0) return 0;
+    return fread(buf, 1, size, fp) == size ? 1 : 0;
+}
+
+extern "C" {
+
+const char* bboxes_pdf_metadata_json(const void* buf, size_t len) {
+    std::lock_guard<std::mutex> lock(g_pdfium_mutex);
+    /* FPDF_LoadMemDocument borrows `buf` (no copy); it stays valid for the
+       whole call, and we close the doc before returning. */
+    FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), nullptr);
+    g_pdf_meta = pdf_meta_build(doc);
+    if (doc) FPDF_CloseDocument(doc);
+    return g_pdf_meta.c_str();
+}
+
+const char* bboxes_pdf_metadata_json_file(const char* path) {
+    std::lock_guard<std::mutex> lock(g_pdfium_mutex);
+    FILE* fp = fopen(path, "rb");
+    if (!fp) {
+        FPDF_DOCUMENT none = nullptr;
+        (void)none;
+        json out;
+        out["dialect"] = "pdf";
+        out["integrity"] = {{"status", "failed"}, {"error", "file not found / unreadable"}};
+        g_pdf_meta = out.dump(1);
+        return g_pdf_meta.c_str();
+    }
+    fseeko(fp, 0, SEEK_END);
+    off_t sz = ftello(fp);
+    fseeko(fp, 0, SEEK_SET);
+
+    FPDF_FILEACCESS fa{};
+    fa.m_FileLen = static_cast<unsigned long>(sz);
+    fa.m_GetBlock = pdf_file_getblock;
+    fa.m_Param = fp;                     /* kept alive on the stack below */
+
+    FPDF_DOCUMENT doc = FPDF_LoadCustomDocument(&fa, nullptr);
+    g_pdf_meta = pdf_meta_build(doc);
+    if (doc) FPDF_CloseDocument(doc);
+    fclose(fp);
+    return g_pdf_meta.c_str();
+}
+
+} /* extern "C" */
 
 /* Object-level variant — uses FPDFPage_GetObject instead of char-by-char */
 BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password,

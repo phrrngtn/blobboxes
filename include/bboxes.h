@@ -70,6 +70,27 @@ typedef struct {
 /* Returns "pdf", "xlsx", "docx", or "text" based on magic bytes. */
 const char* bboxes_detect(const void* buf, size_t len);
 
+/* ── document metadata (full-take JSON clob; not the bboxes stream) ──
+ *
+ * Dialect-specific structural / provenance metadata → one JSON string.
+ * Distinct from recognition (what a blob is) and from the positioned
+ * content stream (cells/text/geometry). Returned pointer is owned by a
+ * thread-local buffer, valid until the next call on the same thread.
+ *
+ * The *_file entry points are stream-oriented: miniz seeks to the zip's
+ * central directory (tail) and inflates ONLY the metadata parts, never
+ * the whole workbook body.
+ */
+const char* bboxes_xlsx_metadata_json(const void* buf, size_t len);
+const char* bboxes_xlsx_metadata_json_file(const char* path);
+
+/* PDF metadata: Info dict + structural (version, pages, encryption, tagged).
+   The *_file variant streams via FPDF_LoadCustomDocument — PDFium reads only
+   the trailer/xref/referenced objects, not the whole file. Assumes
+   bboxes_pdf_init() has been called; serialized on the PDFium mutex. */
+const char* bboxes_pdf_metadata_json(const void* buf, size_t len);
+const char* bboxes_pdf_metadata_json_file(const char* path);
+
 /* ── cursor ──────────────────────────────────────────────────────── */
 
 typedef struct bboxes_cursor bboxes_cursor;

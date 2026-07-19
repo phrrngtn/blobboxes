@@ -403,6 +403,65 @@ static void generic_json_scalar_blob(duckdb_function_info info, duckdb_data_chun
     }
 }
 
+/* ── document-metadata scalars (not cursor-based) ────────────────────
+ *
+ * xlsx_metadata(path VARCHAR) / xlsx_metadata(blob BLOB) → JSON VARCHAR.
+ * The path overload streams: miniz seeks the zip central directory and
+ * inflates only the metadata parts, so a huge workbook is not read whole.
+ */
+
+typedef const char* (*meta_path_fn)(const char*);
+typedef const char* (*meta_blob_fn)(const void*, size_t);
+
+static void meta_path_scalar(duckdb_function_info info, duckdb_data_chunk input,
+                             duckdb_vector output) {
+    auto fn = reinterpret_cast<meta_path_fn>(duckdb_scalar_function_get_extra_info(info));
+    idx_t count = duckdb_data_chunk_get_size(input);
+    duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
+    for (idx_t i = 0; i < count; i++) {
+        const char* path = get_string(v_input, i);
+        const char* json = fn(path);
+        if (json)
+            duckdb_vector_assign_string_element_len(output, i, json, std::strlen(json));
+        else
+            duckdb_vector_assign_string_element(output, i, "null");
+    }
+}
+
+static void meta_blob_scalar(duckdb_function_info info, duckdb_data_chunk input,
+                             duckdb_vector output) {
+    auto fn = reinterpret_cast<meta_blob_fn>(duckdb_scalar_function_get_extra_info(info));
+    idx_t count = duckdb_data_chunk_get_size(input);
+    duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
+    for (idx_t i = 0; i < count; i++) {
+        auto* s = &static_cast<duckdb_string_t*>(duckdb_vector_get_data(v_input))[i];
+        const char* data = s->value.inlined.length > 12 ? s->value.pointer.ptr
+                                                         : s->value.inlined.inlined;
+        idx_t size = s->value.inlined.length;
+        const char* json = size > 0 ? fn(data, size) : nullptr;
+        if (json)
+            duckdb_vector_assign_string_element_len(output, i, json, std::strlen(json));
+        else
+            duckdb_vector_assign_string_element(output, i, "null");
+    }
+}
+
+static void register_meta_scalar(duckdb_connection conn, const char* name,
+                                 int arg_type, void* fn, duckdb_scalar_function_t impl) {
+    duckdb_scalar_function func = duckdb_create_scalar_function();
+    duckdb_scalar_function_set_name(func, name);
+    duckdb_logical_type t_arg = duckdb_create_logical_type((duckdb_type)arg_type);
+    duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
+    duckdb_scalar_function_add_parameter(func, t_arg);
+    duckdb_scalar_function_set_return_type(func, t_str);
+    duckdb_destroy_logical_type(&t_arg);
+    duckdb_destroy_logical_type(&t_str);
+    duckdb_scalar_function_set_extra_info(func, fn, nullptr);
+    duckdb_scalar_function_set_function(func, impl);
+    duckdb_register_scalar_function(conn, func);
+    duckdb_destroy_scalar_function(&func);
+}
+
 /* ── registration helpers ────────────────────────────────────────── */
 
 static void register_table_fn(duckdb_connection conn, const char* name,
@@ -554,6 +613,21 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     /* bb_info — auto-detecting doc info scalar (alias of bb_doc_json) */
     register_json_scalar(connection, "bb_info", &s_scalars[0][0], false);
     register_json_scalar_blob(connection, "bb_info", &s_scalars[0][0]);
+
+    /* xlsx_metadata / pdf_metadata — document metadata clobs
+       (path overload streams; blob overload for in-hand bytes) */
+    register_meta_scalar(connection, "xlsx_metadata", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_metadata_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_metadata", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_metadata_json),
+                         meta_blob_scalar);
+    register_meta_scalar(connection, "pdf_metadata", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_pdf_metadata_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "pdf_metadata", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_pdf_metadata_json),
+                         meta_blob_scalar);
 
     return true;
 }

@@ -74,22 +74,23 @@ if(BUILD_XLSX_BACKEND)
   FetchContent_MakeAvailable(xlnt)
 endif()
 
-# ── DOCX: pugixml + miniz via FetchContent ──────────────────────────
-if(BUILD_DOCX_BACKEND)
-  FetchContent_Declare(pugixml
-    GIT_REPOSITORY https://github.com/zeux/pugixml.git
-    GIT_TAG v1.14
-    GIT_SHALLOW TRUE)
-  FetchContent_MakeAvailable(pugixml)
+# ── pugixml + miniz via FetchContent ────────────────────────────────
+# Needed by the always-on metadata extractor (src/bboxes_meta.cpp) and,
+# when enabled, by the DOCX backend. Fetched unconditionally so metadata
+# extraction does not depend on any optional backend.
+FetchContent_Declare(pugixml
+  GIT_REPOSITORY https://github.com/zeux/pugixml.git
+  GIT_TAG v1.14
+  GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(pugixml)
 
-  FetchContent_Declare(miniz
-    GIT_REPOSITORY https://github.com/richgel999/miniz.git
-    GIT_TAG 3.0.2
-    GIT_SHALLOW TRUE)
-  set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
-  FetchContent_MakeAvailable(miniz)
-  unset(CMAKE_POLICY_VERSION_MINIMUM CACHE)
-endif()
+FetchContent_Declare(miniz
+  GIT_REPOSITORY https://github.com/richgel999/miniz.git
+  GIT_TAG 3.0.2
+  GIT_SHALLOW TRUE)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+FetchContent_MakeAvailable(miniz)
+unset(CMAKE_POLICY_VERSION_MINIMUM CACHE)
 
 # ── SQLite (for SQLite extension) ─────────────────────────────────────
 if(BUILD_SQLITE_EXTENSION)
@@ -107,9 +108,11 @@ if(BUILD_SQLITE_EXTENSION)
 endif()
 
 # ── Sources used by all targets ──────────────────────────────────────
-set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp)
+# bboxes_meta.cpp (document metadata extractors) is always built; it uses
+# pugixml + miniz, which are fetched unconditionally above.
+set(BBOXES_SOURCES src/bboxes_core.cpp src/bboxes_pdf.cpp src/bboxes_meta.cpp)
 set(BBOXES_INCLUDES include)
-set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json hash_library)
+set(BBOXES_LIBS pdfium nlohmann_json::nlohmann_json hash_library pugixml miniz)
 set(BBOXES_DEFS "")
 
 if(BUILD_XLSX_BACKEND)
@@ -125,8 +128,7 @@ endif()
 
 if(BUILD_DOCX_BACKEND)
   list(APPEND BBOXES_SOURCES src/bboxes_docx.cpp)
-  list(APPEND BBOXES_LIBS pugixml miniz)
-  list(APPEND BBOXES_DEFS BBOXES_HAS_DOCX)
+  list(APPEND BBOXES_DEFS BBOXES_HAS_DOCX)  # pugixml + miniz already linked
 endif()
 
 # Helper: copy libpdfium next to a target and set RPATH
