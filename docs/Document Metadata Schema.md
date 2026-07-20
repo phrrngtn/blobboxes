@@ -120,7 +120,7 @@ None of this needs the (optional, off-by-default) xlnt cell backend.
 |---|---|---|
 | `vba.present` | `vbaProject.bin` present | trivial flag |
 | `vba.size` | byte size of the bin | near-match signal |
-| **`vba.sha1`** | SHA-1 of the bin | **JOIN/cluster identical VBA across a corpus** without shipping bytes |
+| **`vba.sha256`** | SHA-256 of the bin | **JOIN/cluster identical VBA across a corpus** without shipping bytes |
 | **`xlsx_vba_base64(p)`** | the raw bin, base64 | the "get it out" hook → `from_base64()` → BLOB → feed `olefile` |
 
 Downstream (Python `oletools`) does modules / references (GUIDs) / source — the symbol
@@ -137,7 +137,7 @@ table and porting analysis live there, over the bytes blobboxes hands out.
   "names":  [{"name":"SalesTotal","refers_to":"Jan!$H$120","scope":"workbook","visible":true}],
   "external_links": [{"target":"[Budget.xlsx]","sheets":["Q1"],"names":[…],"cells":["A1"]}],
   "connections": [...], "tables": [...],
-  "vba": {"present":true,"size":32256,"sha1":"b5db7a6b…"} }   // parse bytes downstream
+  "vba": {"present":true,"size":32256,"sha256":"ee8af35a…"} }   // parse bytes downstream
 ```
 
 ### Triangulation (macros over the blob)

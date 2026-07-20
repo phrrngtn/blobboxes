@@ -43,7 +43,8 @@ FetchContent_Declare(hash_library
 FetchContent_Populate(hash_library)
 add_library(hash_library STATIC
   "${hash_library_SOURCE_DIR}/md5.cpp"
-  "${hash_library_SOURCE_DIR}/sha1.cpp")
+  "${hash_library_SOURCE_DIR}/sha1.cpp"
+  "${hash_library_SOURCE_DIR}/sha256.cpp")
 target_include_directories(hash_library PUBLIC "${hash_library_SOURCE_DIR}")
 if(APPLE)
   # macOS lacks <endian.h>; provide a shim that includes <machine/endian.h>

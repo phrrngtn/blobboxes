@@ -2,7 +2,7 @@
 #include "bboxes_types.h"
 
 #include <nlohmann/json.hpp>
-#include "md5.h"
+#include "sha256.h"
 
 #include <string>
 #include <string_view>
@@ -99,8 +99,8 @@ static json bbox_to_json(const BBox& b, const std::string& source_type) {
 static bboxes_cursor* wrap_result(BBoxResult r, const void* buf, size_t len) {
     if (r.page_count < 0) return nullptr;
     {
-        MD5 md5;
-        r.checksum = md5(buf, len);
+        SHA256 sha256;
+        r.checksum = sha256(buf, len);
     }
     auto* c = new bboxes_cursor{};
     c->result       = std::move(r);

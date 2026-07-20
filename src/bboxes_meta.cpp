@@ -7,7 +7,7 @@
 #include <miniz.h>
 #include <pugixml.hpp>
 #include <nlohmann/json.hpp>
-#include "sha1.h"
+#include "sha256.h"
 #include <string>
 #include <vector>
 #include <cstring>
@@ -251,10 +251,10 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
     if (has("xl/vbaProject.bin")) {
         std::string bin;
         if (zip_bytes(z, "xl/vbaProject.bin", bin)) {
-            SHA1 sha1;
+            SHA256 sha256;
             out["vba"] = {{"present", true},
                           {"size", static_cast<uint64_t>(bin.size())},
-                          {"sha1", sha1(bin.data(), bin.size())}};
+                          {"sha256", sha256(bin.data(), bin.size())}};
         } else {
             out["vba"] = {{"present", true}};
         }
