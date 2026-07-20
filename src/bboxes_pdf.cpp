@@ -609,7 +609,7 @@ const char* bboxes_pdf_metadata_json(const void* buf, size_t len) {
         if (!xmp.empty()) out["xmp"] = xmp;
         FPDF_CloseDocument(doc);
     }
-    g_pdf_meta = out.dump(1);
+    g_pdf_meta = out.dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
     return g_pdf_meta.c_str();
 }
 
@@ -622,7 +622,7 @@ const char* bboxes_pdf_metadata_json_file(const char* path) {
         json out;
         out["dialect"] = "pdf";
         out["integrity"] = {{"status", "failed"}, {"error", "file not found / unreadable"}};
-        g_pdf_meta = out.dump(1);
+        g_pdf_meta = out.dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
         return g_pdf_meta.c_str();
     }
     fseeko(fp, 0, SEEK_END);
@@ -637,7 +637,7 @@ const char* bboxes_pdf_metadata_json_file(const char* path) {
     /* Streaming tier: Info + structural only (XMP needs a full-byte scan and
        is offered by the buffer overload). */
     FPDF_DOCUMENT doc = FPDF_LoadCustomDocument(&fa, nullptr);
-    g_pdf_meta = pdf_meta_build(doc).dump(1);
+    g_pdf_meta = pdf_meta_build(doc).dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
     if (doc) FPDF_CloseDocument(doc);
     fclose(fp);
     return g_pdf_meta.c_str();

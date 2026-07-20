@@ -261,7 +261,7 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
     } else {
         out["vba"] = {{"present", false}};
     }
-    return out.dump(1);
+    return out.dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
 }
 
 // ── manifest: central-directory-only view (the "last N bytes" tier) ──────
@@ -293,7 +293,7 @@ std::string xlsx_manifest_from_zip(mz_zip_archive& z) {
     json list = json::array();
     for (auto& q : parts) list.push_back(q);
     out["parts"] = list;
-    return out.dump(1);
+    return out.dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
 }
 
 // ── recursive container walk ─────────────────────────────────────────────
@@ -465,7 +465,7 @@ const char* bboxes_xlsx_vba_base64(const void* data, size_t len) {
 
 // Recursive container walk → tree of typed nodes.
 const char* bboxes_container_walk_json(const void* data, size_t len) {
-    g_result = walk_bytes(data, len, "<root>", 0).dump(1);
+    g_result = walk_bytes(data, len, "<root>", 0).dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
     return g_result.c_str();
 }
 const char* bboxes_container_walk_json_file(const char* path) {
@@ -477,7 +477,7 @@ const char* bboxes_container_walk_json_file(const char* path) {
     std::string base = path;
     auto p = base.rfind('/');
     if (p != std::string::npos) base = base.substr(p + 1);
-    g_result = walk_bytes(buf.data(), buf.size(), base, 0).dump(1);
+    g_result = walk_bytes(buf.data(), buf.size(), base, 0).dump(1, ' ', false, nlohmann::json::error_handler_t::replace);
     return g_result.c_str();
 }
 

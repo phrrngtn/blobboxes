@@ -225,7 +225,7 @@ const char* bboxes_get_doc_json(bboxes_cursor* c) {
     obj["filename"]    = nullptr;
     obj["checksum"]    = c->result.checksum;
     obj["page_count"]  = c->result.page_count;
-    c->doc_json = obj.dump();
+    c->doc_json = obj.dump(-1, ' ', false, json::error_handler_t::replace);
     return c->doc_json.c_str();
 }
 
@@ -245,7 +245,7 @@ const bboxes_page* bboxes_next_page(bboxes_cursor* c) {
 const char* bboxes_next_page_json(bboxes_cursor* c) {
     if (!c || c->page_index >= c->result.pages.size()) return nullptr;
     const Page& p = c->result.pages[c->page_index++];
-    c->page_json = page_to_json(p).dump();
+    c->page_json = page_to_json(p).dump(-1, ' ', false, json::error_handler_t::replace);
     return c->page_json.c_str();
 }
 
@@ -262,7 +262,7 @@ const bboxes_font* bboxes_next_font(bboxes_cursor* c) {
 const char* bboxes_next_font_json(bboxes_cursor* c) {
     if (!c || c->font_index >= c->result.fonts.entries.size()) return nullptr;
     const auto& e = c->result.fonts.entries[c->font_index++];
-    c->font_json = font_to_json(e).dump();
+    c->font_json = font_to_json(e).dump(-1, ' ', false, json::error_handler_t::replace);
     return c->font_json.c_str();
 }
 
@@ -284,7 +284,7 @@ const bboxes_style* bboxes_next_style(bboxes_cursor* c) {
 const char* bboxes_next_style_json(bboxes_cursor* c) {
     if (!c || c->style_index >= c->result.styles.entries.size()) return nullptr;
     const auto& e = c->result.styles.entries[c->style_index++];
-    c->style_json = style_to_json(e).dump();
+    c->style_json = style_to_json(e).dump(-1, ' ', false, json::error_handler_t::replace);
     return c->style_json.c_str();
 }
 
@@ -319,7 +319,7 @@ const char* bboxes_next_bbox_json(bboxes_cursor* c) {
         const auto& page = c->result.pages[c->bbox_page];
         if (c->bbox_within < page.bboxes.size()) {
             const BBox& b = page.bboxes[c->bbox_within++];
-            c->bbox_json = bbox_to_json(b, c->result.source_type).dump();
+            c->bbox_json = bbox_to_json(b, c->result.source_type).dump(-1, ' ', false, json::error_handler_t::replace);
             return c->bbox_json.c_str();
         }
         c->bbox_page++;
@@ -336,7 +336,7 @@ const char* bboxes_get_pages_json(bboxes_cursor* c) {
         json arr = json::array();
         for (const auto& p : c->result.pages)
             arr.push_back(page_to_json(p));
-        c->pages_array_json = arr.dump();
+        c->pages_array_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
     }
     return c->pages_array_json.c_str();
 }
@@ -347,7 +347,7 @@ const char* bboxes_get_fonts_json(bboxes_cursor* c) {
         json arr = json::array();
         for (const auto& e : c->result.fonts.entries)
             arr.push_back(font_to_json(e));
-        c->fonts_array_json = arr.dump();
+        c->fonts_array_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
     }
     return c->fonts_array_json.c_str();
 }
@@ -358,7 +358,7 @@ const char* bboxes_get_styles_json(bboxes_cursor* c) {
         json arr = json::array();
         for (const auto& e : c->result.styles.entries)
             arr.push_back(style_to_json(e));
-        c->styles_array_json = arr.dump();
+        c->styles_array_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
     }
     return c->styles_array_json.c_str();
 }
@@ -370,7 +370,7 @@ const char* bboxes_get_bboxes_json(bboxes_cursor* c) {
         for (const auto& page : c->result.pages)
             for (const auto& b : page.bboxes)
                 arr.push_back(bbox_to_json(b, c->result.source_type));
-        c->bboxes_array_json = arr.dump();
+        c->bboxes_array_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
     }
     return c->bboxes_array_json.c_str();
 }
