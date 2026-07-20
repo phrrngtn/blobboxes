@@ -13,6 +13,8 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdint>
+#include <cctype>
+#include <cstdlib>
 
 using json = nlohmann::json;
 
@@ -41,6 +43,37 @@ std::vector<pugi::xml_node> all_by(const pugi::xml_node& n, const char* name) {
     std::vector<pugi::xml_node> v; all_by(n, name, v); return v;
 }
 bool truthy(const char* s) { return s && (!std::strcmp(s, "1") || !std::strcmp(s, "true")); }
+
+// Decode OOXML _xNNNN_ escapes (used for control chars that can't appear
+// literally, e.g. _x000d_ = CR, _x0009_ = tab) to UTF-8. Lossless but not
+// round-trippable — matches the metadata-cleanup convention.
+std::string unescape_ooxml(const char* cstr) {
+    std::string s = cstr ? cstr : "";
+    if (s.find("_x") == std::string::npos) return s;
+    std::string out;
+    out.reserve(s.size());
+    for (size_t i = 0; i < s.size();) {
+        if (i + 7 <= s.size() && s[i] == '_' && s[i + 1] == 'x' && s[i + 6] == '_' &&
+            std::isxdigit((unsigned char)s[i + 2]) && std::isxdigit((unsigned char)s[i + 3]) &&
+            std::isxdigit((unsigned char)s[i + 4]) && std::isxdigit((unsigned char)s[i + 5])) {
+            unsigned cp = (unsigned)std::strtoul(s.substr(i + 2, 4).c_str(), nullptr, 16);
+            if (cp < 0x80) {
+                out += (char)cp;
+            } else if (cp < 0x800) {
+                out += (char)(0xC0 | (cp >> 6));
+                out += (char)(0x80 | (cp & 0x3F));
+            } else {
+                out += (char)(0xE0 | (cp >> 12));
+                out += (char)(0x80 | ((cp >> 6) & 0x3F));
+                out += (char)(0x80 | (cp & 0x3F));
+            }
+            i += 7;
+        } else {
+            out += s[i++];
+        }
+    }
+    return out;
+}
 
 std::vector<std::string> zip_list(mz_zip_archive& z) {
     std::vector<std::string> out;
@@ -103,7 +136,7 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
     if (zip_load(z, "docProps/core.xml", doc)) {
         json core = json::object();
         for (auto c : doc.first_child().children())
-            if (c.text() && *c.text().get()) core[local(c.name())] = c.text().get();
+            if (c.text() && *c.text().get()) core[local(c.name())] = unescape_ooxml(c.text().get());
         if (!core.empty()) out["core"] = core;
     }
     if (zip_load(z, "docProps/app.xml", doc)) {
@@ -111,11 +144,11 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
         for (auto c : doc.first_child().children()) {
             bool has_elem = false;
             for (auto k : c.children()) if (k.type() == pugi::node_element) { has_elem = true; break; }
-            if (!has_elem && c.text() && *c.text().get()) app[local(c.name())] = c.text().get();
+            if (!has_elem && c.text() && *c.text().get()) app[local(c.name())] = unescape_ooxml(c.text().get());
         }
         if (auto top = first_by(doc, "TitlesOfParts")) {
             json a = json::array();
-            for (auto lp : all_by(top, "lpstr")) a.push_back(lp.text().get());
+            for (auto lp : all_by(top, "lpstr")) a.push_back(unescape_ooxml(lp.text().get()));
             app["TitlesOfParts"] = a;
         }
         if (!app.empty()) out["app"] = app;
@@ -124,7 +157,7 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
         json cu = json::object();
         for (auto p : all_by(doc, "property")) {
             const char* nm = p.attribute("name").as_string(nullptr);
-            if (nm) cu[nm] = p.first_child().first_child().text().get();
+            if (nm) cu[nm] = unescape_ooxml(p.first_child().first_child().text().get());
         }
         if (!cu.empty()) out["custom"] = cu;
     }

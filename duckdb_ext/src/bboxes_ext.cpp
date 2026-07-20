@@ -25,9 +25,15 @@ static std::vector<char> read_file(const char* path) {
     return buf;
 }
 
-static const char* get_string(duckdb_vector vec, idx_t i) {
+/* A duckdb_string_t is NOT null-terminated, so return a null-terminated copy.
+   Using the raw pointer as a C string (e.g. fopen) reads past the value into
+   adjacent heap bytes — sometimes a stray '\0' (works), sometimes garbage
+   (fails), which is a nondeterministic bug for path-based functions. */
+static std::string get_string(duckdb_vector vec, idx_t i) {
     auto* s = &static_cast<duckdb_string_t*>(duckdb_vector_get_data(vec))[i];
-    return s->value.inlined.length > 12 ? s->value.pointer.ptr : s->value.inlined.inlined;
+    idx_t len = s->value.inlined.length;
+    const char* data = len > 12 ? s->value.pointer.ptr : s->value.inlined.inlined;
+    return std::string(data, len);
 }
 
 /* ── Format constants (use BBOXES_FORMAT_* from bboxes.h) ────────── */
@@ -356,8 +362,8 @@ static void generic_json_scalar(duckdb_function_info info, duckdb_data_chunk inp
     duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
 
     for (idx_t i = 0; i < count; i++) {
-        const char* path = get_string(v_input, i);
-        auto buf = read_file(path);
+        std::string path = get_string(v_input, i);
+        auto buf = read_file(path.c_str());
 
         std::string result = "null";
         if (!buf.empty()) {
@@ -419,8 +425,8 @@ static void meta_path_scalar(duckdb_function_info info, duckdb_data_chunk input,
     idx_t count = duckdb_data_chunk_get_size(input);
     duckdb_vector v_input = duckdb_data_chunk_get_vector(input, 0);
     for (idx_t i = 0; i < count; i++) {
-        const char* path = get_string(v_input, i);
-        const char* json = fn(path);
+        std::string path = get_string(v_input, i);
+        const char* json = fn(path.c_str());
         if (json)
             duckdb_vector_assign_string_element_len(output, i, json, std::strlen(json));
         else
