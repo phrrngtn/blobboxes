@@ -80,10 +80,20 @@ static json style_to_json(const StyleTable::Entry& e) {
     return obj;
 }
 
-/* Cell-grid formats (xlsx/text/docx) address integer rows/cols; only the
-   rendered formats (pdf/html) have sub-unit float coordinates. */
+/* Single source of truth for the coordinate model: cell-grid formats
+   (xlsx/text/docx) use integer row/col coords; rendered formats (pdf) float. */
+extern "C" int bboxes_format_int_coords(int fmt) {
+    return fmt == BBOXES_FORMAT_XLSX || fmt == BBOXES_FORMAT_XLSX_FAST
+        || fmt == BBOXES_FORMAT_TEXT || fmt == BBOXES_FORMAT_DOCX;
+}
+
+/* The JSON builder only carries the source_type string; route it through the
+   canonical predicate above so the policy is defined in exactly one place. */
 static bool source_int_coords(const std::string& source_type) {
-    return source_type == "xlsx" || source_type == "text" || source_type == "docx";
+    if (source_type == "xlsx") return bboxes_format_int_coords(BBOXES_FORMAT_XLSX);
+    if (source_type == "text") return bboxes_format_int_coords(BBOXES_FORMAT_TEXT);
+    if (source_type == "docx") return bboxes_format_int_coords(BBOXES_FORMAT_DOCX);
+    return bboxes_format_int_coords(BBOXES_FORMAT_PDF);
 }
 
 static json bbox_to_json(const BBox& b, const std::string& source_type) {

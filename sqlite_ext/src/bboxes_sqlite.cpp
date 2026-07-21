@@ -33,14 +33,21 @@ static std::vector<char> read_file(const char* path) {
  * ══════════════════════════════════════════════════════════════════════ */
 
 static Format* make_fmt(Format f) {
-    static Format fmts[5] = {
-        BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX, BBOXES_FORMAT_TEXT,
-        BBOXES_FORMAT_DOCX, BBOXES_FORMAT_AUTO
+    /* MUST list every BBOXES_FORMAT_* — a missing code silently falls back to
+       AUTO, which for xlsx routes to the SLOW xlnt reader with float coords
+       (this is exactly how bb_xlsx/bb_objs lost the fast byte-scan path). */
+    static Format fmts[] = {
+        BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
+        BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS,
+        BBOXES_FORMAT_XLSX_FAST
     };
     for (auto& fmt : fmts)
         if (fmt == f) return &fmt;
-    return &fmts[4]; /* default AUTO */
+    return &fmts[0]; /* default AUTO */
 }
+
+/* Coordinate model (int vs float) is defined once in the shared C library:
+   bboxes_format_int_coords(fmt). Do not re-encode the format list here. */
 
 /* ── Generic vtab struct that carries the Format ─────────────────── */
 
@@ -255,25 +262,34 @@ static int StylesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
  * Bboxes virtual table
  * ══════════════════════════════════════════════════════════════════════ */
 
+/* Coords x/y/w/h are declared WITHOUT a type so they take BLOB (no) affinity:
+   the one module serves every format, and xColumn emits int for the cell grid
+   (xlsx/text/docx) but double for rendered formats (pdf). A REAL/NUMERIC
+   affinity here would coerce the integer results back to float. */
 DEFINE_VTAB(Bboxes,
     "CREATE TABLE x(page_id INTEGER, style_id INTEGER, "
-    "x REAL, y REAL, w REAL, h REAL, text TEXT, formula TEXT, file_path TEXT HIDDEN)",
+    "x, y, w, h, text TEXT, formula TEXT, file_path TEXT HIDDEN)",
     BboxesCursor, bboxes_bbox, bboxes_next_bbox, 8, 1000.0)
 
 static int BboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* b = static_cast<BboxesCursor*>(pCursor)->current;
+    const bool ints = bboxes_format_int_coords(static_cast<FmtVtab*>(pCursor->pVtab)->fmt);
+    /* one coord emitter: int for the cell grid, double for rendered formats */
+    #define BB_COORD(v) do { if (ints) sqlite3_result_int(ctx, static_cast<int>(v)); \
+                             else sqlite3_result_double(ctx, (v)); } while (0)
     switch (col) {
         case 0: sqlite3_result_int(ctx, b->page_id); break;
         case 1: sqlite3_result_int(ctx, b->style_id); break;
-        case 2: sqlite3_result_double(ctx, b->x); break;
-        case 3: sqlite3_result_double(ctx, b->y); break;
-        case 4: sqlite3_result_double(ctx, b->w); break;
-        case 5: sqlite3_result_double(ctx, b->h); break;
+        case 2: BB_COORD(b->x); break;
+        case 3: BB_COORD(b->y); break;
+        case 4: BB_COORD(b->w); break;
+        case 5: BB_COORD(b->h); break;
         case 6: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
         case 7: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
                 else sqlite3_result_null(ctx); break;
         default: sqlite3_result_null(ctx); break;
     }
+    #undef BB_COORD
     return SQLITE_OK;
 }
 

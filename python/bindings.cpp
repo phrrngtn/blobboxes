@@ -128,7 +128,7 @@ struct BBoxesXlsxCursor : CursorBase {   /* DEFAULT: fast byte-scan reader */
     BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
         include_formula = true;
-        int_coords = true;
+        int_coords = bboxes_format_int_coords(BBOXES_FORMAT_XLSX_FAST);
         cur = bboxes_open_xlsx_fast(buf.data(), buf.size(),
                                      pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad XLSX");
@@ -139,7 +139,7 @@ struct BBoxesXlsxSlowCursor : CursorBase {   /* legacy xlnt path (kept for A/B) 
     BBoxesXlsxSlowCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
         include_formula = true;
-        int_coords = true;
+        int_coords = bboxes_format_int_coords(BBOXES_FORMAT_XLSX);
         cur = bboxes_open_xlsx(buf.data(), buf.size(),
                                 pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad XLSX");
@@ -149,7 +149,7 @@ struct BBoxesXlsxSlowCursor : CursorBase {   /* legacy xlnt path (kept for A/B) 
 struct BBoxesTextCursor : CursorBase {
     BBoxesTextCursor(nb::bytes data) {
         buf.assign(data.c_str(), data.c_str() + data.size());
-        int_coords = true;
+        int_coords = bboxes_format_int_coords(BBOXES_FORMAT_TEXT);
         cur = bboxes_open_text(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad text");
     }
@@ -158,7 +158,7 @@ struct BBoxesTextCursor : CursorBase {
 struct BBoxesDocxCursor : CursorBase {
     BBoxesDocxCursor(nb::bytes data) {
         buf.assign(data.c_str(), data.c_str() + data.size());
-        int_coords = true;
+        int_coords = bboxes_format_int_coords(BBOXES_FORMAT_DOCX);
         cur = bboxes_open_docx(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad DOCX");
     }

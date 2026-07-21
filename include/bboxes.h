@@ -182,6 +182,11 @@ void bboxes_close(bboxes_cursor* cursor);
 
 bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
 
+/* Coordinate model (single source of truth — hosts must not re-encode this).
+   Returns 1 for cell-grid formats (xlsx/text/docx) whose bbox x/y/w/h are
+   integer row/col positions, 0 for rendered formats (pdf) with float coords. */
+int bboxes_format_int_coords(int fmt);
+
 const char *bboxes_errmsg(void);
 
 #ifdef __cplusplus

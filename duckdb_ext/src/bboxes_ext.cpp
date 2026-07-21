@@ -52,13 +52,8 @@ static const char* format_name(Format fmt) {
     return "unknown";
 }
 
-/* Cell-grid formats (xlsx/text/docx) have integer row/col coordinates;
-   rendered formats (pdf) keep float coords. AUTO is unknown at bind time
-   (format is detected in init), so it stays DOUBLE. */
-static bool fmt_int_coords(Format fmt) {
-    return fmt == BBOXES_FORMAT_XLSX || fmt == BBOXES_FORMAT_XLSX_FAST
-        || fmt == BBOXES_FORMAT_TEXT || fmt == BBOXES_FORMAT_DOCX;
-}
+/* Coordinate model lives in the shared C library (bboxes_format_int_coords).
+   AUTO is unknown at bind time (format detected in init) → 0 → stays DOUBLE. */
 
 /* ── shared bind/init ────────────────────────────────────────────── */
 
@@ -306,7 +301,7 @@ static void bboxes_bind(duckdb_bind_info info) {
     duckdb_logical_type t_dbl = duckdb_create_logical_type(DUCKDB_TYPE_DOUBLE);
     duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
     /* xlsx/text/docx address an integer cell grid; pdf/AUTO keep float coords. */
-    duckdb_logical_type t_coord = fmt_int_coords(fmt) ? t_int : t_dbl;
+    duckdb_logical_type t_coord = bboxes_format_int_coords(fmt) ? t_int : t_dbl;
 
     duckdb_bind_add_result_column(info, "page_id", t_int);
     duckdb_bind_add_result_column(info, "style_id", t_int);
@@ -326,7 +321,7 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* data = static_cast<InitData*>(duckdb_function_get_init_data(info));
     if (!data->cursor) { duckdb_data_chunk_set_size(output, 0); return; }
 
-    const bool ints = fmt_int_coords(data->fmt);
+    const bool ints = bboxes_format_int_coords(data->fmt);
     auto* page_id_data  = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 0)));
     auto* style_id_data = static_cast<int32_t*>(duckdb_vector_get_data(duckdb_data_chunk_get_vector(output, 1)));
     duckdb_vector v_x = duckdb_data_chunk_get_vector(output, 2);
@@ -334,7 +329,7 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     duckdb_vector v_w = duckdb_data_chunk_get_vector(output, 4);
     duckdb_vector v_h = duckdb_data_chunk_get_vector(output, 5);
     /* Coordinate vectors are INT32 for cell-grid formats, DOUBLE otherwise
-       (bboxes_bind declares the matching column type via fmt_int_coords). */
+       (bboxes_bind declares the matching column type via the same predicate). */
     auto* xi = ints ? static_cast<int32_t*>(duckdb_vector_get_data(v_x)) : nullptr;
     auto* yi = ints ? static_cast<int32_t*>(duckdb_vector_get_data(v_y)) : nullptr;
     auto* wi = ints ? static_cast<int32_t*>(duckdb_vector_get_data(v_w)) : nullptr;
