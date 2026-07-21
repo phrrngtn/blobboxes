@@ -234,7 +234,11 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                     if (!ws.has_cell(xlnt::cell_reference(col, row))) continue;
                     auto cell = ws.cell(xlnt::cell_reference(col, row));
                     bool is_master = sr && sr->masters.count(key);
-                    if (!cell.has_value() && !is_master) continue;  /* masters emit even if uncalculated */
+                    /* Emit truly-empty cells only when they carry nothing: a formula IS
+                       content even with no cached value (fullCalcOnLoad / exporters that
+                       omit <v>, e.g. openpyxl), so keep it — the emit path below reads
+                       cell.formula() directly. Masters emit even if uncalculated. */
+                    if (!cell.has_value() && !cell.has_formula() && !is_master) continue;
 
                     /* font / style */
                     std::string font_name = "default";
