@@ -62,16 +62,25 @@ static nb::list cursor_styles(bboxes_cursor* cur) {
     return out;
 }
 
-static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false) {
+static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false,
+                              bool int_coords = false) {
     nb::list out;
     while (auto* b = bboxes_next_bbox(cur)) {
         nb::dict d;
         d["page_id"]  = b->page_id;
         d["style_id"] = b->style_id;
-        d["x"] = b->x;
-        d["y"] = b->y;
-        d["w"] = b->w;
-        d["h"] = b->h;
+        /* cell-grid formats (xlsx/text/docx) use integer coordinates */
+        if (int_coords) {
+            d["x"] = static_cast<int64_t>(b->x);
+            d["y"] = static_cast<int64_t>(b->y);
+            d["w"] = static_cast<int64_t>(b->w);
+            d["h"] = static_cast<int64_t>(b->h);
+        } else {
+            d["x"] = b->x;
+            d["y"] = b->y;
+            d["w"] = b->w;
+            d["h"] = b->h;
+        }
         d["text"] = b->text;
         if (include_formula)
             d["formula"] = b->formula ? nb::cast(b->formula) : nb::none();
@@ -86,12 +95,13 @@ struct CursorBase {
     bboxes_cursor* cur = nullptr;
     std::vector<char> buf;
     bool include_formula = false;
+    bool int_coords = false;
 
     nb::dict doc()      { return cursor_doc(cur); }
     nb::list pages()    { return cursor_pages(cur); }
     nb::list fonts()    { return cursor_fonts(cur); }
     nb::list styles()   { return cursor_styles(cur); }
-    nb::list bboxes()   { return cursor_bboxes(cur, include_formula); }
+    nb::list bboxes()   { return cursor_bboxes(cur, include_formula, int_coords); }
     void close()        { if (cur) { bboxes_close(cur); cur = nullptr; } }
     ~CursorBase()       { close(); }
 };
@@ -118,6 +128,7 @@ struct BBoxesXlsxCursor : CursorBase {   /* DEFAULT: fast byte-scan reader */
     BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
         include_formula = true;
+        int_coords = true;
         cur = bboxes_open_xlsx_fast(buf.data(), buf.size(),
                                      pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad XLSX");
@@ -128,6 +139,7 @@ struct BBoxesXlsxSlowCursor : CursorBase {   /* legacy xlnt path (kept for A/B) 
     BBoxesXlsxSlowCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
         include_formula = true;
+        int_coords = true;
         cur = bboxes_open_xlsx(buf.data(), buf.size(),
                                 pw ? pw->c_str() : nullptr, sp, ep);
         if (!cur) throw nb::value_error("bad XLSX");
@@ -137,6 +149,7 @@ struct BBoxesXlsxSlowCursor : CursorBase {   /* legacy xlnt path (kept for A/B) 
 struct BBoxesTextCursor : CursorBase {
     BBoxesTextCursor(nb::bytes data) {
         buf.assign(data.c_str(), data.c_str() + data.size());
+        int_coords = true;
         cur = bboxes_open_text(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad text");
     }
@@ -145,6 +158,7 @@ struct BBoxesTextCursor : CursorBase {
 struct BBoxesDocxCursor : CursorBase {
     BBoxesDocxCursor(nb::bytes data) {
         buf.assign(data.c_str(), data.c_str() + data.size());
+        int_coords = true;
         cur = bboxes_open_docx(buf.data(), buf.size());
         if (!cur) throw nb::value_error("bad DOCX");
     }

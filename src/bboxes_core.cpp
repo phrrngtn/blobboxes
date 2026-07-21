@@ -80,14 +80,27 @@ static json style_to_json(const StyleTable::Entry& e) {
     return obj;
 }
 
+/* Cell-grid formats (xlsx/text/docx) address integer rows/cols; only the
+   rendered formats (pdf/html) have sub-unit float coordinates. */
+static bool source_int_coords(const std::string& source_type) {
+    return source_type == "xlsx" || source_type == "text" || source_type == "docx";
+}
+
 static json bbox_to_json(const BBox& b, const std::string& source_type) {
     json obj;
     obj["page_id"]  = b.page_id;
     obj["style_id"] = b.style_id;
-    obj["x"] = b.x;
-    obj["y"] = b.y;
-    obj["w"] = b.w;
-    obj["h"] = b.h;
+    if (source_int_coords(source_type)) {
+        obj["x"] = static_cast<int64_t>(b.x);
+        obj["y"] = static_cast<int64_t>(b.y);
+        obj["w"] = static_cast<int64_t>(b.w);
+        obj["h"] = static_cast<int64_t>(b.h);
+    } else {
+        obj["x"] = b.x;
+        obj["y"] = b.y;
+        obj["w"] = b.w;
+        obj["h"] = b.h;
+    }
     obj["text"] = b.text;
     if (source_type == "xlsx")
         obj["formula"] = b.formula.empty() ? json(nullptr) : json(b.formula);
