@@ -114,8 +114,18 @@ struct BBoxesPdfObjCursor : CursorBase {
     }
 };
 
-struct BBoxesXlsxCursor : CursorBase {
+struct BBoxesXlsxCursor : CursorBase {   /* DEFAULT: fast byte-scan reader */
     BBoxesXlsxCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
+        include_formula = true;
+        cur = bboxes_open_xlsx_fast(buf.data(), buf.size(),
+                                     pw ? pw->c_str() : nullptr, sp, ep);
+        if (!cur) throw nb::value_error("bad XLSX");
+    }
+};
+
+struct BBoxesXlsxSlowCursor : CursorBase {   /* legacy xlnt path (kept for A/B) */
+    BBoxesXlsxSlowCursor(nb::bytes data, std::optional<std::string> pw, int sp, int ep) {
         buf.assign(data.c_str(), data.c_str() + data.size());
         include_formula = true;
         cur = bboxes_open_xlsx(buf.data(), buf.size(),
@@ -250,6 +260,17 @@ NB_MODULE(blobboxes_ext, m) {
         .def("styles", &BBoxesXlsxCursor::styles)
         .def("bboxes", &BBoxesXlsxCursor::bboxes)
         .def("close", &BBoxesXlsxCursor::close);
+
+    nb::class_<BBoxesXlsxSlowCursor>(m, "BBoxesXlsxSlowCursor")   /* legacy xlnt path */
+        .def(nb::init<nb::bytes, std::optional<std::string>, int, int>(),
+             nb::arg("data"), nb::arg("password") = nb::none(),
+             nb::arg("start_page") = 0, nb::arg("end_page") = 0)
+        .def("doc", &BBoxesXlsxSlowCursor::doc)
+        .def("pages", &BBoxesXlsxSlowCursor::pages)
+        .def("fonts", &BBoxesXlsxSlowCursor::fonts)
+        .def("styles", &BBoxesXlsxSlowCursor::styles)
+        .def("bboxes", &BBoxesXlsxSlowCursor::bboxes)
+        .def("close", &BBoxesXlsxSlowCursor::close);
 
     /* Text cursor */
     nb::class_<BBoxesTextCursor>(m, "BBoxesTextCursor")

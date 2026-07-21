@@ -322,11 +322,11 @@ static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** ar
  * ══════════════════════════════════════════════════════════════════════ */
 
 /* 6 formats × 5 JSON functions = 30 descriptors */
-static ScalarDesc s_doc_desc[]    = { {BBOXES_FORMAT_PDF, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX, bboxes_get_doc_json}, {BBOXES_FORMAT_TEXT, bboxes_get_doc_json}, {BBOXES_FORMAT_DOCX, bboxes_get_doc_json}, {BBOXES_FORMAT_AUTO, bboxes_get_doc_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_doc_json} };
-static ScalarDesc s_pages_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_pages_json},  {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},  {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},  {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},  {BBOXES_FORMAT_AUTO, bboxes_get_pages_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_pages_json} };
-static ScalarDesc s_fonts_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},  {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},  {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},  {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},  {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json} };
-static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX, bboxes_get_styles_json}, {BBOXES_FORMAT_TEXT, bboxes_get_styles_json}, {BBOXES_FORMAT_DOCX, bboxes_get_styles_json}, {BBOXES_FORMAT_AUTO, bboxes_get_styles_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json} };
-static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json} };
+static ScalarDesc s_doc_desc[]    = { {BBOXES_FORMAT_PDF, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX, bboxes_get_doc_json}, {BBOXES_FORMAT_TEXT, bboxes_get_doc_json}, {BBOXES_FORMAT_DOCX, bboxes_get_doc_json}, {BBOXES_FORMAT_AUTO, bboxes_get_doc_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_doc_json} };
+static ScalarDesc s_pages_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_pages_json},  {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},  {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},  {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},  {BBOXES_FORMAT_AUTO, bboxes_get_pages_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_pages_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_pages_json} };
+static ScalarDesc s_fonts_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},  {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},  {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},  {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},  {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_fonts_json} };
+static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX, bboxes_get_styles_json}, {BBOXES_FORMAT_TEXT, bboxes_get_styles_json}, {BBOXES_FORMAT_DOCX, bboxes_get_styles_json}, {BBOXES_FORMAT_AUTO, bboxes_get_styles_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_styles_json} };
+static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json} };
 
 /* ══════════════════════════════════════════════════════════════════════
  * Document-metadata scalars (not cursor-based). One SQLite function accepts
@@ -372,7 +372,8 @@ struct FormatInfo {
 
 static const FormatInfo s_formats[] = {
     { "bb_pdf",  BBOXES_FORMAT_PDF,         0 },
-    { "bb_xlsx", BBOXES_FORMAT_XLSX,        1 },
+    { "bb_xlsx_slow", BBOXES_FORMAT_XLSX,   1 },  /* legacy xlnt path (kept for A/B) */
+    { "bb_xlsx", BBOXES_FORMAT_XLSX_FAST,   6 },  /* DEFAULT: fast byte-scan reader */
     { "bb_text", BBOXES_FORMAT_TEXT,        2 },
     { "bb_docx", BBOXES_FORMAT_DOCX,        3 },
     { "bb",      BBOXES_FORMAT_AUTO,        4 },

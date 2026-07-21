@@ -7,6 +7,7 @@ from .blobboxes_ext import (
     _xlsx_init,
     BBoxesCursor,
     BBoxesXlsxCursor,
+    BBoxesXlsxSlowCursor,
     BBoxesTextCursor,
     BBoxesDocxCursor,
     BBoxesAutoCursor,
@@ -22,8 +23,9 @@ from .blobboxes_ext import (
 _pdf_init()
 _xlsx_init()
 
-open_pdf  = BBoxesCursor
-open_xlsx = BBoxesXlsxCursor
-open_text = BBoxesTextCursor
+open_pdf       = BBoxesCursor
+open_xlsx      = BBoxesXlsxCursor       # DEFAULT: fast byte-scan reader
+open_xlsx_slow = BBoxesXlsxSlowCursor   # legacy xlnt path (kept for A/B)
+open_text      = BBoxesTextCursor
 open_docx = BBoxesDocxCursor
 open      = BBoxesAutoCursor
