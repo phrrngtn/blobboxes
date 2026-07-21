@@ -135,6 +135,10 @@ bboxes_cursor* bboxes_open_xlsx(const void* buf, size_t len,
                                  const char* password,
                                  int start_page, int end_page);
 
+bboxes_cursor* bboxes_open_xlsx_fast(const void* buf, size_t len,
+                                     const char* password,
+                                     int start_page, int end_page);
+
 bboxes_cursor* bboxes_open_text(const void* buf, size_t len);
 
 bboxes_cursor* bboxes_open_docx(const void* buf, size_t len);
@@ -174,6 +178,7 @@ void bboxes_close(bboxes_cursor* cursor);
 #define BBOXES_FORMAT_TEXT         3
 #define BBOXES_FORMAT_DOCX         4
 #define BBOXES_FORMAT_PDF_OBJECTS  5  /* object-level PDF: one bbox per text object */
+#define BBOXES_FORMAT_XLSX_FAST    6  /* fast byte-scan xlsx reader (parallel to XLSX) */
 
 bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
 

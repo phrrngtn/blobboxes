@@ -192,6 +192,11 @@ BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password
 BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                          int start_page, int end_page);
 
+/* fast byte-scan xlsx reader — same BBox grain, ~7-9x faster; style_id = cellXfs `s`,
+   text = raw value (shared-strings resolved). Parallel to extract_xlsx (unchanged). */
+BBoxResult extract_xlsx_fast(const void* buf, size_t len, const char* password,
+                             int start_page, int end_page);
+
 BBoxResult extract_text(const void* buf, size_t len);
 
 BBoxResult extract_docx(const void* buf, size_t len);

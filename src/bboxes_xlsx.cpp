@@ -328,3 +328,230 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
 
     return result;
 }
+
+/* ── fast path: single byte-scan pass (hybrid). Emits the same BBox grain as
+   extract_xlsx ~7-9x faster (bench_reader): our scanner walks the O(cells) grid;
+   shared/array-formula masters + merges are detected inline (low-N gnarly bits).
+   Differences vs extract_xlsx (by design): text is the RAW <v> value (not xlnt's
+   number-format display), and style_id is the cellXfs `s` index (not an interned id). */
+
+static std::string x_attr(const char* p, const char* tag_end, const char* name) {
+    size_t nl = std::strlen(name);
+    const char* a = static_cast<const char*>(memmem(p, tag_end - p, name, nl));
+    if (!a) return {};
+    a += nl;
+    const char* q = static_cast<const char*>(std::memchr(a, '"', tag_end - a));
+    return q ? std::string(a, q - a) : std::string();
+}
+
+static std::string x_inner(const char* p, const char* end, const char* open, size_t ol,
+                           const char* close, size_t cl) {
+    const char* t = static_cast<const char*>(memmem(p, end - p, open, ol));
+    if (!t) return {};
+    const char* gt = static_cast<const char*>(std::memchr(t, '>', end - t));
+    if (!gt || *(gt - 1) == '/') return {};
+    const char* c = static_cast<const char*>(memmem(gt, end - gt, close, cl));
+    return c ? std::string(gt + 1, c - (gt + 1)) : std::string();
+}
+
+static void xml_unescape(std::string& s) {
+    if (s.find('&') == std::string::npos) return;   // fast path: nothing to decode
+    std::string out; out.reserve(s.size());
+    for (size_t i = 0; i < s.size();) {
+        if (s[i] != '&') { out += s[i++]; continue; }
+        if      (s.compare(i, 5, "&amp;")  == 0) { out += '&';  i += 5; }
+        else if (s.compare(i, 4, "&lt;")   == 0) { out += '<';  i += 4; }
+        else if (s.compare(i, 4, "&gt;")   == 0) { out += '>';  i += 4; }
+        else if (s.compare(i, 6, "&quot;") == 0) { out += '"';  i += 6; }
+        else if (s.compare(i, 6, "&apos;") == 0) { out += '\''; i += 6; }
+        else if (s.compare(i, 2, "&#")     == 0) {
+            size_t semi = s.find(';', i);
+            if (semi == std::string::npos) { out += s[i++]; continue; }
+            long code = (s[i + 2] == 'x' || s[i + 2] == 'X')
+                        ? std::strtol(s.c_str() + i + 3, nullptr, 16)
+                        : std::strtol(s.c_str() + i + 2, nullptr, 10);
+            if (code < 0x80) out += static_cast<char>(code);
+            else if (code < 0x800) { out += static_cast<char>(0xC0 | (code >> 6));
+                                     out += static_cast<char>(0x80 | (code & 0x3F)); }
+            else { out += static_cast<char>(0xE0 | (code >> 12));
+                   out += static_cast<char>(0x80 | ((code >> 6) & 0x3F));
+                   out += static_cast<char>(0x80 | (code & 0x3F)); }
+            i = semi + 1;
+        }
+        else out += s[i++];
+    }
+    s = std::move(out);
+}
+
+BBoxResult extract_xlsx_fast(const void* buf, size_t len, const char* /*password*/,
+                             int start_page, int end_page) {
+    BBoxResult result;
+    result.source_type = "xlsx";
+    mz_zip_archive z;
+    std::memset(&z, 0, sizeof(z));
+    if (!mz_zip_reader_init_mem(&z, buf, len, 0)) { result.page_count = -1; return result; }
+
+    try {
+        // ordered sheets [(part, name)] from workbook.xml + rels (workbook order = page_id)
+        std::string wbxml, relsxml;
+        std::vector<std::pair<std::string, std::string>> sheets;
+        if (zip_read(z, "xl/workbook.xml", wbxml) &&
+            zip_read(z, "xl/_rels/workbook.xml.rels", relsxml)) {
+            pugi::xml_document wbdoc, reldoc;
+            wbdoc.load_buffer(wbxml.data(), wbxml.size());
+            reldoc.load_buffer(relsxml.data(), relsxml.size());
+            std::vector<pugi::xml_node> ss, rels;
+            all_by(wbdoc, "sheet", ss);
+            all_by(reldoc, "Relationship", rels);
+            std::unordered_map<std::string, std::string> rid2t;
+            for (auto& r : rels) rid2t[r.attribute("Id").value()] = r.attribute("Target").value();
+            for (auto& s : ss) {
+                auto it = rid2t.find(s.attribute("r:id").value());
+                if (it == rid2t.end()) continue;
+                const std::string& t = it->second;
+                std::string part = (!t.empty() && t[0] == '/') ? t.substr(1) : ("xl/" + t);
+                sheets.emplace_back(part, s.attribute("name").value());
+            }
+        }
+
+        // shared strings, once
+        std::string sstxml;
+        std::vector<std::string> sst;
+        if (zip_read(z, "xl/sharedStrings.xml", sstxml)) {
+            const char* p = sstxml.data(); const char* end = p + sstxml.size();
+            while ((p = static_cast<const char*>(memmem(p, end - p, "<si>", 4)))) {
+                p += 4;
+                const char* se = static_cast<const char*>(memmem(p, end - p, "</si>", 5));
+                if (!se) break;
+                std::string val; const char* q = p;
+                while (q < se) {
+                    const char* t = static_cast<const char*>(memmem(q, se - q, "<t", 2));
+                    if (!t) break;
+                    const char* gt = static_cast<const char*>(std::memchr(t, '>', se - t));
+                    if (!gt) break;
+                    if (*(gt - 1) == '/') { q = gt + 1; continue; }
+                    const char* tc = static_cast<const char*>(memmem(gt, se - gt, "</t>", 4));
+                    if (!tc) break;
+                    val.append(gt + 1, tc - (gt + 1)); q = tc + 4;
+                }
+                sst.push_back(std::move(val)); p = se + 5;
+            }
+        }
+
+        int sheet_count = static_cast<int>(sheets.size());
+        result.page_count = sheet_count;
+        int sp = (start_page > 0) ? start_page : 1;
+        int ep = (end_page > 0) ? end_page : sheet_count;
+        if (sp > sheet_count) sp = sheet_count;
+        if (ep > sheet_count) ep = sheet_count;
+        if (sp > ep) { result.page_count = -1; mz_zip_reader_end(&z); return result; }
+
+        for (int si = sp - 1; si < ep; si++) {
+            std::string xml;
+            if (!zip_read(z, sheets[si].first.c_str(), xml)) continue;
+            const char* base = xml.data(); const char* end = base + xml.size();
+
+            Page page;
+            page.page_id = static_cast<uint32_t>(si);
+            page.document_id = 0;
+            page.page_number = si + 1;
+
+            std::unordered_set<uint64_t> covered;
+            std::unordered_map<uint64_t, std::pair<double, double>> extent;  // top-left -> (w,h)
+
+            // merges (small block, usually after sheetData) -> extents + covered non-origins
+            const char* m = base;
+            while ((m = static_cast<const char*>(memmem(m, end - m, "<mergeCell ", 11)))) {
+                const char* me = static_cast<const char*>(std::memchr(m, '>', end - m));
+                if (!me) break;
+                uint32_t r1, c1, r2, c2;
+                if (parse_ref(x_attr(m, me, " ref=\"").c_str(), r1, c1, r2, c2)) {
+                    extent[cell_key(r1, c1)] = { double(c2 - c1 + 1), double(r2 - r1 + 1) };
+                    for (uint32_t rr = r1; rr <= r2; rr++)
+                        for (uint32_t cc = c1; cc <= c2; cc++)
+                            if (!(rr == r1 && cc == c1)) covered.insert(cell_key(rr, cc));
+                }
+                m = me + 1;
+            }
+
+            double pw = 0, ph = 0;
+            const char* p = base;
+            while ((p = static_cast<const char*>(memmem(p, end - p, "<c ", 3)))) {
+                const char* tag_end = static_cast<const char*>(std::memchr(p, '>', end - p));
+                if (!tag_end) break;
+                bool self_closing = (*(tag_end - 1) == '/');
+                uint32_t row = 0, col = 0;
+                parse_a1(x_attr(p, tag_end, " r=\"").c_str(), row, col);
+                if (col > pw) pw = col;
+                if (row > ph) ph = row;
+
+                const char* next; const char* cell_end;
+                if (self_closing) { next = tag_end + 1; cell_end = tag_end; }
+                else {
+                    const char* ce = static_cast<const char*>(memmem(tag_end, end - tag_end, "</c>", 4));
+                    if (!ce) break;
+                    cell_end = ce; next = ce + 4;
+                }
+                uint64_t key = cell_key(row, col);
+                if (self_closing || covered.count(key)) { p = next; continue; }
+
+                std::string sref = x_attr(p, tag_end, " s=\"");
+                std::string tref = x_attr(p, tag_end, " t=\"");
+
+                // formula + shared/array master extent
+                std::string formula;
+                double w = 1, h = 1;
+                const char* f = static_cast<const char*>(memmem(tag_end, cell_end - tag_end, "<f", 2));
+                if (f) {
+                    const char* fgt = static_cast<const char*>(std::memchr(f, '>', cell_end - f));
+                    if (fgt && *(fgt - 1) != '/') {
+                        std::string ft = x_attr(f, fgt, " t=\"");
+                        std::string fref = x_attr(f, fgt, " ref=\"");
+                        const char* fc = static_cast<const char*>(memmem(fgt, cell_end - fgt, "</f>", 4));
+                        if (fc && fc > fgt + 1) formula = "=" + std::string(fgt + 1, fc - (fgt + 1));
+                        if ((ft == "shared" || ft == "array") && !fref.empty()) {
+                            uint32_t r1, c1, r2, c2;
+                            if (parse_ref(fref.c_str(), r1, c1, r2, c2)) {
+                                w = double(c2 - c1 + 1); h = double(r2 - r1 + 1);
+                                for (uint32_t rr = r1; rr <= r2; rr++)
+                                    for (uint32_t cc = c1; cc <= c2; cc++)
+                                        if (!(rr == row && cc == col)) covered.insert(cell_key(rr, cc));
+                            }
+                        }
+                    }
+                }
+                if (auto e = extent.find(key); e != extent.end()) { w = e->second.first; h = e->second.second; }
+
+                // value-element PRESENCE (a cell with an empty <v> still emits, like xlnt)
+                const char* vpos = (tref == "inlineStr")
+                    ? static_cast<const char*>(memmem(tag_end, cell_end - tag_end, "<is", 3))
+                    : static_cast<const char*>(memmem(tag_end, cell_end - tag_end, "<v", 2));
+                std::string v = (tref == "inlineStr") ? x_inner(tag_end, cell_end, "<t", 2, "</t>", 4)
+                                                       : x_inner(tag_end, cell_end, "<v", 2, "</v>", 4);
+                std::string text;
+                if (tref == "s") { long i = std::strtol(v.c_str(), nullptr, 10);
+                                   if (i >= 0 && static_cast<size_t>(i) < sst.size()) text = sst[i]; }
+                else text = std::move(v);
+
+                if (!vpos && formula.empty()) { p = next; continue; }   // truly-empty cell
+                xml_unescape(text);
+                xml_unescape(formula);
+
+                BBox bb;
+                bb.page_id = static_cast<uint32_t>(si);
+                bb.style_id = sref.empty() ? 0 : static_cast<uint32_t>(std::strtoul(sref.c_str(), nullptr, 10));
+                bb.x = col; bb.y = row; bb.w = w; bb.h = h;
+                bb.text = std::move(text);
+                bb.formula = std::move(formula);
+                page.bboxes.push_back(std::move(bb));
+                p = next;
+            }
+            page.width = pw; page.height = ph;
+            result.pages.push_back(std::move(page));
+        }
+    } catch (...) {
+        result.page_count = -1;
+    }
+    mz_zip_reader_end(&z);
+    return result;
+}

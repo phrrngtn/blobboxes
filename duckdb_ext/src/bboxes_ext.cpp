@@ -616,6 +616,14 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
         }
     }
 
+    /* bb_xlsx_fast — parallel fast byte-scan xlsx reader; main bbox table + JSON blob
+       (for SQL A/B against bb_xlsx). style_id = cellXfs `s`; text = raw value. */
+    static Format s_fmt_xlsx_fast = BBOXES_FORMAT_XLSX_FAST;
+    static ScalarDesc s_scalar_xlsx_fast = { BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json };
+    register_table_fn(connection, "bb_xlsx_fast", bboxes_bind, bboxes_func, &s_fmt_xlsx_fast);
+    register_json_scalar(connection, "bb_xlsx_fast_json", &s_scalar_xlsx_fast, false);
+    register_json_scalar_blob(connection, "bb_xlsx_fast_json", &s_scalar_xlsx_fast);
+
     /* bb_info — auto-detecting doc info scalar (alias of bb_doc_json) */
     register_json_scalar(connection, "bb_info", &s_scalars[0][0], false);
     register_json_scalar_blob(connection, "bb_info", &s_scalars[0][0]);

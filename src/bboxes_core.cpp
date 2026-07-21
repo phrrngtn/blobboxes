@@ -149,6 +149,7 @@ bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len) {
         case BBOXES_FORMAT_PDF:         return bboxes_open_pdf(buf, len, nullptr, 0, 0);
         case BBOXES_FORMAT_PDF_OBJECTS: return bboxes_open_pdf_objects(buf, len, nullptr, 0, 0);
         case BBOXES_FORMAT_XLSX:        return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
+        case BBOXES_FORMAT_XLSX_FAST:   return bboxes_open_xlsx_fast(buf, len, nullptr, 0, 0);
         case BBOXES_FORMAT_TEXT:        return bboxes_open_text(buf, len);
         case BBOXES_FORMAT_DOCX:        return bboxes_open_docx(buf, len);
         default:                        return bboxes_open(buf, len);
@@ -177,10 +178,18 @@ bboxes_cursor* bboxes_open_xlsx(const void* buf, size_t len,
                                  int start_page, int end_page) {
     return wrap_result(extract_xlsx(buf, len, password, start_page, end_page), buf, len);
 }
+bboxes_cursor* bboxes_open_xlsx_fast(const void* buf, size_t len,
+                                     const char* password,
+                                     int start_page, int end_page) {
+    return wrap_result(extract_xlsx_fast(buf, len, password, start_page, end_page), buf, len);
+}
 #else
 void bboxes_xlsx_init(void) {}
 void bboxes_xlsx_destroy(void) {}
 bboxes_cursor* bboxes_open_xlsx(const void*, size_t, const char*, int, int) {
+    return nullptr;
+}
+bboxes_cursor* bboxes_open_xlsx_fast(const void*, size_t, const char*, int, int) {
     return nullptr;
 }
 #endif

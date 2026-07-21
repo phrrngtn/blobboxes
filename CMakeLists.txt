@@ -163,6 +163,12 @@ target_link_libraries(bboxes_example PRIVATE ${BBOXES_LIBS})
 bboxes_backend_setup(bboxes_example)
 bboxes_runtime(bboxes_example "@executable_path")
 
+# ── A/B reader benchmark: xlnt full DOM vs hand pull-scan on the SAME bytes ──
+if(BUILD_XLSX_BACKEND)
+  add_executable(bench_reader bench/bench_reader.cpp)
+  target_link_libraries(bench_reader PRIVATE xlnt miniz)
+endif()
+
 # ── Python bindings (nanobind) ───────────────────────────────────────
 option(BUILD_PYTHON_BINDINGS "Build nanobind Python module" OFF)
 if(BUILD_PYTHON_BINDINGS)
