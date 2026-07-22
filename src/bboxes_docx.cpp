@@ -35,26 +35,22 @@ static std::vector<char> zip_extract(const void* buf, size_t len, const char* na
     return out;
 }
 
-/* get text content from a <w:r> run or <w:t> element tree */
-static std::string get_run_text(const pugi::xml_node& run) {
-    std::string text;
-    for (auto& child : run.children()) {
-        if (strcmp(child.name(), "w:t") == 0) {
-            text += child.child_value();
-        }
+/* recursively gather all <w:t> text under a node — catches runs nested in
+   <w:hyperlink>, <w:smartTag>, <w:ins>, etc., not just direct <w:r> children.
+   <w:tab>/<w:br>/<w:cr> render as whitespace so words don't run together. */
+static void gather_text(const pugi::xml_node& n, std::string& out) {
+    for (auto& child : n.children()) {
+        const char* nm = child.name();
+        if (strcmp(nm, "w:t") == 0)        out += child.child_value();
+        else if (strcmp(nm, "w:tab") == 0) out += '\t';
+        else if (strcmp(nm, "w:br") == 0 || strcmp(nm, "w:cr") == 0) out += '\n';
+        else                               gather_text(child, out);
     }
-    return text;
 }
 
-/* get concatenated text from a paragraph */
+/* full text of a paragraph */
 static std::string get_para_text(const pugi::xml_node& para) {
-    std::string text;
-    for (auto& child : para.children()) {
-        if (strcmp(child.name(), "w:r") == 0) {
-            text += get_run_text(child);
-        }
-    }
-    return text;
+    std::string text; gather_text(para, text); return text;
 }
 
 /* get text from a table cell (may contain multiple paragraphs) */
@@ -105,71 +101,86 @@ BBoxResult extract_docx(const void* buf, size_t len) {
         font_id, BBOXES_DEFAULT_FONT_SIZE, BBOXES_DEFAULT_COLOR,
         BBOXES_DEFAULT_WEIGHT, false, false);
 
-    /* find all <w:tbl> elements in the document body */
+    /* Walk the body in DOCUMENT ORDER (y = reading-order line, monotonic).
+       docx stores no geometry, so we use one flow of lines on a single page:
+         - a paragraph is a full text span, IDENTICAL to the text reader's model
+           (bboxes_text.cpp): x=1, w=len(text), h=1 — docx flow == text flow.
+         - a table row subdivides its line into a real grid: x=col, w=colspan.
+       Tables are the only genuine 2D structure; paragraphs are flow spans. */
     auto body = doc.child("w:document").child("w:body");
     if (!body) {
         result.page_count = -1;
         return result;
     }
 
-    std::vector<pugi::xml_node> tables;
-    for (auto& child : body.children()) {
-        if (strcmp(child.name(), "w:tbl") == 0)
-            tables.push_back(child);
-    }
+    Page page;
+    page.page_id     = 0;
+    page.document_id = 0;
+    page.page_number = 1;
 
-    result.page_count = static_cast<int>(tables.size());
+    uint32_t line = 0;
+    double max_x = 0.0;
 
-    for (size_t ti = 0; ti < tables.size(); ti++) {
-        Page page;
-        page.page_id     = static_cast<uint32_t>(ti);
-        page.document_id = 0;
-        page.page_number = static_cast<int>(ti + 1);
+    for (auto& blk : body.children()) {
+        const char* nm = blk.name();
 
-        uint32_t row_num = 0;
-        uint32_t max_cols = 0;
+        if (strcmp(nm, "w:p") == 0) {
+            std::string text = get_para_text(blk);
+            if (text.empty()) continue;            /* no text to box */
+            line++;
+            BBox bb;
+            bb.page_id  = 0;
+            bb.style_id = style_id;
+            bb.x = 1.0;
+            bb.y = static_cast<double>(line);
+            bb.w = static_cast<double>(text.size());   /* len(text), like bb_text */
+            bb.h = 1.0;
+            bb.text = std::move(text);
+            if (bb.x + bb.w - 1 > max_x) max_x = bb.x + bb.w - 1;
+            page.bboxes.push_back(std::move(bb));
 
-        for (auto& tr : tables[ti].children()) {
-            if (strcmp(tr.name(), "w:tr") != 0) continue;
-            row_num++;
-            uint32_t col_num = 0;
+        } else if (strcmp(nm, "w:tbl") == 0) {
+            for (auto& tr : blk.children()) {
+                if (strcmp(tr.name(), "w:tr") != 0) continue;
+                line++;
+                uint32_t col_num = 0;
 
-            for (auto& tc : tr.children()) {
-                if (strcmp(tc.name(), "w:tc") != 0) continue;
-                col_num++;
+                for (auto& tc : tr.children()) {
+                    if (strcmp(tc.name(), "w:tc") != 0) continue;
+                    col_num++;
 
-                /* check for gridSpan (colspan equivalent) */
-                auto tcPr = tc.child("w:tcPr");
-                int colspan = get_span(tcPr, "w:gridSpan", 1);
+                    auto tcPr = tc.child("w:tcPr");
+                    int colspan = get_span(tcPr, "w:gridSpan", 1);
 
-                /* vMerge: skip cells that continue a vertical merge */
-                auto vMerge = tcPr.child("w:vMerge");
-                if (vMerge && !vMerge.attribute("w:val")) {
+                    /* vMerge continuation cell: skip, but hold the column slot */
+                    auto vMerge = tcPr.child("w:vMerge");
+                    if (vMerge && !vMerge.attribute("w:val")) {
+                        col_num += (colspan - 1);
+                        continue;
+                    }
+
+                    BBox bb;
+                    bb.page_id  = 0;
+                    bb.style_id = style_id;
+                    bb.x = static_cast<double>(col_num);
+                    bb.y = static_cast<double>(line);
+                    bb.w = static_cast<double>(colspan);
+                    bb.h = 1.0;
+                    bb.text = get_cell_text(tc);
+                    if (bb.x + bb.w - 1 > max_x) max_x = bb.x + bb.w - 1;
+                    page.bboxes.push_back(std::move(bb));
+
                     col_num += (colspan - 1);
-                    continue;  /* continuation cell, skip */
                 }
-
-                std::string text = get_cell_text(tc);
-
-                BBox bb;
-                bb.page_id  = page.page_id;
-                bb.style_id = style_id;
-                bb.x = static_cast<double>(col_num);
-                bb.y = static_cast<double>(row_num);
-                bb.w = static_cast<double>(colspan);
-                bb.h = 1.0;
-                bb.text = text;
-                page.bboxes.push_back(std::move(bb));
-
-                col_num += (colspan - 1);
             }
-            if (col_num > max_cols) max_cols = col_num;
         }
-
-        page.width  = static_cast<double>(max_cols);
-        page.height = static_cast<double>(row_num);
-        result.pages.push_back(std::move(page));
+        /* else: w:sectPr and other block elements carry no text — ignore */
     }
+
+    page.width  = max_x;
+    page.height = static_cast<double>(line);
+    result.page_count = 1;
+    result.pages.push_back(std::move(page));
 
     return result;
 }
