@@ -247,6 +247,25 @@ the guarantee instead of re-deriving or mistrusting it.
 - *Toward formalization:* normalization is a trust-boundary operation; publish the
   invariant it guarantees alongside the artifact.
 
+**Defang the third-party library behind a small, database-friendly C surface.**
+Use a fat, good-at-its-job C/C++/Rust library for what it does well, but do not let its
+large, idiosyncratic API leak into the bindings. Write a *small* set of C-callable
+endpoints — the only surface the bindings ever see — that collapses the library's
+exported complexity to a handful of stable functions. Structured results tunnel back as
+**JSON through scalar functions**, because scalars compose (nest, filter, join) where
+table functions do not, and JSON is the interchange every host already parses. The one
+carve-out is the high-cardinality bulk (the cells), which goes through a flat, typed
+*table* function for throughput — routing millions of rows through a JSON string is the
+pathological case. So: **bulk → flat table-fn; everything low-N → JSON scalar**, and all
+transformation lives in the C endpoint, never in a binding.
+- *Where:* xlnt / PDFium / miniz / pugixml behind `bboxes_*_json` C endpoints; DuckDB,
+  SQLite, and Python each merely *register* the same C functions (so cross-dialect
+  consistency is free — change the C endpoint once, every binding inherits it); JSON
+  tunnelling for doc/pages/fonts/styles/metadata/headers; the flat table fn only for cells.
+- *Toward formalization:* a binding is a mechanism-adapter, never a logic site. A new
+  host binding is a few dozen lines of registration. The endpoint set *is* the contract —
+  keep it small, stable, and JSON-shaped; the third party's surface area never escapes it.
+
 ---
 
 ## 5. Methodological pattern
