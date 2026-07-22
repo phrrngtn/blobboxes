@@ -247,24 +247,33 @@ the guarantee instead of re-deriving or mistrusting it.
 - *Toward formalization:* normalization is a trust-boundary operation; publish the
   invariant it guarantees alongside the artifact.
 
-**Defang the third-party library behind a small, database-friendly C surface.**
-Use a fat, good-at-its-job C/C++/Rust library for what it does well, but do not let its
-large, idiosyncratic API leak into the bindings. Write a *small* set of C-callable
-endpoints — the only surface the bindings ever see — that collapses the library's
-exported complexity to a handful of stable functions. Structured results tunnel back as
-**JSON through scalar functions**, because scalars compose (nest, filter, join) where
-table functions do not, and JSON is the interchange every host already parses. The one
-carve-out is the high-cardinality bulk (the cells), which goes through a flat, typed
-*table* function for throughput — routing millions of rows through a JSON string is the
-pathological case. So: **bulk → flat table-fn; everything low-N → JSON scalar**, and all
-transformation lives in the C endpoint, never in a binding.
-- *Where:* xlnt / PDFium / miniz / pugixml behind `bboxes_*_json` C endpoints; DuckDB,
-  SQLite, and Python each merely *register* the same C functions (so cross-dialect
-  consistency is free — change the C endpoint once, every binding inherits it); JSON
-  tunnelling for doc/pages/fonts/styles/metadata/headers; the flat table fn only for cells.
-- *Toward formalization:* a binding is a mechanism-adapter, never a logic site. A new
-  host binding is a few dozen lines of registration. The endpoint set *is* the contract —
-  keep it small, stable, and JSON-shaped; the third party's surface area never escapes it.
+**Defang the third-party library behind a small, two-shape C surface; make every host a
+client.** Use a fat, good-at-its-job C/C++/Rust library for what it does well, but expose
+only a *small*, stable, C-ABI surface with exactly **two shapes**:
+
+- a **JSON blob** returned by a plain function — the *scalar / value* idiom. Scalars
+  *compose* (nest, filter, join) where table functions do not, and JSON is the
+  interchange every host already parses. Used for all the low-N structured results:
+  doc, pages, fonts, styles, metadata, headers, decode tables.
+- a **cursor** (`open → next_* → close`) — the *streaming / table* idiom, surfaced as a
+  table / table-valued function. Used for the high-cardinality bulk (the cells), where
+  routing millions of rows through a JSON string is the pathological case.
+
+Every host is then a **client** of those two shapes. DuckDB and SQLite map
+blob → scalar-function and cursor → table-function. **Python is a *fancier* client** —
+not obliged to shoehorn anything into a relational shape, it consumes the cursor as a
+native object with methods that return lists/dicts, and blobs as parsed structures.
+Because the surface is plain C-ABI, *any* other client (C, C++, another scripting
+language) binds the identical simplified interface. All transformation lives behind the
+two shapes, in the C wrapper.
+- *Where:* xlnt / PDFium / miniz / pugixml behind `bboxes_*_json` (blob) and
+  `bboxes_open_format → bboxes_next_* → close` (cursor); DuckDB/SQLite/Python each merely
+  *register/marshal* the same C endpoints, so cross-dialect consistency is free — change
+  the endpoint once, every client inherits it (the `xlsx_header` envelope fix touched one
+  C function and SQLite matched it with zero SQLite edits).
+- *Toward formalization:* a binding is a mechanism-adapter, never a logic site. A new host
+  binding is a few dozen lines of registration. The two-shape endpoint set *is* the
+  contract — keep it small and stable; the third party's surface area never escapes it.
 
 ---
 
