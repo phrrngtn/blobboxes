@@ -31,44 +31,46 @@ OUTDIR = os.environ["OUTDIR"]
 #          each call re-runs PDFium (serialized by its global mutex) — several
 #          parses per artifact until a cursor side-channel is added
 #   docx — only a single default style to decode (degenerate); header ~= sha
-def _spec(p, sha, ext):
+# BYTES-oriented: the cells table fn + the header both take the blob via a bound
+# `?` param, so the bytes are read ONCE (or handed straight from a spider / blob
+# store) and DuckDB never touches the filesystem. Both placeholders bind the same
+# bytes -> the file/document is parsed from memory, no re-read. `sha` is a literal.
+def _spec(sha, ext):
     if ext == ".xlsx":
-        return f"bb_xlsx('{p}')", f"{{ bbox_header: xlsx_header('{p}') }}"
+        return "bb_xlsx_blob(?)", "{ bbox_header: xlsx_header(?) }"
     if ext == ".pdf":
-        # one-parse header (fonts+styles+dims from a single PDFium cursor), not
-        # three separate re-parses; artifact = bb_pdf (cells) + pdf_header = 2 parses
-        return f"bb_pdf('{p}')", f"{{ bbox_header: pdf_header('{p}') }}"
+        # one-parse header (fonts+styles+dims from a single PDFium cursor)
+        return "bb_pdf_blob(?)", "{ bbox_header: pdf_header(?) }"
     if ext == ".docx":
-        return f"bb_docx('{p}')", f"{{ sha256: '{sha}', styles: bb_docx_styles_json('{p}') }}"
+        return "bb_docx_blob(?)", f"{{ sha256: '{sha}', styles: bb_docx_styles_json(?) }}"
     raise ValueError(f"unsupported: {ext}")
 
 def make_artifact(path):
-    ext = os.path.splitext(path)[1].lower()
-    sha = hashlib.sha256(open(path, "rb").read()).hexdigest()   # content address
-    out = os.path.join(OUTDIR, sha + ".parquet")
+    ext  = os.path.splitext(path)[1].lower()
+    data = open(path, "rb").read()                              # read ONCE (or from a store)
+    sha  = hashlib.sha256(data).hexdigest()                     # content address
+    out  = os.path.join(OUTDIR, sha + ".parquet")
     if os.path.exists(out):                                     # idempotent / dedup
         return (sha, os.path.getsize(out), "dedup")
     con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
     con.execute(f"LOAD '{EXT}'")
-    p   = path.replace("'", "''")
-    cells, kv = _spec(p, sha, ext)
+    cells, kv = _spec(sha, ext)
     tmp = f"{out}.{os.getpid()}.tmp"                            # atomic write
     # COPY returns the row count. The extension is resilient (bad input -> 0 rows,
-    # not an abort). But 0 rows has TWO very different meanings, so classify:
-    #   - a VALID pdf with no text layer (image-only / scanned) is a legitimate
-    #     METADATA-ONLY artifact (an OCR candidate), NOT a failure — it keeps its
-    #     header and is a first-class citizen.
-    #   - an input that isn't the claimed format at all (e.g. an HTML error page
-    #     saved as .pdf) is REJECTED — the only thing worth flagging.
+    # not an abort). 0 rows has TWO meanings, so classify:
+    #   - a VALID pdf with no text layer (image-only/scanned) is a legitimate
+    #     METADATA-ONLY artifact (OCR candidate), a first-class citizen.
+    #   - an input that isn't the claimed format (HTML saved as .pdf) is REJECTED.
     rows = con.execute(f"""
         COPY (SELECT * FROM {cells} ORDER BY page_id, y, x)
-        TO '{tmp}' (FORMAT PARQUET, COMPRESSION 'zstd', KV_METADATA {kv})""").fetchone()[0]
+        TO '{tmp}' (FORMAT PARQUET, COMPRESSION 'zstd', KV_METADATA {kv})""",
+        [data, data]).fetchone()[0]
     status = "write"
     if rows == 0:
         status = "metadata-only"
         if ext == ".pdf":   # integrity distinguishes image-only (clean) from not-a-pdf (failed)
             integ = con.execute(
-                f"SELECT json_extract_string(pdf_metadata('{p}'), '$.integrity.status')").fetchone()[0]
+                "SELECT json_extract_string(pdf_metadata(?), '$.integrity.status')", [data]).fetchone()[0]
             if integ == "failed":
                 status = "rejected"
     con.close()

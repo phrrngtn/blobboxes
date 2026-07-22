@@ -57,7 +57,13 @@ static const char* format_name(Format fmt) {
 
 /* ── shared bind/init ────────────────────────────────────────────── */
 
-struct BindData { char* file_path; };
+/* A table-fn input is EITHER a file path (read at init) or a blob of the bytes
+   (already in hand — the readers are all byte-based, so no file is touched). */
+struct BindData {
+    char*             file_path = nullptr;  // path variant (freed with duckdb_free)
+    std::vector<char> blob;                 // blob variant (bytes already in hand)
+    bool              is_blob = false;
+};
 
 struct InitData {
     std::vector<char> buf;
@@ -65,16 +71,32 @@ struct InitData {
     Format fmt;
 };
 
+static void bind_data_dtor(void* p) {
+    auto* d = static_cast<BindData*>(p);
+    if (d->file_path) duckdb_free(d->file_path);
+    delete d;
+}
+
 static void shared_bind_path(duckdb_bind_info info, BindData** out) {
     duckdb_value val = duckdb_bind_get_parameter(info, 0);
-    char* path = duckdb_get_varchar(val);
+    auto* data = new BindData{};
+    data->file_path = duckdb_get_varchar(val);
     duckdb_destroy_value(&val);
-    auto* data = new BindData{path};
-    duckdb_bind_set_bind_data(info, data, [](void* p) {
-        auto* d = static_cast<BindData*>(p);
-        duckdb_free(d->file_path);
-        delete d;
-    });
+    duckdb_bind_set_bind_data(info, data, bind_data_dtor);
+    *out = data;
+}
+
+static void shared_bind_blob(duckdb_bind_info info, BindData** out) {
+    duckdb_value val = duckdb_bind_get_parameter(info, 0);
+    duckdb_blob b = duckdb_get_blob(val);
+    auto* data = new BindData{};
+    data->is_blob = true;
+    if (b.data && b.size)
+        data->blob.assign(static_cast<const char*>(b.data),
+                          static_cast<const char*>(b.data) + b.size);
+    if (b.data) duckdb_free(b.data);
+    duckdb_destroy_value(&val);
+    duckdb_bind_set_bind_data(info, data, bind_data_dtor);
     *out = data;
 }
 
@@ -88,7 +110,7 @@ static void generic_init(duckdb_init_info info) {
     auto* data = new InitData{};
     data->fmt = fmt;
     data->cursor = nullptr;
-    data->buf = read_file(bind->file_path);
+    data->buf = bind->is_blob ? bind->blob : read_file(bind->file_path);
     /* Reliability lives HERE so every consumer benefits (glob/batch scans, any
        driver): an unreadable or unparseable file yields ZERO rows, never a query
        abort — the scan skips it instead of failing. Matches the SQLite vtab, which
@@ -285,10 +307,8 @@ static void styles_func(duckdb_function_info info, duckdb_data_chunk output) {
 
 /* ── table function: bboxes ──────────────────────────────────────── */
 
-static void bboxes_bind(duckdb_bind_info info) {
-    BindData* data;
-    shared_bind_path(info, &data);
-
+/* The bbox column schema — shared by the path and blob binds. */
+static void bboxes_declare_columns(duckdb_bind_info info) {
     auto* fmt_ptr = static_cast<Format*>(duckdb_bind_get_extra_info(info));
     Format fmt = fmt_ptr ? *fmt_ptr : BBOXES_FORMAT_AUTO;
 
@@ -310,6 +330,20 @@ static void bboxes_bind(duckdb_bind_info info) {
     duckdb_destroy_logical_type(&t_int);
     duckdb_destroy_logical_type(&t_dbl);
     duckdb_destroy_logical_type(&t_str);
+}
+
+static void bboxes_bind(duckdb_bind_info info) {
+    BindData* data;
+    shared_bind_path(info, &data);
+    bboxes_declare_columns(info);
+}
+
+/* Blob variant: bytes already in hand (a spider / blob store / read_blob) — no
+   file is touched; the readers are all byte-based. */
+static void bboxes_bind_blob(duckdb_bind_info info) {
+    BindData* data;
+    shared_bind_blob(info, &data);
+    bboxes_declare_columns(info);
 }
 
 static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
@@ -504,6 +538,26 @@ static void register_table_fn(duckdb_connection conn, const char* name,
     duckdb_destroy_table_function(&func);
 }
 
+/* Same as register_table_fn but the single parameter is a BLOB (bytes in hand),
+   so it can process spidered / stored content without touching the filesystem. */
+static void register_table_fn_blob(duckdb_connection conn, const char* name,
+                                    duckdb_table_function_bind_t bind_fn,
+                                    duckdb_table_function_t func_fn,
+                                    Format* fmt_ptr) {
+    duckdb_table_function func = duckdb_create_table_function();
+    duckdb_table_function_set_name(func, name);
+    duckdb_logical_type t = duckdb_create_logical_type(DUCKDB_TYPE_BLOB);
+    duckdb_table_function_add_parameter(func, t);
+    duckdb_destroy_logical_type(&t);
+    duckdb_table_function_set_bind(func, bind_fn);
+    duckdb_table_function_set_init(func, generic_init);
+    duckdb_table_function_set_function(func, func_fn);
+    if (fmt_ptr)
+        duckdb_table_function_set_extra_info(func, fmt_ptr, nullptr);
+    duckdb_register_table_function(conn, func);
+    duckdb_destroy_table_function(&func);
+}
+
 static void register_json_scalar_blob(duckdb_connection conn, const char* name,
                                        ScalarDesc* desc) {
     duckdb_scalar_function func = duckdb_create_scalar_function();
@@ -624,6 +678,9 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
             std::string name = std::string(f.prefix) + s_table_suffixes[ti];
             register_table_fn(connection, name.c_str(), s_bind_fns[ti], s_func_fns[ti], fmt_ptr);
         }
+        /* blob (bytes-in-hand) variant of the cells table fn: bb_<fmt>_blob */
+        std::string blob_name = std::string(f.prefix) + "_blob";
+        register_table_fn_blob(connection, blob_name.c_str(), bboxes_bind_blob, bboxes_func, fmt_ptr);
 
         for (int si = 0; si < 5; si++) {
             std::string name = std::string(f.prefix) + s_json_suffixes[si];
@@ -637,6 +694,7 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     static Format s_fmt_xlsx_fast = BBOXES_FORMAT_XLSX_FAST;
     static ScalarDesc s_scalar_xlsx_fast = { BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json };
     register_table_fn(connection, "bb_xlsx", bboxes_bind, bboxes_func, &s_fmt_xlsx_fast);
+    register_table_fn_blob(connection, "bb_xlsx_blob", bboxes_bind_blob, bboxes_func, &s_fmt_xlsx_fast);
     register_json_scalar(connection, "bb_xlsx_json", &s_scalar_xlsx_fast, false);
     register_json_scalar_blob(connection, "bb_xlsx_json", &s_scalar_xlsx_fast);
 
