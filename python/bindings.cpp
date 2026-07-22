@@ -81,6 +81,9 @@ static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false,
             d["w"] = b->w;
             d["h"] = b->h;
         }
+        d["cell_type"] = b->cell_type;
+        d["vnum"]  = b->has_vnum  ? nb::cast(b->vnum)        : nb::none();
+        d["vbool"] = b->has_vbool ? nb::cast(b->vbool != 0)  : nb::none();
         d["text"] = b->text;
         if (include_formula)
             d["formula"] = b->formula ? nb::cast(b->formula) : nb::none();

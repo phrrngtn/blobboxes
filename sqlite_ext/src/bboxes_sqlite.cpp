@@ -277,8 +277,8 @@ static int StylesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
    affinity here would coerce the integer results back to float. */
 DEFINE_VTAB(Bboxes,
     "CREATE TABLE x(page_id INTEGER, style_id INTEGER, "
-    "x, y, w, h, text TEXT, formula TEXT, file_path TEXT HIDDEN)",
-    BboxesCursor, bboxes_bbox, bboxes_next_bbox, 8, 1000.0)
+    "x, y, w, h, cell_type TEXT, vnum, vbool, text TEXT, formula TEXT, file_path TEXT HIDDEN)",
+    BboxesCursor, bboxes_bbox, bboxes_next_bbox, 11, 1000.0)
 
 static int BboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int col) {
     auto* b = static_cast<BboxesCursor*>(pCursor)->current;
@@ -293,9 +293,12 @@ static int BboxesColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* ctx, int 
         case 3: BB_COORD(b->y); break;
         case 4: BB_COORD(b->w); break;
         case 5: BB_COORD(b->h); break;
-        case 6: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
-        case 7: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
-                else sqlite3_result_null(ctx); break;
+        case 6: sqlite3_result_text(ctx, b->cell_type, -1, SQLITE_TRANSIENT); break;
+        case 7: if (b->has_vnum)  sqlite3_result_double(ctx, b->vnum); else sqlite3_result_null(ctx); break;
+        case 8: if (b->has_vbool) sqlite3_result_int(ctx, b->vbool);    else sqlite3_result_null(ctx); break;
+        case 9: sqlite3_result_text(ctx, b->text, -1, SQLITE_TRANSIENT); break;
+        case 10: if (b->formula) sqlite3_result_text(ctx, b->formula, -1, SQLITE_TRANSIENT);
+                 else sqlite3_result_null(ctx); break;
         default: sqlite3_result_null(ctx); break;
     }
     #undef BB_COORD

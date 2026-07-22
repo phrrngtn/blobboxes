@@ -153,11 +153,29 @@ struct StyleTable {
 
 /* ── Extraction result (produced by backends) ──────────────────── */
 
+/* Cell value type — the OOXML `t` discriminant, RETAINED (the fast reader used to
+   read it then throw it away) so the value can be projected to typed columns.
+   Exactly one typed channel is meaningful per type; `text` always holds the value
+   as a string (the vstr channel / raw <v>). Non-xlsx readers leave STRING. */
+enum BBoxCellType : uint8_t {
+    BBOX_STRING = 0,   /* text / shared string / inlineStr — value in `text`        */
+    BBOX_NUMBER = 1,   /* numeric (incl. date serials)     — `vnum`, raw in `text`  */
+    BBOX_BOOL   = 2,   /* boolean                          — `vbool`                */
+    BBOX_ERROR  = 3,   /* error (#REF! …)                  — `text`                 */
+};
+inline const char* bbox_cell_type_name(uint8_t t) {
+    switch (t) { case BBOX_NUMBER: return "number"; case BBOX_BOOL: return "bool";
+                 case BBOX_ERROR: return "error"; default: return "string"; }
+}
+
 struct BBox {
     uint32_t    page_id;
     uint32_t    style_id;
     double      x, y, w, h;
-    std::string text;
+    uint8_t     cell_type = BBOX_STRING;   /* the value's type (discriminant)   */
+    double      vnum = 0.0;                /* set iff cell_type == BBOX_NUMBER   */
+    bool        vbool = false;             /* set iff cell_type == BBOX_BOOL     */
+    std::string text;                      /* value as string (always) / vstr    */
     std::string formula;
 };
 

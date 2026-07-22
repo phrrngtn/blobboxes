@@ -312,6 +312,12 @@ BBoxResult extract_xlsx(const void* buf, size_t len, const char* password,
                     bb.w = cell_w;
                     bb.h = cell_h;
                     bb.text = cell.to_string();  /* master's displayed value represents the region */
+                    switch (cell.data_type()) {  /* typed-value channel (legacy path parity) */
+                        case xlnt::cell_type::number:  bb.cell_type = BBOX_NUMBER; bb.vnum = cell.value<double>(); break;
+                        case xlnt::cell_type::boolean: bb.cell_type = BBOX_BOOL;   bb.vbool = cell.value<bool>();  break;
+                        case xlnt::cell_type::error:   bb.cell_type = BBOX_ERROR;  break;
+                        default:                       bb.cell_type = BBOX_STRING; break;
+                    }
                     if (is_master)
                         bb.formula = sr->masters.at(key).formula;  /* unexpanded master formula (from XML) */
                     else if (cell.has_formula())
@@ -543,6 +549,11 @@ BBoxResult extract_xlsx_fast(const void* buf, size_t len, const char* /*password
                 bb.style_id = sref.empty() ? 0 : static_cast<uint32_t>(std::strtoul(sref.c_str(), nullptr, 10));
                 bb.x = col; bb.y = row; bb.w = w; bb.h = h;
                 bb.text = std::move(text);
+                // typed-value channel — retain the OOXML `t` discriminant (was dropped)
+                if      (tref == "b") { bb.cell_type = BBOX_BOOL;  bb.vbool = (bb.text == "1"); }
+                else if (tref == "e") { bb.cell_type = BBOX_ERROR; }
+                else if (tref == "s" || tref == "inlineStr" || tref == "str") bb.cell_type = BBOX_STRING;
+                else { bb.cell_type = BBOX_NUMBER; bb.vnum = std::strtod(bb.text.c_str(), nullptr); }
                 bb.formula = std::move(formula);
                 page.bboxes.push_back(std::move(bb));
                 p = next;

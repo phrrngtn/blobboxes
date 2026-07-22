@@ -315,6 +315,7 @@ static void bboxes_declare_columns(duckdb_bind_info info) {
     duckdb_logical_type t_int = duckdb_create_logical_type(DUCKDB_TYPE_INTEGER);
     duckdb_logical_type t_dbl = duckdb_create_logical_type(DUCKDB_TYPE_DOUBLE);
     duckdb_logical_type t_str = duckdb_create_logical_type(DUCKDB_TYPE_VARCHAR);
+    duckdb_logical_type t_bool = duckdb_create_logical_type(DUCKDB_TYPE_BOOLEAN);
     /* xlsx/text/docx address an integer cell grid; pdf/AUTO keep float coords. */
     duckdb_logical_type t_coord = bboxes_format_int_coords(fmt) ? t_int : t_dbl;
 
@@ -324,12 +325,17 @@ static void bboxes_declare_columns(duckdb_bind_info info) {
     duckdb_bind_add_result_column(info, "y", t_coord);
     duckdb_bind_add_result_column(info, "w", t_coord);
     duckdb_bind_add_result_column(info, "h", t_coord);
+    /* discriminated-union value channel: tag + sparse typed columns (text = vstr) */
+    duckdb_bind_add_result_column(info, "cell_type", t_str);
+    duckdb_bind_add_result_column(info, "vnum", t_dbl);
+    duckdb_bind_add_result_column(info, "vbool", t_bool);
     duckdb_bind_add_result_column(info, "text", t_str);
     duckdb_bind_add_result_column(info, "formula", t_str);
 
     duckdb_destroy_logical_type(&t_int);
     duckdb_destroy_logical_type(&t_dbl);
     duckdb_destroy_logical_type(&t_str);
+    duckdb_destroy_logical_type(&t_bool);
 }
 
 static void bboxes_bind(duckdb_bind_info info) {
@@ -367,8 +373,13 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
     auto* yd = ints ? nullptr : static_cast<double*>(duckdb_vector_get_data(v_y));
     auto* wd = ints ? nullptr : static_cast<double*>(duckdb_vector_get_data(v_w));
     auto* hd = ints ? nullptr : static_cast<double*>(duckdb_vector_get_data(v_h));
-    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 6);
-    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 7);
+    duckdb_vector v_cell_type = duckdb_data_chunk_get_vector(output, 6);
+    duckdb_vector v_vnum = duckdb_data_chunk_get_vector(output, 7);
+    auto* vnum_data = static_cast<double*>(duckdb_vector_get_data(v_vnum));
+    duckdb_vector v_vbool = duckdb_data_chunk_get_vector(output, 8);
+    auto* vbool_data = static_cast<bool*>(duckdb_vector_get_data(v_vbool));
+    duckdb_vector v_text = duckdb_data_chunk_get_vector(output, 9);
+    duckdb_vector v_formula = duckdb_data_chunk_get_vector(output, 10);
 
     const idx_t chunk_size = duckdb_vector_size();
     idx_t row = 0;
@@ -383,6 +394,13 @@ static void bboxes_func(duckdb_function_info info, duckdb_data_chunk output) {
         } else {
             xd[row] = b->x; yd[row] = b->y; wd[row] = b->w; hd[row] = b->h;
         }
+        duckdb_vector_assign_string_element(v_cell_type, row, b->cell_type);
+        if (b->has_vnum) vnum_data[row] = b->vnum;
+        else { duckdb_vector_ensure_validity_writable(v_vnum);
+               duckdb_vector_get_validity(v_vnum)[row / 64] &= ~(uint64_t(1) << (row % 64)); }
+        if (b->has_vbool) vbool_data[row] = (b->vbool != 0);
+        else { duckdb_vector_ensure_validity_writable(v_vbool);
+               duckdb_vector_get_validity(v_vbool)[row / 64] &= ~(uint64_t(1) << (row % 64)); }
         duckdb_vector_assign_string_element(v_text, row, b->text);
         if (b->formula) {
             duckdb_vector_assign_string_element(v_formula, row, b->formula);

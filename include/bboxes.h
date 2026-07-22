@@ -52,8 +52,13 @@ typedef struct {
     uint32_t    page_id;
     uint32_t    style_id;
     double      x, y, w, h;
-    const char* text;
-    const char* formula;    /* raw formula string, NULL if none */
+    const char* cell_type;  /* "number" | "string" | "bool" | "error" */
+    int         has_vnum;   /* 1 if vnum is set (cell_type=="number")  */
+    double      vnum;
+    int         has_vbool;  /* 1 if vbool is set (cell_type=="bool")   */
+    int         vbool;
+    const char* text;       /* value as a string (the vstr channel)    */
+    const char* formula;    /* raw formula string, NULL if none        */
 } bboxes_bbox;
 
 /* ── cursor ──────────────────────────────────────────────────────── */

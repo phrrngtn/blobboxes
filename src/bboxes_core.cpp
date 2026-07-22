@@ -112,6 +112,10 @@ static json bbox_to_json(const BBox& b, const std::string& source_type) {
         obj["w"] = b.w;
         obj["h"] = b.h;
     }
+    /* typed-value channel: discriminant + sparse typed columns (text = vstr) */
+    obj["cell_type"] = bbox_cell_type_name(b.cell_type);
+    obj["vnum"]  = (b.cell_type == BBOX_NUMBER) ? json(b.vnum)  : json(nullptr);
+    obj["vbool"] = (b.cell_type == BBOX_BOOL)   ? json(b.vbool) : json(nullptr);
     obj["text"] = b.text;
     if (source_type == "xlsx")
         obj["formula"] = b.formula.empty() ? json(nullptr) : json(b.formula);
@@ -335,6 +339,11 @@ const bboxes_bbox* bboxes_next_bbox(bboxes_cursor* c) {
             c->bbox_view.y = b.y;
             c->bbox_view.w = b.w;
             c->bbox_view.h = b.h;
+            c->bbox_view.cell_type = bbox_cell_type_name(b.cell_type);
+            c->bbox_view.has_vnum  = (b.cell_type == BBOX_NUMBER);
+            c->bbox_view.vnum      = b.vnum;
+            c->bbox_view.has_vbool = (b.cell_type == BBOX_BOOL);
+            c->bbox_view.vbool     = b.vbool ? 1 : 0;
             c->bbox_view.text = b.text.c_str();
             c->bbox_view.formula = (c->result.source_type == "xlsx" && !b.formula.empty())
                                    ? b.formula.c_str() : nullptr;
