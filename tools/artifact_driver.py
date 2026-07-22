@@ -24,6 +24,24 @@ import multiprocessing as mp
 EXT    = os.environ["EXT"]
 OUTDIR = os.environ["OUTDIR"]
 
+# per-format: the cells table function + the footer header (KV metadata). The
+# header carries whatever the format interns and can decode:
+#   xlsx — one disjoint call (styles.xml/theme, never the worksheets)
+#   pdf  — fonts + styles + doc info; NB these come from the CONTENT parse, so
+#          each call re-runs PDFium (serialized by its global mutex) — several
+#          parses per artifact until a cursor side-channel is added
+#   docx — only a single default style to decode (degenerate); header ~= sha
+def _spec(p, sha, ext):
+    if ext == ".xlsx":
+        return f"bb_xlsx('{p}')", f"{{ bbox_header: xlsx_header('{p}') }}"
+    if ext == ".pdf":
+        return (f"bb_pdf('{p}')",
+                f"{{ sha256: '{sha}', fonts: bb_pdf_fonts_json('{p}'), "
+                f"styles: bb_pdf_styles_json('{p}'), info: pdf_metadata('{p}') }}")
+    if ext == ".docx":
+        return f"bb_docx('{p}')", f"{{ sha256: '{sha}', styles: bb_docx_styles_json('{p}') }}"
+    raise ValueError(f"unsupported: {ext}")
+
 def make_artifact(path):
     sha = hashlib.sha256(open(path, "rb").read()).hexdigest()   # content address
     out = os.path.join(OUTDIR, sha + ".parquet")
@@ -32,14 +50,18 @@ def make_artifact(path):
     con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
     con.execute(f"LOAD '{EXT}'")
     p   = path.replace("'", "''")
+    cells, kv = _spec(p, sha, os.path.splitext(path)[1].lower())
     tmp = f"{out}.{os.getpid()}.tmp"                            # atomic write
-    con.execute(f"""
-        COPY (SELECT * FROM bb_xlsx('{p}') ORDER BY page_id, y, x)
-        TO '{tmp}' (FORMAT PARQUET, COMPRESSION 'zstd',
-                    KV_METADATA {{ bbox_header: xlsx_header('{p}') }})""")
+    # COPY returns the row count. The extension is resilient (a corrupt / mislabeled
+    # input — e.g. an HTML error page saved as .pdf — yields 0 rows, not an abort),
+    # so 0 rows means the file was NOT the format its extension claims. Surface it
+    # rather than silently emitting an empty artifact (no silent drops).
+    rows = con.execute(f"""
+        COPY (SELECT * FROM {cells} ORDER BY page_id, y, x)
+        TO '{tmp}' (FORMAT PARQUET, COMPRESSION 'zstd', KV_METADATA {kv})""").fetchone()[0]
     con.close()
     os.replace(tmp, out)
-    return (sha, os.path.getsize(out), "write")
+    return (sha, os.path.getsize(out), "empty" if rows == 0 else "write")
 
 if __name__ == "__main__":
     label, files = sys.argv[1], sys.argv[2:]
@@ -50,11 +72,13 @@ if __name__ == "__main__":
     dt = time.perf_counter() - t0
     written = [r for r in res if r[2] == "write"]
     deduped = [r for r in res if r[2] == "dedup"]
+    empty   = [r for r in res if r[2] == "empty"]
     uniq    = len(set(r[0] for r in res))
     src_bytes = sum(os.path.getsize(f) for f in files)
     art_bytes = sum(os.path.getsize(os.path.join(OUTDIR, r[0] + ".parquet")) for r in res)
     print(f"[{label}] {len(files)} inputs -> {uniq} unique artifact(s) "
-          f"| {len(written)} written, {len(deduped)} deduped-away | {dt:.2f}s")
+          f"| {len(written)} written, {len(deduped)} deduped-away, "
+          f"{len(empty)} EMPTY (0 rows — not the claimed format?) | {dt:.2f}s")
     print(f"  {len(files)/dt:5.1f} inputs/s   {len(written)/dt:5.1f} artifacts/s written   "
           f"cores={mp.cpu_count()}")
     print(f"  source {src_bytes/1e6:.1f} MB -> artifacts {art_bytes/1e6:.1f} MB "

@@ -87,19 +87,14 @@ static void generic_init(duckdb_init_info info) {
 
     auto* data = new InitData{};
     data->fmt = fmt;
+    data->cursor = nullptr;
     data->buf = read_file(bind->file_path);
-    if (data->buf.empty()) {
-        duckdb_init_set_error(info, "failed to read file");
-        delete data;
-        return;
-    }
-    data->cursor = bboxes_open_format(fmt, data->buf.data(), data->buf.size());
-    if (!data->cursor) {
-        std::string msg = std::string("failed to parse ") + format_name(fmt);
-        duckdb_init_set_error(info, msg.c_str());
-        delete data;
-        return;
-    }
+    /* Reliability lives HERE so every consumer benefits (glob/batch scans, any
+       driver): an unreadable or unparseable file yields ZERO rows, never a query
+       abort — the scan skips it instead of failing. Matches the SQLite vtab, which
+       already sets eof on open failure. The cursor stays null; the func emits 0 rows. */
+    if (!data->buf.empty())
+        data->cursor = bboxes_open_format(fmt, data->buf.data(), data->buf.size());
     duckdb_init_set_max_threads(info, 1);
     duckdb_init_set_init_data(info, data, [](void* p) {
         auto* d = static_cast<InitData*>(p);
