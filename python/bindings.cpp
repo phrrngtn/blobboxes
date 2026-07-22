@@ -256,8 +256,8 @@ NB_MODULE(blobboxes_ext, m) {
     m.def("_xlsx_init", &bboxes_xlsx_init);
     m.def("_xlsx_destroy", &bboxes_xlsx_destroy);
 
-    /* PDF cursor (original) */
-    nb::class_<BBoxesCursor>(m, "BBoxesCursor")
+    /* PDF cursor — format-qualified name, matching BBoxes<Fmt>Cursor */
+    nb::class_<BBoxesCursor>(m, "BBoxesPdfCursor")
         .def(nb::init<nb::bytes, std::optional<std::string>, int, int>(),
              nb::arg("data"), nb::arg("password") = nb::none(),
              nb::arg("start_page") = 0, nb::arg("end_page") = 0)

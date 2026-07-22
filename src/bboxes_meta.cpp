@@ -593,11 +593,20 @@ std::string xlsx_style_decode_from_zip(mz_zip_archive& z) {
 // xlsx_header inflates only these tiny parts, and neither re-does the other's work.
 // (Merge extents already live in each cell's w/h; dimension = max row/col of cells.)
 std::string xlsx_header_from_zip(mz_zip_archive& z, const void* buf, size_t len) {
+    /* Common header envelope (matches pdf_header): dialect + integrity + sha256 +
+       page_count at the top level. The format-specific decode goes under a distinct
+       key: pdf uses `styles` (an array of style rows), xlsx uses `style_decode` (the
+       biconditional decode bundle) — never the same key meaning two things. */
+    json styles = json::parse(xlsx_style_decode_from_zip(z));  styles.erase("dialect");
+    json meta   = json::parse(xlsx_meta_from_zip(z, /*lean=*/true));
+    meta.erase("dialect");  meta.erase("integrity");   // envelope carries these once
     json h;
-    SHA256 sha;
-    h["sha256"] = sha(buf, len);                                  // == workbook_id (§5)
-    h["styles"] = json::parse(xlsx_style_decode_from_zip(z));     // small parts only
-    h["meta"]   = json::parse(xlsx_meta_from_zip(z, /*lean=*/true));
+    h["dialect"]      = "xlsx";
+    h["integrity"]    = {{"status", "clean"}};
+    SHA256 sha;  h["sha256"] = sha(buf, len);           // == workbook_id (§5)
+    h["page_count"]   = meta.value("sheets", json::array()).size();  // sheets = pages
+    h["style_decode"] = std::move(styles);
+    h["meta"]         = std::move(meta);
     return h.dump(-1, ' ', false, json::error_handler_t::replace);
 }
 

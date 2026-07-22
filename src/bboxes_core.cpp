@@ -429,7 +429,7 @@ const char* bboxes_get_sheet_meta_json(bboxes_cursor* c) {
             for (const auto& m : p.merges)
                 merges.push_back({{"r1", m.r1}, {"c1", m.c1}, {"r2", m.r2}, {"c2", m.c2}});
             arr.push_back({
-                {"sheet", p.page_id},
+                {"page_id", p.page_id},
                 {"page_number", p.page_number},
                 {"dimension", {{"rmax", (int)p.height}, {"cmax", (int)p.width}}},
                 {"merges", std::move(merges)}

@@ -5,7 +5,8 @@ __version__ = "0.4.5"
 from .blobboxes_ext import (
     _pdf_init,
     _xlsx_init,
-    BBoxesCursor,
+    BBoxesPdfCursor,
+    BBoxesPdfObjCursor,
     BBoxesXlsxCursor,
     BBoxesXlsxSlowCursor,
     BBoxesTextCursor,
@@ -23,9 +24,10 @@ from .blobboxes_ext import (
 _pdf_init()
 _xlsx_init()
 
-open_pdf       = BBoxesCursor
-open_xlsx      = BBoxesXlsxCursor       # DEFAULT: fast byte-scan reader
-open_xlsx_slow = BBoxesXlsxSlowCursor   # legacy xlnt path (kept for A/B)
-open_text      = BBoxesTextCursor
-open_docx = BBoxesDocxCursor
-open      = BBoxesAutoCursor
+open_pdf         = BBoxesPdfCursor
+open_pdf_objects = BBoxesPdfObjCursor    # object-level PDF reader (one bbox per text object)
+open_xlsx        = BBoxesXlsxCursor      # DEFAULT: fast byte-scan reader
+open_xlsx_slow   = BBoxesXlsxSlowCursor  # legacy xlnt path (kept for A/B)
+open_text        = BBoxesTextCursor
+open_docx        = BBoxesDocxCursor
+open             = BBoxesAutoCursor

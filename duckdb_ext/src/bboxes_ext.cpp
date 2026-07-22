@@ -40,18 +40,6 @@ static std::string get_string(duckdb_vector vec, idx_t i) {
 
 using Format = int;
 
-static const char* format_name(Format fmt) {
-    switch (fmt) {
-        case BBOXES_FORMAT_AUTO:  return "file";
-        case BBOXES_FORMAT_PDF:   return "PDF";
-        case BBOXES_FORMAT_XLSX:  return "XLSX";
-        case BBOXES_FORMAT_TEXT:  return "text";
-        case BBOXES_FORMAT_DOCX:         return "DOCX";
-        case BBOXES_FORMAT_PDF_OBJECTS:  return "PDF (objects)";
-    }
-    return "unknown";
-}
-
 /* Coordinate model lives in the shared C library (bboxes_format_int_coords).
    AUTO is unknown at bind time (format detected in init) → 0 → stays DOUBLE. */
 
@@ -625,7 +613,8 @@ struct FormatInfo {
 
 static Format s_fmts[] = {
     BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
-    BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS
+    BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS,
+    BBOXES_FORMAT_XLSX_FAST
 };
 
 static ScalarDesc s_scalars[][5] = {
@@ -665,6 +654,12 @@ static ScalarDesc s_scalars[][5] = {
       {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json},
       {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json},
       {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json} },
+    /* XLSX_FAST (the default bb_xlsx) */
+    { {BBOXES_FORMAT_XLSX_FAST, bboxes_get_doc_json},
+      {BBOXES_FORMAT_XLSX_FAST, bboxes_get_pages_json},
+      {BBOXES_FORMAT_XLSX_FAST, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_XLSX_FAST, bboxes_get_styles_json},
+      {BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json} },
 };
 
 static const FormatInfo s_formats[] = {
@@ -674,6 +669,7 @@ static const FormatInfo s_formats[] = {
     { "bb_text", BBOXES_FORMAT_TEXT,        false },
     { "bb_docx", BBOXES_FORMAT_DOCX,        false },
     { "bb_objs", BBOXES_FORMAT_PDF_OBJECTS, false },
+    { "bb_xlsx", BBOXES_FORMAT_XLSX_FAST,   false },  /* DEFAULT fast reader — full sub-table set */
 };
 
 static const char* s_table_suffixes[] = { "_doc", "_pages", "_fonts", "_styles", "" };
@@ -688,7 +684,10 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     bboxes_pdf_init();
     bboxes_xlsx_init();
 
-    for (int fi = 0; fi < 6; fi++) {
+    /* every format (incl. the default fast bb_xlsx) goes through ONE loop, so the
+       full surface — cells/doc/pages/fonts/styles (+_blob, +_json) — is uniform.
+       sizeof-count so adding a format needs no bound edit. */
+    for (size_t fi = 0; fi < sizeof(s_formats) / sizeof(s_formats[0]); fi++) {
         const FormatInfo& f = s_formats[fi];
         Format* fmt_ptr = &s_fmts[fi];
 
@@ -708,15 +707,6 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
             register_json_scalar_blob(connection, name.c_str(), &s_scalars[fi][si]);
         }
     }
-
-    /* bb_xlsx — the DEFAULT is now the fast byte-scan reader (style_id = cellXfs `s`,
-       text = raw value); the legacy xlnt path is registered above as bb_xlsx_slow. */
-    static Format s_fmt_xlsx_fast = BBOXES_FORMAT_XLSX_FAST;
-    static ScalarDesc s_scalar_xlsx_fast = { BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json };
-    register_table_fn(connection, "bb_xlsx", bboxes_bind, bboxes_func, &s_fmt_xlsx_fast);
-    register_table_fn_blob(connection, "bb_xlsx_blob", bboxes_bind_blob, bboxes_func, &s_fmt_xlsx_fast);
-    register_json_scalar(connection, "bb_xlsx_json", &s_scalar_xlsx_fast, false);
-    register_json_scalar_blob(connection, "bb_xlsx_json", &s_scalar_xlsx_fast);
 
     /* bb_info — auto-detecting doc info scalar (alias of bb_doc_json) */
     register_json_scalar(connection, "bb_info", &s_scalars[0][0], false);
