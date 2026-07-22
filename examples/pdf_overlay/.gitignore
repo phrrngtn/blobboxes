@@ -1,0 +1,5 @@
+# sample data + generated artifacts
+*.pdf
+*.xfdf
+*.boxes.json
+*.png
