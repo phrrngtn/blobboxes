@@ -128,10 +128,12 @@ are unified by one key:
   run against each artifact. Many such perspectives/VIEWs, each a different lens, all joined by
   the SHA — the relational surface the bias wants, sitting on the flexible storage the chassis
   provides.
-- **Structure/content lineage.** Because structure is queryable (§2) and fingerprintable (§5),
-  find which spreadsheets *resemble* each other in structure and content, and make educated
-  bets on a **SHA-256 timeline** — which artifacts were minted from which ancestors — purely
-  from structure. This is *[NEUTRAL-FRAMING-TERM — candidates: stemmatics / phylomemetics /
-  homology]* applied to spreadsheets: reconstruct the copy-tree from shared features, framed as
-  **heredity, not policing**. (Borrow the *techniques* of similarity/plagiarism detection; drop
-  the judgemental framing — the goal is ancestry, not accusation.)
+- **Structure/content lineage — *stemmatics*.** Because structure is queryable (§2) and
+  fingerprintable (§5), find which spreadsheets *resemble* each other in structure and content,
+  and make educated bets on a **SHA-256 timeline** — which artifacts were minted from which
+  ancestors — purely from structure. The neutral, load-bearing framing is **stemmatics**: in
+  textual criticism a *stemma codicum* is the family tree of manuscript copies, reconstructed
+  from shared features; a spreadsheet **stemma** is the same idea over artifacts. This is
+  **heredity, not policing** — borrow the *techniques* of similarity/plagiarism detection, drop
+  the judgemental framing; the goal is ancestry, not accusation. (Candidate sibling project:
+  **`blobstemma`** — the blob\* member that reconstructs these stemmata over the box tables.)
