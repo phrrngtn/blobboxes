@@ -43,6 +43,7 @@ def _spec(p, sha, ext):
     raise ValueError(f"unsupported: {ext}")
 
 def make_artifact(path):
+    ext = os.path.splitext(path)[1].lower()
     sha = hashlib.sha256(open(path, "rb").read()).hexdigest()   # content address
     out = os.path.join(OUTDIR, sha + ".parquet")
     if os.path.exists(out):                                     # idempotent / dedup
@@ -50,18 +51,29 @@ def make_artifact(path):
     con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
     con.execute(f"LOAD '{EXT}'")
     p   = path.replace("'", "''")
-    cells, kv = _spec(p, sha, os.path.splitext(path)[1].lower())
+    cells, kv = _spec(p, sha, ext)
     tmp = f"{out}.{os.getpid()}.tmp"                            # atomic write
-    # COPY returns the row count. The extension is resilient (a corrupt / mislabeled
-    # input — e.g. an HTML error page saved as .pdf — yields 0 rows, not an abort),
-    # so 0 rows means the file was NOT the format its extension claims. Surface it
-    # rather than silently emitting an empty artifact (no silent drops).
+    # COPY returns the row count. The extension is resilient (bad input -> 0 rows,
+    # not an abort). But 0 rows has TWO very different meanings, so classify:
+    #   - a VALID pdf with no text layer (image-only / scanned) is a legitimate
+    #     METADATA-ONLY artifact (an OCR candidate), NOT a failure — it keeps its
+    #     header and is a first-class citizen.
+    #   - an input that isn't the claimed format at all (e.g. an HTML error page
+    #     saved as .pdf) is REJECTED — the only thing worth flagging.
     rows = con.execute(f"""
         COPY (SELECT * FROM {cells} ORDER BY page_id, y, x)
         TO '{tmp}' (FORMAT PARQUET, COMPRESSION 'zstd', KV_METADATA {kv})""").fetchone()[0]
+    status = "write"
+    if rows == 0:
+        status = "metadata-only"
+        if ext == ".pdf":   # integrity distinguishes image-only (clean) from not-a-pdf (failed)
+            integ = con.execute(
+                f"SELECT json_extract_string(pdf_metadata('{p}'), '$.integrity.status')").fetchone()[0]
+            if integ == "failed":
+                status = "rejected"
     con.close()
     os.replace(tmp, out)
-    return (sha, os.path.getsize(out), "empty" if rows == 0 else "write")
+    return (sha, os.path.getsize(out), status)
 
 if __name__ == "__main__":
     label, files = sys.argv[1], sys.argv[2:]
@@ -70,15 +82,16 @@ if __name__ == "__main__":
     with mp.Pool(mp.cpu_count()) as pool:
         res = pool.map(make_artifact, files)
     dt = time.perf_counter() - t0
-    written = [r for r in res if r[2] == "write"]
-    deduped = [r for r in res if r[2] == "dedup"]
-    empty   = [r for r in res if r[2] == "empty"]
-    uniq    = len(set(r[0] for r in res))
+    written  = [r for r in res if r[2] == "write"]
+    metaonly = [r for r in res if r[2] == "metadata-only"]
+    rejected = [r for r in res if r[2] == "rejected"]
+    deduped  = [r for r in res if r[2] == "dedup"]
+    uniq     = len(set(r[0] for r in res))
     src_bytes = sum(os.path.getsize(f) for f in files)
     art_bytes = sum(os.path.getsize(os.path.join(OUTDIR, r[0] + ".parquet")) for r in res)
-    print(f"[{label}] {len(files)} inputs -> {uniq} unique artifact(s) "
-          f"| {len(written)} written, {len(deduped)} deduped-away, "
-          f"{len(empty)} EMPTY (0 rows — not the claimed format?) | {dt:.2f}s")
+    print(f"[{label}] {len(files)} inputs -> {uniq} unique artifact(s) | {dt:.2f}s")
+    print(f"  {len(written)} with-text, {len(metaonly)} metadata-only (valid, no text), "
+          f"{len(rejected)} REJECTED (not the claimed format), {len(deduped)} deduped")
     print(f"  {len(files)/dt:5.1f} inputs/s   {len(written)/dt:5.1f} artifacts/s written   "
           f"cores={mp.cpu_count()}")
     print(f"  source {src_bytes/1e6:.1f} MB -> artifacts {art_bytes/1e6:.1f} MB "
