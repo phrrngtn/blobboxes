@@ -115,9 +115,18 @@ static int Name##Filter(sqlite3_vtab_cursor* pCursor, int, const char*,         
     Format fmt = static_cast<FmtVtab*>(pCursor->pVtab)->fmt;                            \
     if (c->cur) { bboxes_close(c->cur); c->cur = nullptr; }                             \
     if (argc < 1) { c->eof = true; return SQLITE_OK; }                                  \
-    const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));       \
-    if (!path) { c->eof = true; return SQLITE_OK; }                                     \
-    c->buf = read_file(path);                                                           \
+    /* accept a path (TEXT) OR the bytes in hand (BLOB) — dynamic typing lets one       \
+       function serve both; the readers are byte-based either way. */                   \
+    if (sqlite3_value_type(argv[0]) == SQLITE_BLOB) {                                    \
+        const void* blob = sqlite3_value_blob(argv[0]);                                  \
+        int n = sqlite3_value_bytes(argv[0]);                                            \
+        if (blob && n > 0)                                                               \
+            c->buf.assign(static_cast<const char*>(blob),                               \
+                          static_cast<const char*>(blob) + n);                          \
+    } else {                                                                            \
+        const char* path = reinterpret_cast<const char*>(sqlite3_value_text(argv[0]));   \
+        if (path) c->buf = read_file(path);                                             \
+    }                                                                                   \
     if (c->buf.empty()) { c->eof = true; return SQLITE_OK; }                            \
     c->cur = bboxes_open_format(fmt, c->buf.data(), c->buf.size());                         \
     if (!c->cur) { c->eof = true; return SQLITE_OK; }                                   \

@@ -678,7 +678,9 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
             std::string name = std::string(f.prefix) + s_table_suffixes[ti];
             register_table_fn(connection, name.c_str(), s_bind_fns[ti], s_func_fns[ti], fmt_ptr);
         }
-        /* blob (bytes-in-hand) variant of the cells table fn: bb_<fmt>_blob */
+        /* blob (bytes-in-hand) cells variant: bb_<fmt>_blob. DuckDB does NOT overload
+           table functions by param type (unlike the SQLite vtab, whose dynamic typing
+           lets one bb_<fmt> take a path OR a blob), so the blob form needs its own name. */
         std::string blob_name = std::string(f.prefix) + "_blob";
         register_table_fn_blob(connection, blob_name.c_str(), bboxes_bind_blob, bboxes_func, fmt_ptr);
 
