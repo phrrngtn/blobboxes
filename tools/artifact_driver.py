@@ -35,9 +35,9 @@ def _spec(p, sha, ext):
     if ext == ".xlsx":
         return f"bb_xlsx('{p}')", f"{{ bbox_header: xlsx_header('{p}') }}"
     if ext == ".pdf":
-        return (f"bb_pdf('{p}')",
-                f"{{ sha256: '{sha}', fonts: bb_pdf_fonts_json('{p}'), "
-                f"styles: bb_pdf_styles_json('{p}'), info: pdf_metadata('{p}') }}")
+        # one-parse header (fonts+styles+dims from a single PDFium cursor), not
+        # three separate re-parses; artifact = bb_pdf (cells) + pdf_header = 2 parses
+        return f"bb_pdf('{p}')", f"{{ bbox_header: pdf_header('{p}') }}"
     if ext == ".docx":
         return f"bb_docx('{p}')", f"{{ sha256: '{sha}', styles: bb_docx_styles_json('{p}') }}"
     raise ValueError(f"unsupported: {ext}")

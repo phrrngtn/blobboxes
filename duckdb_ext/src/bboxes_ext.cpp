@@ -699,6 +699,14 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
                          reinterpret_cast<void*>(bboxes_xlsx_header_json),
                          meta_blob_scalar);
 
+    /* pdf_header — one-parse artifact footer (sha + fonts + styles + page dims) */
+    register_meta_scalar(connection, "pdf_header", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_pdf_header_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "pdf_header", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_pdf_header_json),
+                         meta_blob_scalar);
+
     /* container_walk — recursive tree of typed nodes (zip-in-zip, pdf, ...) */
     register_meta_scalar(connection, "container_walk", DUCKDB_TYPE_VARCHAR,
                          reinterpret_cast<void*>(bboxes_container_walk_json_file),

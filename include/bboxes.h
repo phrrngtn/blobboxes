@@ -112,6 +112,12 @@ const char* bboxes_xlsx_sheet_meta_json_file(const char* path);
 const char* bboxes_xlsx_header_json(const void* buf, size_t len);
 const char* bboxes_xlsx_header_json_file(const char* path);
 
+/* One-parse PDF artifact header: sha + page_count + fonts + styles + page dims
+   from a SINGLE PDFium cursor (fonts/styles are byproducts of the content parse,
+   so this replaces 3 separate re-parses). Blob and file variants. */
+const char* bboxes_pdf_header_json(const void* buf, size_t len);
+const char* bboxes_pdf_header_json_file(const char* path);
+
 /* Recursive container walk: a blob is a tree of typed blobs. Sniffs each node
    by magic bytes, dispatches to the matching extractor, recurses into nested
    containers (zip-in-zip). Returns a nested JSON tree. */

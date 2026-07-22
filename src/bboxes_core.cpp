@@ -452,6 +452,46 @@ const char* bboxes_xlsx_sheet_meta_json_file(const char* path) {
     return bboxes_xlsx_sheet_meta_json(buf.data(), buf.size());
 }
 
+/* One-parse PDF header (the artifact footer bag): opens ONE PDFium cursor and
+   pulls sha + page_count + fonts + styles + page dims from that single parse —
+   the fonts/styles/pages array accessors read the already-parsed result, so this
+   is ONE parse, not three. Halves the artifact's PDFium work vs calling
+   bb_pdf_fonts_json + bb_pdf_styles_json + pdf_metadata separately (PDF fonts/
+   styles are byproducts of the content parse, unlike xlsx's disjoint styles.xml).
+   Blob and file variants (bytes technique: hash + parse the in-memory buffer). */
+const char* bboxes_pdf_header_json(const void* data, size_t len) {
+    static thread_local std::string out;
+    bboxes_cursor* c = bboxes_open_format(BBOXES_FORMAT_PDF, data, len);
+    if (!c) {
+        out = "{\"dialect\":\"pdf\",\"integrity\":{\"status\":\"failed\","
+              "\"error\":\"not a PDF / unparseable\"}}";
+        return out.c_str();
+    }
+    json h;
+    h["dialect"] = "pdf";
+    h["integrity"] = {{"status", "clean"}};
+    SHA256 sha; h["sha256"] = sha(data, len);            // == workbook_id / content address
+    const bboxes_doc* d = bboxes_get_doc(c);
+    h["page_count"] = d ? d->page_count : 0;
+    h["fonts"]  = json::parse(bboxes_get_fonts_json(c));
+    h["styles"] = json::parse(bboxes_get_styles_json(c));
+    h["pages"]  = json::parse(bboxes_get_pages_json(c));
+    bboxes_close(c);
+    out = h.dump(-1, ' ', false, json::error_handler_t::replace);
+    return out.c_str();
+}
+const char* bboxes_pdf_header_json_file(const char* path) {
+    static thread_local std::string out;
+    FILE* f = std::fopen(path, "rb");
+    if (!f) { out = "{\"dialect\":\"pdf\",\"integrity\":{\"status\":\"failed\","
+                    "\"error\":\"unreadable\"}}"; return out.c_str(); }
+    std::fseek(f, 0, SEEK_END); long sz = std::ftell(f); std::fseek(f, 0, SEEK_SET);
+    std::string buf(sz > 0 ? static_cast<size_t>(sz) : 0, '\0');
+    if (sz > 0 && std::fread(&buf[0], 1, buf.size(), f) != buf.size()) buf.clear();
+    std::fclose(f);
+    return bboxes_pdf_header_json(buf.data(), buf.size());
+}
+
 /* ── close ──────────────────────────────────────────────────────────── */
 
 void bboxes_close(bboxes_cursor* c) {
