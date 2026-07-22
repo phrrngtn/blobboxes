@@ -89,6 +89,12 @@ static nb::list cursor_bboxes(bboxes_cursor* cur, bool include_formula = false,
     return out;
 }
 
+/* Parse a C JSON string to a native Python object (dict/list) via json.loads —
+   nanobind has no JSON, and the binding deliberately doesn't pull in nlohmann. */
+static nb::object parse_json(const char* s) {
+    return nb::module_::import_("json").attr("loads")(nb::str(s && *s ? s : "null"));
+}
+
 /* ── CursorBase — shared methods for all cursor types ────────────── */
 
 struct CursorBase {
@@ -102,6 +108,14 @@ struct CursorBase {
     nb::list fonts()    { return cursor_fonts(cur); }
     nb::list styles()   { return cursor_styles(cur); }
     nb::list bboxes()   { return cursor_bboxes(cur, include_formula, int_coords); }
+    /* Per-sheet merges + dimension, captured DURING the cell scan — off the SAME
+       parse as bboxes(), no re-open (the xlsx analog of the pdf cursor giving
+       fonts/styles from one open). */
+    nb::object sheet_meta()   { return parse_json(bboxes_get_sheet_meta_json(cur)); }
+    /* Biconditional style decode (styles.xml + theme). Parses the small style
+       parts from the cursor's HELD BYTES — same buffer, no file re-read — so a
+       single open_xlsx(data) yields cells + merges + the un-intern decode. */
+    nb::object style_decode() { return parse_json(bboxes_xlsx_style_decode_json(buf.data(), buf.size())); }
     void close()        { if (cur) { bboxes_close(cur); cur = nullptr; } }
     ~CursorBase()       { close(); }
 };
@@ -273,6 +287,8 @@ NB_MODULE(blobboxes_ext, m) {
         .def("fonts", &BBoxesXlsxCursor::fonts)
         .def("styles", &BBoxesXlsxCursor::styles)
         .def("bboxes", &BBoxesXlsxCursor::bboxes)
+        .def("sheet_meta", &BBoxesXlsxCursor::sheet_meta)      /* merges + dimension, same parse */
+        .def("style_decode", &BBoxesXlsxCursor::style_decode)  /* un-intern decode, held bytes */
         .def("close", &BBoxesXlsxCursor::close);
 
     nb::class_<BBoxesXlsxSlowCursor>(m, "BBoxesXlsxSlowCursor")   /* legacy xlnt path */
@@ -283,6 +299,8 @@ NB_MODULE(blobboxes_ext, m) {
         .def("pages", &BBoxesXlsxSlowCursor::pages)
         .def("fonts", &BBoxesXlsxSlowCursor::fonts)
         .def("styles", &BBoxesXlsxSlowCursor::styles)
+        .def("sheet_meta", &BBoxesXlsxSlowCursor::sheet_meta)
+        .def("style_decode", &BBoxesXlsxSlowCursor::style_decode)
         .def("bboxes", &BBoxesXlsxSlowCursor::bboxes)
         .def("close", &BBoxesXlsxSlowCursor::close);
 
