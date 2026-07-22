@@ -39,7 +39,7 @@ static Format* make_fmt(Format f) {
     static Format fmts[] = {
         BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
         BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS,
-        BBOXES_FORMAT_XLSX_FAST
+        BBOXES_FORMAT_XLSX_FAST, BBOXES_FORMAT_HTML
     };
     for (auto& fmt : fmts)
         if (fmt == f) return &fmt;
@@ -349,12 +349,12 @@ static void generic_json_func(sqlite3_context* ctx, int argc, sqlite3_value** ar
  * Static scalar descriptors — one per (format × function) combination
  * ══════════════════════════════════════════════════════════════════════ */
 
-/* 6 formats × 5 JSON functions = 30 descriptors */
-static ScalarDesc s_doc_desc[]    = { {BBOXES_FORMAT_PDF, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX, bboxes_get_doc_json}, {BBOXES_FORMAT_TEXT, bboxes_get_doc_json}, {BBOXES_FORMAT_DOCX, bboxes_get_doc_json}, {BBOXES_FORMAT_AUTO, bboxes_get_doc_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_doc_json} };
-static ScalarDesc s_pages_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_pages_json},  {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},  {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},  {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},  {BBOXES_FORMAT_AUTO, bboxes_get_pages_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_pages_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_pages_json} };
-static ScalarDesc s_fonts_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},  {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},  {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},  {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},  {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_fonts_json} };
-static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX, bboxes_get_styles_json}, {BBOXES_FORMAT_TEXT, bboxes_get_styles_json}, {BBOXES_FORMAT_DOCX, bboxes_get_styles_json}, {BBOXES_FORMAT_AUTO, bboxes_get_styles_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_styles_json} };
-static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json} };
+/* 8 formats × 5 JSON functions = 40 descriptors */
+static ScalarDesc s_doc_desc[]    = { {BBOXES_FORMAT_PDF, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX, bboxes_get_doc_json}, {BBOXES_FORMAT_TEXT, bboxes_get_doc_json}, {BBOXES_FORMAT_DOCX, bboxes_get_doc_json}, {BBOXES_FORMAT_AUTO, bboxes_get_doc_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_doc_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_doc_json}, {BBOXES_FORMAT_HTML, bboxes_get_doc_json} };
+static ScalarDesc s_pages_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_pages_json},  {BBOXES_FORMAT_XLSX, bboxes_get_pages_json},  {BBOXES_FORMAT_TEXT, bboxes_get_pages_json},  {BBOXES_FORMAT_DOCX, bboxes_get_pages_json},  {BBOXES_FORMAT_AUTO, bboxes_get_pages_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_pages_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_pages_json}, {BBOXES_FORMAT_HTML, bboxes_get_pages_json} };
+static ScalarDesc s_fonts_desc[]  = { {BBOXES_FORMAT_PDF, bboxes_get_fonts_json},  {BBOXES_FORMAT_XLSX, bboxes_get_fonts_json},  {BBOXES_FORMAT_TEXT, bboxes_get_fonts_json},  {BBOXES_FORMAT_DOCX, bboxes_get_fonts_json},  {BBOXES_FORMAT_AUTO, bboxes_get_fonts_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_fonts_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_fonts_json}, {BBOXES_FORMAT_HTML, bboxes_get_fonts_json} };
+static ScalarDesc s_styles_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX, bboxes_get_styles_json}, {BBOXES_FORMAT_TEXT, bboxes_get_styles_json}, {BBOXES_FORMAT_DOCX, bboxes_get_styles_json}, {BBOXES_FORMAT_AUTO, bboxes_get_styles_json}, {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_styles_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_styles_json}, {BBOXES_FORMAT_HTML, bboxes_get_styles_json} };
+static ScalarDesc s_bboxes_desc[] = { {BBOXES_FORMAT_PDF, bboxes_get_bboxes_json},  {BBOXES_FORMAT_XLSX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_TEXT, bboxes_get_bboxes_json},  {BBOXES_FORMAT_DOCX, bboxes_get_bboxes_json},  {BBOXES_FORMAT_AUTO, bboxes_get_bboxes_json},  {BBOXES_FORMAT_PDF_OBJECTS, bboxes_get_bboxes_json}, {BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json}, {BBOXES_FORMAT_HTML, bboxes_get_bboxes_json} };
 
 /* ══════════════════════════════════════════════════════════════════════
  * Document-metadata scalars (not cursor-based). One SQLite function accepts
@@ -411,6 +411,7 @@ static const FormatInfo s_formats[] = {
     { "bb_docx", BBOXES_FORMAT_DOCX,        3 },
     { "bb",      BBOXES_FORMAT_AUTO,        4 },
     { "bb_objs", BBOXES_FORMAT_PDF_OBJECTS, 5 },
+    { "bb_html", BBOXES_FORMAT_HTML,        7 },  /* Lexbor DOM walk (tables → grid, flow → lines) */
 };
 
 static int register_format(sqlite3* db, const FormatInfo& fi) {

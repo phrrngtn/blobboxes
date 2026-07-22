@@ -85,7 +85,8 @@ static json style_to_json(const StyleTable::Entry& e) {
    (xlsx/text/docx) use integer row/col coords; rendered formats (pdf) float. */
 extern "C" int bboxes_format_int_coords(int fmt) {
     return fmt == BBOXES_FORMAT_XLSX || fmt == BBOXES_FORMAT_XLSX_FAST
-        || fmt == BBOXES_FORMAT_TEXT || fmt == BBOXES_FORMAT_DOCX;
+        || fmt == BBOXES_FORMAT_TEXT || fmt == BBOXES_FORMAT_DOCX
+        || fmt == BBOXES_FORMAT_HTML;
 }
 
 /* The JSON builder only carries the source_type string; route it through the
@@ -94,6 +95,7 @@ static bool source_int_coords(const std::string& source_type) {
     if (source_type == "xlsx") return bboxes_format_int_coords(BBOXES_FORMAT_XLSX);
     if (source_type == "text") return bboxes_format_int_coords(BBOXES_FORMAT_TEXT);
     if (source_type == "docx") return bboxes_format_int_coords(BBOXES_FORMAT_DOCX);
+    if (source_type == "html") return bboxes_format_int_coords(BBOXES_FORMAT_HTML);
     return bboxes_format_int_coords(BBOXES_FORMAT_PDF);
 }
 
@@ -180,6 +182,7 @@ bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len) {
         case BBOXES_FORMAT_XLSX_FAST:   return bboxes_open_xlsx_fast(buf, len, nullptr, 0, 0);
         case BBOXES_FORMAT_TEXT:        return bboxes_open_text(buf, len);
         case BBOXES_FORMAT_DOCX:        return bboxes_open_docx(buf, len);
+        case BBOXES_FORMAT_HTML:        return bboxes_open_html(buf, len);
         default:                        return bboxes_open(buf, len);
     }
 }
@@ -240,6 +243,16 @@ bboxes_cursor* bboxes_open_docx(const void* buf, size_t len) {
 }
 #else
 bboxes_cursor* bboxes_open_docx(const void*, size_t) { return nullptr; }
+#endif
+
+/* ── open (HTML backend) ────────────────────────────────────────────── */
+
+#ifdef BBOXES_HAS_HTML
+bboxes_cursor* bboxes_open_html(const void* buf, size_t len) {
+    return wrap_result(extract_html(buf, len), buf, len);
+}
+#else
+bboxes_cursor* bboxes_open_html(const void*, size_t) { return nullptr; }
 #endif
 
 /* ── doc ────────────────────────────────────────────────────────────── */

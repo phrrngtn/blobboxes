@@ -11,6 +11,7 @@ from .blobboxes_ext import (
     BBoxesXlsxSlowCursor,
     BBoxesTextCursor,
     BBoxesDocxCursor,
+    BBoxesHtmlCursor,
     BBoxesAutoCursor,
     detect,
     info,
@@ -30,4 +31,5 @@ open_xlsx        = BBoxesXlsxCursor      # DEFAULT: fast byte-scan reader
 open_xlsx_slow   = BBoxesXlsxSlowCursor  # legacy xlnt path (kept for A/B)
 open_text        = BBoxesTextCursor
 open_docx        = BBoxesDocxCursor
+open_html        = BBoxesHtmlCursor
 open             = BBoxesAutoCursor

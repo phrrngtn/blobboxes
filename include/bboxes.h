@@ -177,6 +177,8 @@ bboxes_cursor* bboxes_open_text(const void* buf, size_t len);
 
 bboxes_cursor* bboxes_open_docx(const void* buf, size_t len);
 
+bboxes_cursor* bboxes_open_html(const void* buf, size_t len);
+
 /* doc (single row, not an iterator) */
 const bboxes_doc*   bboxes_get_doc(bboxes_cursor* cursor);
 const char*         bboxes_get_doc_json(bboxes_cursor* cursor);
@@ -216,11 +218,12 @@ void bboxes_close(bboxes_cursor* cursor);
 #define BBOXES_FORMAT_DOCX         4
 #define BBOXES_FORMAT_PDF_OBJECTS  5  /* object-level PDF: one bbox per text object */
 #define BBOXES_FORMAT_XLSX_FAST    6  /* fast byte-scan xlsx reader (parallel to XLSX) */
+#define BBOXES_FORMAT_HTML         7  /* Lexbor DOM walk: tables → grid, flow → reading order */
 
 bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len);
 
 /* Coordinate model (single source of truth — hosts must not re-encode this).
-   Returns 1 for cell-grid formats (xlsx/text/docx) whose bbox x/y/w/h are
+   Returns 1 for cell-grid formats (xlsx/text/docx/html) whose bbox x/y/w/h are
    integer row/col positions, 0 for rendered formats (pdf) with float coords. */
 int bboxes_format_int_coords(int fmt);
 

@@ -222,4 +222,10 @@ BBoxResult extract_text(const void* buf, size_t len);
 
 BBoxResult extract_docx(const void* buf, size_t len);
 
+/* HTML backend (Lexbor): imputed INTEGER geometry — <table> cells map to an
+   (x=col, y=row) grid (colspan/rowspan → w/h), flow content (p/li/hN/…) maps to
+   reading-order lines (y=line, x=nesting depth, w=len(text)). Family with
+   xlsx/text/docx — cell-grid, not float. */
+BBoxResult extract_html(const void* buf, size_t len);
+
 #endif

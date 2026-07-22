@@ -181,6 +181,15 @@ struct BBoxesDocxCursor : CursorBase {
     }
 };
 
+struct BBoxesHtmlCursor : CursorBase {
+    BBoxesHtmlCursor(nb::bytes data) {
+        buf.assign(data.c_str(), data.c_str() + data.size());
+        int_coords = bboxes_format_int_coords(BBOXES_FORMAT_HTML);
+        cur = bboxes_open_html(buf.data(), buf.size());
+        if (!cur) throw nb::value_error("bad HTML");
+    }
+};
+
 struct BBoxesAutoCursor : CursorBase {
     BBoxesAutoCursor(nb::bytes data) {
         buf.assign(data.c_str(), data.c_str() + data.size());
@@ -326,6 +335,16 @@ NB_MODULE(blobboxes_ext, m) {
         .def("styles", &BBoxesDocxCursor::styles)
         .def("bboxes", &BBoxesDocxCursor::bboxes)
         .def("close", &BBoxesDocxCursor::close);
+
+    /* HTML cursor */
+    nb::class_<BBoxesHtmlCursor>(m, "BBoxesHtmlCursor")
+        .def(nb::init<nb::bytes>(), nb::arg("data"))
+        .def("doc", &BBoxesHtmlCursor::doc)
+        .def("pages", &BBoxesHtmlCursor::pages)
+        .def("fonts", &BBoxesHtmlCursor::fonts)
+        .def("styles", &BBoxesHtmlCursor::styles)
+        .def("bboxes", &BBoxesHtmlCursor::bboxes)
+        .def("close", &BBoxesHtmlCursor::close);
 
     /* Auto-detecting cursor */
     nb::class_<BBoxesAutoCursor>(m, "BBoxesAutoCursor")

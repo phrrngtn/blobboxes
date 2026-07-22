@@ -614,7 +614,7 @@ struct FormatInfo {
 static Format s_fmts[] = {
     BBOXES_FORMAT_AUTO, BBOXES_FORMAT_PDF, BBOXES_FORMAT_XLSX,
     BBOXES_FORMAT_TEXT, BBOXES_FORMAT_DOCX, BBOXES_FORMAT_PDF_OBJECTS,
-    BBOXES_FORMAT_XLSX_FAST
+    BBOXES_FORMAT_XLSX_FAST, BBOXES_FORMAT_HTML
 };
 
 static ScalarDesc s_scalars[][5] = {
@@ -660,6 +660,12 @@ static ScalarDesc s_scalars[][5] = {
       {BBOXES_FORMAT_XLSX_FAST, bboxes_get_fonts_json},
       {BBOXES_FORMAT_XLSX_FAST, bboxes_get_styles_json},
       {BBOXES_FORMAT_XLSX_FAST, bboxes_get_bboxes_json} },
+    /* HTML */
+    { {BBOXES_FORMAT_HTML, bboxes_get_doc_json},
+      {BBOXES_FORMAT_HTML, bboxes_get_pages_json},
+      {BBOXES_FORMAT_HTML, bboxes_get_fonts_json},
+      {BBOXES_FORMAT_HTML, bboxes_get_styles_json},
+      {BBOXES_FORMAT_HTML, bboxes_get_bboxes_json} },
 };
 
 static const FormatInfo s_formats[] = {
@@ -670,6 +676,7 @@ static const FormatInfo s_formats[] = {
     { "bb_docx", BBOXES_FORMAT_DOCX,        false },
     { "bb_objs", BBOXES_FORMAT_PDF_OBJECTS, false },
     { "bb_xlsx", BBOXES_FORMAT_XLSX_FAST,   false },  /* DEFAULT fast reader — full sub-table set */
+    { "bb_html", BBOXES_FORMAT_HTML,        false },  /* Lexbor DOM walk (tables → grid, flow → lines) */
 };
 
 static const char* s_table_suffixes[] = { "_doc", "_pages", "_fonts", "_styles", "" };

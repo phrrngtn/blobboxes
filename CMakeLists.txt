@@ -63,6 +63,25 @@ endif()
 option(BUILD_XLSX_BACKEND "Build XLSX backend (requires xlnt)" OFF)
 option(BUILD_TEXT_BACKEND "Build text file backend" OFF)
 option(BUILD_DOCX_BACKEND "Build DOCX backend (requires pugixml + miniz)" OFF)
+option(BUILD_HTML_BACKEND "Build HTML backend (requires Lexbor)" OFF)
+
+# ── HTML: Lexbor (brew-installed static lib + headers) ───────────────
+# The prototype and the extension link the static archive so the three loadable
+# extensions stay self-contained (no lexbor dylib to co-locate). We use the
+# brew install rather than FetchContent — building lexbor from source is a heavy
+# extra CMake tree, and the pinned brew package is already the proven toolchain.
+if(BUILD_HTML_BACKEND)
+  execute_process(COMMAND brew --prefix lexbor
+    OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE LEXBOR_PREFIX ERROR_QUIET)
+  find_path(LEXBOR_INCLUDE_DIR lexbor/html/html.h
+    HINTS "${LEXBOR_PREFIX}/include" /opt/homebrew/include /usr/local/include)
+  find_library(LEXBOR_STATIC_LIB NAMES lexbor_static
+    HINTS "${LEXBOR_PREFIX}/lib" /opt/homebrew/lib /usr/local/lib)
+  if(NOT LEXBOR_INCLUDE_DIR OR NOT LEXBOR_STATIC_LIB)
+    message(FATAL_ERROR "Lexbor not found for BUILD_HTML_BACKEND — install with `brew install lexbor`")
+  endif()
+  message(STATUS "Lexbor: ${LEXBOR_STATIC_LIB} (headers: ${LEXBOR_INCLUDE_DIR})")
+endif()
 
 # ── XLSX: xlnt via FetchContent ──────────────────────────────────────
 if(BUILD_XLSX_BACKEND)
@@ -132,6 +151,13 @@ endif()
 if(BUILD_DOCX_BACKEND)
   list(APPEND BBOXES_SOURCES src/bboxes_docx.cpp)
   list(APPEND BBOXES_DEFS BBOXES_HAS_DOCX)  # pugixml + miniz already linked
+endif()
+
+if(BUILD_HTML_BACKEND)
+  list(APPEND BBOXES_SOURCES src/bboxes_html.cpp)
+  list(APPEND BBOXES_INCLUDES ${LEXBOR_INCLUDE_DIR})
+  list(APPEND BBOXES_LIBS ${LEXBOR_STATIC_LIB})
+  list(APPEND BBOXES_DEFS BBOXES_HAS_HTML)
 endif()
 
 # Helper: copy libpdfium next to a target and set RPATH
