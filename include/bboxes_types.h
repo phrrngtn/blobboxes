@@ -161,12 +161,15 @@ struct BBox {
     std::string formula;
 };
 
+struct Merge { int r1, c1, r2, c2; };   /* 1-based, inclusive */
+
 struct Page {
     uint32_t    page_id;
     uint32_t    document_id;
     int         page_number;   /* 1-based */
     double      width, height;
     std::vector<BBox> bboxes;
+    std::vector<Merge> merges;  /* side-channel: captured during the cell scan */
 };
 
 struct BBoxResult {

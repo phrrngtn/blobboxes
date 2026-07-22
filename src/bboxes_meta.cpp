@@ -125,7 +125,10 @@ std::string base64(const std::string& in) {
 }
 
 // ── the actual extraction over an already-opened zip archive ─────────────
-std::string xlsx_meta_from_zip(mz_zip_archive& z) {
+// lean=true skips the per-worksheet-part loop (which re-inflates every sheet —
+// the one thing in here that touches the bulk); the artifact pipeline gets those
+// per-sheet facts from the cell reader's side-channel instead (single pass).
+std::string xlsx_meta_from_zip(mz_zip_archive& z, bool lean = false) {
     json out;
     out["dialect"] = "xlsx";
     out["integrity"] = {{"status", "clean"}};
@@ -186,23 +189,27 @@ std::string xlsx_meta_from_zip(mz_zip_archive& z) {
         }
         if (!names.empty()) out["names"] = names;
     }
-    // per worksheet part: codeName / tabColor / dimension / protection / autofilter
-    json wsparts = json::object();
-    for (auto& part : parts) {
-        if (part.rfind("xl/worksheets/sheet", 0) != 0 || part.size() < 5 ||
-            part.substr(part.size() - 4) != ".xml") continue;
-        if (!zip_load(z, part.c_str(), doc)) continue;
-        json info = json::object();
-        if (auto spr = first_by(doc, "sheetPr")) {
-            if (spr.attribute("codeName")) info["code_name"] = spr.attribute("codeName").as_string();
-            if (auto tc = first_by(spr, "tabColor")) info["tab_color"] = tc.attribute("rgb").as_string();
+    // per worksheet part: codeName / tabColor / dimension / protection / autofilter.
+    // This RE-INFLATES every worksheet — skipped in lean mode (the artifact path
+    // gets dimension/merges from the cell reader's single pass; §single-pass).
+    if (!lean) {
+        json wsparts = json::object();
+        for (auto& part : parts) {
+            if (part.rfind("xl/worksheets/sheet", 0) != 0 || part.size() < 5 ||
+                part.substr(part.size() - 4) != ".xml") continue;
+            if (!zip_load(z, part.c_str(), doc)) continue;
+            json info = json::object();
+            if (auto spr = first_by(doc, "sheetPr")) {
+                if (spr.attribute("codeName")) info["code_name"] = spr.attribute("codeName").as_string();
+                if (auto tc = first_by(spr, "tabColor")) info["tab_color"] = tc.attribute("rgb").as_string();
+            }
+            if (auto dim = first_by(doc, "dimension")) info["dimension"] = dim.attribute("ref").as_string();
+            if (first_by(doc, "sheetProtection")) info["protected"] = true;
+            if (auto af = first_by(doc, "autoFilter")) info["autofilter"] = af.attribute("ref").as_string();
+            if (!info.empty()) wsparts[part] = info;
         }
-        if (auto dim = first_by(doc, "dimension")) info["dimension"] = dim.attribute("ref").as_string();
-        if (first_by(doc, "sheetProtection")) info["protected"] = true;
-        if (auto af = first_by(doc, "autoFilter")) info["autofilter"] = af.attribute("ref").as_string();
-        if (!info.empty()) wsparts[part] = info;
+        if (!wsparts.empty()) out["_worksheet_parts"] = wsparts;
     }
-    if (!wsparts.empty()) out["_worksheet_parts"] = wsparts;
     // external links: structure only, cached VALUES never read
     json ext = json::array();
     for (auto& part : parts) {
@@ -378,6 +385,222 @@ json walk_bytes(const void* data, size_t len, const std::string& name, int depth
     }
 }
 
+// ── OOXML styles.xml + theme1.xml → biconditional style decode ───────────
+// Resolves the cellXfs surrogate `s` (what the fast reader carries) to a fully
+// resolved style, re-interned by value so `different id ⟺ different style` holds
+// (§1.1/§1.2 of the parquet spec). Colors are kept as EXACT verbatim specs
+// ({rgb}/{theme,tint}/{indexed}) plus the shipped theme_palette — exact for the
+// equivalence key, fully decodable for interpretation, no HSL tint math needed.
+
+// Direct children of `parent` whose local name matches (NOT recursive — dxfs also
+// contain <font>/<fill>/<border>, so array indexing must stay scoped to the container).
+std::vector<pugi::xml_node> kids(pugi::xml_node parent, const char* name) {
+    std::vector<pugi::xml_node> v;
+    for (auto c : parent.children())
+        if (!std::strcmp(local(c.name()), name)) v.push_back(c);
+    return v;
+}
+
+// Well-known builtin number formats (US-English defaults; ids 0-163 are builtin,
+// >=164 are custom in <numFmts>). Enough to classify date/currency/percent/general.
+const char* builtin_numfmt(int id) {
+    switch (id) {
+        case 0:  return "General";
+        case 1:  return "0";
+        case 2:  return "0.00";
+        case 3:  return "#,##0";
+        case 4:  return "#,##0.00";
+        case 9:  return "0%";
+        case 10: return "0.00%";
+        case 11: return "0.00E+00";
+        case 12: return "# ?/?";
+        case 13: return "# ??/??";
+        case 14: return "mm-dd-yy";
+        case 15: return "d-mmm-yy";
+        case 16: return "d-mmm";
+        case 17: return "mmm-yy";
+        case 18: return "h:mm AM/PM";
+        case 19: return "h:mm:ss AM/PM";
+        case 20: return "h:mm";
+        case 21: return "h:mm:ss";
+        case 22: return "m/d/yy h:mm";
+        case 37: return "#,##0 ;(#,##0)";
+        case 38: return "#,##0 ;[Red](#,##0)";
+        case 39: return "#,##0.00;(#,##0.00)";
+        case 40: return "#,##0.00;[Red](#,##0.00)";
+        case 44: return "_(\"$\"* #,##0.00_);_(\"$\"* (#,##0.00);_(\"$\"* \"-\"??_);_(@_)";
+        case 45: return "mm:ss";
+        case 46: return "[h]:mm:ss";
+        case 47: return "mmss.0";
+        case 48: return "##0.0E+0";
+        case 49: return "@";
+        default: return nullptr;
+    }
+}
+
+// One <color>/<fgColor>/<bgColor> → compact EXACT spec (verbatim, for the key).
+json color_spec(pugi::xml_node c) {
+    if (!c) return nullptr;
+    if (auto a = c.attribute("rgb"))     return json{{"rgb", a.value()}};
+    if (auto a = c.attribute("theme")) {
+        json j{{"theme", a.as_int()}};
+        double t = c.attribute("tint").as_double(0.0);
+        if (t != 0.0) j["tint"] = t;
+        return j;
+    }
+    if (auto a = c.attribute("indexed")) return json{{"indexed", a.as_int()}};
+    if (truthy(c.attribute("auto").value())) return json{{"auto", true}};
+    return nullptr;
+}
+
+// theme_palette[themeIndex] = hex, in COLOR-THEME index order (0=lt1,1=dk1,2=lt2,
+// 3=dk2 — the dk/lt swap vs the clrScheme child order dk1,lt1,dk2,lt2,...).
+std::vector<std::string> theme_palette(mz_zip_archive& z) {
+    pugi::xml_document doc;
+    if (!zip_load(z, "xl/theme/theme1.xml", doc)) return {};
+    auto scheme = first_by(doc, "clrScheme");
+    std::vector<std::string> raw;  // clrScheme child order
+    for (auto child : scheme.children()) {
+        auto srgb = first_by(child, "srgbClr");
+        auto sys  = first_by(child, "sysClr");
+        if (srgb)     raw.push_back(srgb.attribute("val").value());
+        else if (sys) raw.push_back(sys.attribute("lastClr").value());
+        else          raw.push_back("");
+    }
+    if (raw.size() < 12) return raw;  // malformed — return as-is
+    return { raw[1], raw[0], raw[3], raw[2], raw[4], raw[5],
+             raw[6], raw[7], raw[8], raw[9], raw[10], raw[11] };
+}
+
+json resolve_font(pugi::xml_node f) {
+    auto flag = [&](const char* n) {
+        auto c = first_by(f, n);
+        return c && (!c.attribute("val") || truthy(c.attribute("val").value()));
+    };
+    auto u = first_by(f, "u");
+    json j;
+    j["name"]      = unescape_ooxml(first_by(f, "name").attribute("val").value());
+    j["size"]      = first_by(f, "sz").attribute("val").as_double(0.0);
+    j["bold"]      = flag("b");
+    j["italic"]    = flag("i");
+    j["underline"] = (bool)(u && std::strcmp(u.attribute("val").as_string("single"), "none") != 0);
+    j["strike"]    = flag("strike");
+    j["color"]     = color_spec(first_by(f, "color"));
+    return j;
+}
+
+json resolve_fill(pugi::xml_node fill) {
+    auto pf = first_by(fill, "patternFill");
+    if (!pf) return nullptr;
+    json j;
+    j["pattern"] = pf.attribute("patternType").as_string("none");
+    j["fg"] = color_spec(first_by(pf, "fgColor"));
+    j["bg"] = color_spec(first_by(pf, "bgColor"));
+    return j;
+}
+
+json resolve_border(pugi::xml_node b) {
+    auto side = [&](const char* n) -> json {
+        auto s = kids(b, n).empty() ? pugi::xml_node() : kids(b, n)[0];
+        if (!s || !s.attribute("style")) return nullptr;
+        return json{{"style", s.attribute("style").value()}, {"color", color_spec(first_by(s, "color"))}};
+    };
+    json j;
+    j["left"] = side("left"); j["right"] = side("right");
+    j["top"]  = side("top");  j["bottom"] = side("bottom");
+    return j;
+}
+
+std::string xlsx_style_decode_from_zip(mz_zip_archive& z) {
+    json out;
+    out["dialect"] = "xlsx";
+
+    pugi::xml_document wb;
+    bool d1904 = false;
+    if (zip_load(z, "xl/workbook.xml", wb))
+        d1904 = truthy(first_by(wb, "workbookPr").attribute("date1904").value());
+    out["date1904"] = d1904;
+    out["theme_palette"] = theme_palette(z);
+
+    pugi::xml_document doc;
+    if (!zip_load(z, "xl/styles.xml", doc)) {
+        out["style_decode"] = json::array();
+        out["s_to_id"] = json::array();
+        return out.dump(-1, ' ', false, json::error_handler_t::replace);
+    }
+
+    // custom number formats (>=164)
+    std::map<int, std::string> numfmt;
+    for (auto nf : kids(first_by(doc, "numFmts"), "numFmt"))
+        numfmt[nf.attribute("numFmtId").as_int()] = unescape_ooxml(nf.attribute("formatCode").value());
+
+    auto fonts   = kids(first_by(doc, "fonts"),   "font");
+    auto fills   = kids(first_by(doc, "fills"),   "fill");
+    auto borders = kids(first_by(doc, "borders"), "border");
+    auto cellxfs = kids(first_by(doc, "cellXfs"), "xf");
+
+    // named-style origin: cellStyle.xfId → {name, builtin_id}
+    std::map<int, json> named_by_xfid;
+    for (auto cs : kids(first_by(doc, "cellStyles"), "cellStyle")) {
+        json n{{"name", unescape_ooxml(cs.attribute("name").value())}};
+        n["builtin_id"] = cs.attribute("builtinId") ? json(cs.attribute("builtinId").as_int()) : json(nullptr);
+        named_by_xfid[cs.attribute("xfId").as_int()] = n;
+    }
+
+    // resolve each cellXfs `s`, re-intern by resolved value (biconditional)
+    std::map<std::string, int> canon;   // resolved-json-string → canonical id
+    json decode = json::array();
+    json s_to_id = json::array();
+    for (auto xf : cellxfs) {
+        int numFmtId = xf.attribute("numFmtId").as_int(0);
+        int fontId   = xf.attribute("fontId").as_int(0);
+        int fillId   = xf.attribute("fillId").as_int(0);
+        int borderId = xf.attribute("borderId").as_int(0);
+        int xfId     = xf.attribute("xfId").as_int(-1);
+
+        const char* bi = builtin_numfmt(numFmtId);
+        std::string code = numfmt.count(numFmtId) ? numfmt[numFmtId] : (bi ? bi : "");
+
+        json rs;
+        rs["numfmt"] = json{{"id", numFmtId}, {"code", code}};
+        rs["font"]   = (fontId   >= 0 && (size_t)fontId   < fonts.size())   ? resolve_font(fonts[fontId])     : json(nullptr);
+        rs["fill"]   = (fillId   >= 0 && (size_t)fillId   < fills.size())   ? resolve_fill(fills[fillId])     : json(nullptr);
+        rs["border"] = (borderId >= 0 && (size_t)borderId < borders.size()) ? resolve_border(borders[borderId]) : json(nullptr);
+        rs["named_style"] = named_by_xfid.count(xfId) ? named_by_xfid[xfId] : json(nullptr);
+
+        std::string key = rs.dump();
+        auto it = canon.find(key);
+        int id;
+        if (it == canon.end()) {
+            id = (int)decode.size();
+            canon[key] = id;
+            json e = rs; e["id"] = id;
+            decode.push_back(std::move(e));
+        } else {
+            id = it->second;
+        }
+        s_to_id.push_back(id);
+    }
+    out["style_decode"] = std::move(decode);   // canonical id → resolved style
+    out["s_to_id"] = std::move(s_to_id);        // raw cellXfs s → canonical id (index = s)
+    return out.dump(-1, ' ', false, json::error_handler_t::replace);
+}
+
+// Combined artifact HEADER (the footer bag): sha256 workbook id + workbook-global
+// style/theme decode + lean global metadata. Reads ONLY small parts (styles.xml,
+// theme1.xml, docProps, workbook.xml, tables) — never the worksheets — so it is
+// DISJOINT from the cell reader's body pass: bb_xlsx inflates the worksheets once,
+// xlsx_header inflates only these tiny parts, and neither re-does the other's work.
+// (Merge extents already live in each cell's w/h; dimension = max row/col of cells.)
+std::string xlsx_header_from_zip(mz_zip_archive& z, const void* buf, size_t len) {
+    json h;
+    SHA256 sha;
+    h["sha256"] = sha(buf, len);                                  // == workbook_id (§5)
+    h["styles"] = json::parse(xlsx_style_decode_from_zip(z));     // small parts only
+    h["meta"]   = json::parse(xlsx_meta_from_zip(z, /*lean=*/true));
+    return h.dump(-1, ' ', false, json::error_handler_t::replace);
+}
+
 // read a whole file into a string (walk must recurse; nested members need inflating)
 bool slurp(const char* path, std::string& out) {
     FILE* f = std::fopen(path, "rb");
@@ -460,6 +683,75 @@ const char* bboxes_xlsx_vba_base64(const void* data, size_t len) {
     bool got = zip_bytes(z, "xl/vbaProject.bin", bin);
     mz_zip_reader_end(&z);
     g_result = got ? base64(bin) : std::string();
+    return g_result.c_str();
+}
+
+// Combined artifact header (sha256 id + style/theme decode + lean global meta),
+// one zip open, small parts only. Blob and file variants; the file variant slurps
+// once (so the sha256 is over the same bytes, no second read).
+const char* bboxes_xlsx_header_json(const void* data, size_t len) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"error\":\"not a zip\"}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_header_from_zip(z, data, len);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+const char* bboxes_xlsx_header_json_file(const char* path) {
+    std::string buf;
+    if (!slurp(path, buf)) {
+        g_result = "{\"dialect\":\"xlsx\",\"error\":\"file not found / unreadable\"}";
+        return g_result.c_str();
+    }
+    return bboxes_xlsx_header_json(buf.data(), buf.size());
+}
+
+// Lean global metadata for the artifact pipeline: docProps + workbook (sheets,
+// date1904, defined names) + tables + external-link structure — but NOT the
+// per-worksheet loop (that re-inflates the bulk; the cell reader supplies
+// dimension/merges instead). Single-pass-friendly.
+const char* bboxes_xlsx_artifact_meta_json_file(const char* path) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_file(&z, path, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"integrity\":{\"status\":\"failed\",\"error\":\"not a zip / unreadable\"}}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_meta_from_zip(z, /*lean=*/true);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+const char* bboxes_xlsx_artifact_meta_json(const void* data, size_t len) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"integrity\":{\"status\":\"failed\",\"error\":\"not a zip\"}}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_meta_from_zip(z, /*lean=*/true);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+
+// Biconditional style decode: styles.xml + theme1.xml → {s_to_id, style_decode}.
+const char* bboxes_xlsx_style_decode_json_file(const char* path) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_file(&z, path, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"error\":\"not a zip / unreadable\"}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_style_decode_from_zip(z);
+    mz_zip_reader_end(&z);
+    return g_result.c_str();
+}
+const char* bboxes_xlsx_style_decode_json(const void* data, size_t len) {
+    mz_zip_archive z{};
+    if (!mz_zip_reader_init_mem(&z, data, len, 0)) {
+        g_result = "{\"dialect\":\"xlsx\",\"error\":\"not a zip\"}";
+        return g_result.c_str();
+    }
+    g_result = xlsx_style_decode_from_zip(z);
+    mz_zip_reader_end(&z);
     return g_result.c_str();
 }
 

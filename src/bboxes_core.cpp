@@ -47,6 +47,7 @@ struct bboxes_cursor {
     std::string fonts_array_json;
     std::string styles_array_json;
     std::string bboxes_array_json;
+    std::string sheet_meta_json;
 };
 
 /* ── per-type JSON helpers ──────────────────────────────────────────── */
@@ -405,6 +406,50 @@ const char* bboxes_get_bboxes_json(bboxes_cursor* c) {
         c->bboxes_array_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
     }
     return c->bboxes_array_json.c_str();
+}
+
+/* Per-sheet side-channel captured DURING the cell scan (merges + dimension) —
+   pull this from the SAME cursor you read bboxes from, so the worksheet bulk is
+   inflated exactly once (the single-pass artifact path). */
+const char* bboxes_get_sheet_meta_json(bboxes_cursor* c) {
+    if (!c) return nullptr;
+    if (c->sheet_meta_json.empty()) {
+        json arr = json::array();
+        for (const auto& p : c->result.pages) {
+            json merges = json::array();
+            for (const auto& m : p.merges)
+                merges.push_back({{"r1", m.r1}, {"c1", m.c1}, {"r2", m.r2}, {"c2", m.c2}});
+            arr.push_back({
+                {"sheet", p.page_id},
+                {"page_number", p.page_number},
+                {"dimension", {{"rmax", (int)p.height}, {"cmax", (int)p.width}}},
+                {"merges", std::move(merges)}
+            });
+        }
+        c->sheet_meta_json = arr.dump(-1, ' ', false, json::error_handler_t::replace);
+    }
+    return c->sheet_meta_json.c_str();
+}
+
+/* Path/blob convenience wrappers for SQL: open a fast-reader cursor, pull the
+   sheet-meta, close. (The single-pass writer uses the cursor accessor above
+   instead, sharing the parse with the cell read.) */
+const char* bboxes_xlsx_sheet_meta_json(const void* data, size_t len) {
+    static thread_local std::string out;
+    bboxes_cursor* c = bboxes_open_format(BBOXES_FORMAT_XLSX_FAST, data, len);
+    out = c ? bboxes_get_sheet_meta_json(c) : "[]";
+    if (c) bboxes_close(c);
+    return out.c_str();
+}
+const char* bboxes_xlsx_sheet_meta_json_file(const char* path) {
+    static thread_local std::string out;
+    FILE* f = std::fopen(path, "rb");
+    if (!f) { out = "[]"; return out.c_str(); }
+    std::fseek(f, 0, SEEK_END); long sz = std::ftell(f); std::fseek(f, 0, SEEK_SET);
+    std::string buf(sz > 0 ? sz : 0, '\0');
+    if (sz > 0 && std::fread(&buf[0], 1, sz, f) != (size_t)sz) buf.clear();
+    std::fclose(f);
+    return bboxes_xlsx_sheet_meta_json(buf.data(), buf.size());
 }
 
 /* ── close ──────────────────────────────────────────────────────────── */

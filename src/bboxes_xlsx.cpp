@@ -467,6 +467,7 @@ BBoxResult extract_xlsx_fast(const void* buf, size_t len, const char* /*password
                 uint32_t r1, c1, r2, c2;
                 if (parse_ref(x_attr(m, me, " ref=\"").c_str(), r1, c1, r2, c2)) {
                     extent[cell_key(r1, c1)] = { double(c2 - c1 + 1), double(r2 - r1 + 1) };
+                    page.merges.push_back({int(r1), int(c1), int(r2), int(c2)});  // side-channel
                     for (uint32_t rr = r1; rr <= r2; rr++)
                         for (uint32_t cc = c1; cc <= c2; cc++)
                             if (!(rr == r1 && cc == c1)) covered.insert(cell_key(rr, cc));

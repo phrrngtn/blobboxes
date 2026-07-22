@@ -89,6 +89,29 @@ const char* bboxes_xlsx_metadata_json_file(const char* path);
 const char* bboxes_xlsx_manifest_json(const void* buf, size_t len);
 const char* bboxes_xlsx_manifest_json_file(const char* path);
 
+/* Biconditional style decode: styles.xml + theme1.xml resolved to a workbook-
+   global decode keyed to the fast reader's raw cellXfs `s`. Emits {dialect,
+   date1904, theme_palette[], style_decode:[{id,numfmt,font,fill,border,
+   named_style}], s_to_id:[canonical id per raw s]} — the metadata that lets a
+   Parquet artifact un-intern style_id. */
+const char* bboxes_xlsx_style_decode_json(const void* buf, size_t len);
+const char* bboxes_xlsx_style_decode_json_file(const char* path);
+
+/* Lean global metadata (docProps/workbook/names/tables) — skips the per-worksheet
+   loop that re-inflates the bulk; the artifact pipeline is single-pass. */
+const char* bboxes_xlsx_artifact_meta_json(const void* buf, size_t len);
+const char* bboxes_xlsx_artifact_meta_json_file(const char* path);
+
+/* Path/blob wrappers for the sheet-meta side-channel (open fast cursor, pull, close). */
+const char* bboxes_xlsx_sheet_meta_json(const void* buf, size_t len);
+const char* bboxes_xlsx_sheet_meta_json_file(const char* path);
+
+/* Combined artifact HEADER (the footer bag): sha256 workbook id + style/theme
+   decode + lean global metadata, one zip open, small parts only (never the
+   worksheets — disjoint from the bb_xlsx body pass). */
+const char* bboxes_xlsx_header_json(const void* buf, size_t len);
+const char* bboxes_xlsx_header_json_file(const char* path);
+
 /* Recursive container walk: a blob is a tree of typed blobs. Sniffs each node
    by magic bytes, dispatches to the matching extractor, recurses into nested
    containers (zip-in-zip). Returns a nested JSON tree. */
@@ -168,6 +191,9 @@ const char* bboxes_get_pages_json(bboxes_cursor* cursor);
 const char* bboxes_get_fonts_json(bboxes_cursor* cursor);
 const char* bboxes_get_styles_json(bboxes_cursor* cursor);
 const char* bboxes_get_bboxes_json(bboxes_cursor* cursor);
+/* Per-sheet side-channel (merges + dimension) captured during the cell scan —
+   pull from the SAME cursor as the bboxes for a single worksheet inflation. */
+const char* bboxes_get_sheet_meta_json(bboxes_cursor* cursor);
 
 void bboxes_close(bboxes_cursor* cursor);
 

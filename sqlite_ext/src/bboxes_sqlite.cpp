@@ -372,6 +372,10 @@ static void meta_json_func(sqlite3_context* ctx, int, sqlite3_value** argv) {
 static MetaDesc s_xlsx_meta_desc     = { bboxes_xlsx_metadata_json_file, bboxes_xlsx_metadata_json };
 static MetaDesc s_pdf_meta_desc      = { bboxes_pdf_metadata_json_file,  bboxes_pdf_metadata_json };
 static MetaDesc s_xlsx_manifest_desc = { bboxes_xlsx_manifest_json_file, bboxes_xlsx_manifest_json };
+static MetaDesc s_xlsx_style_desc    = { bboxes_xlsx_style_decode_json_file, bboxes_xlsx_style_decode_json };
+static MetaDesc s_xlsx_artifact_desc = { bboxes_xlsx_artifact_meta_json_file, bboxes_xlsx_artifact_meta_json };
+static MetaDesc s_xlsx_sheet_desc    = { bboxes_xlsx_sheet_meta_json_file,    bboxes_xlsx_sheet_meta_json };
+static MetaDesc s_xlsx_header_desc   = { bboxes_xlsx_header_json_file,        bboxes_xlsx_header_json };
 static MetaDesc s_container_desc     = { bboxes_container_walk_json_file, bboxes_container_walk_json };
 static MetaDesc s_vba_b64_desc       = { bboxes_xlsx_vba_base64_file,     bboxes_xlsx_vba_base64 };
 static MetaDesc s_xfdf_desc          = { bboxes_xfdf_from_json,           nullptr };  /* text in */
@@ -471,6 +475,10 @@ int sqlite3_bboxes_init(sqlite3* db, char** pzErrMsg,
         { "xlsx_metadata",   &s_xlsx_meta_desc },
         { "pdf_metadata",    &s_pdf_meta_desc },
         { "xlsx_manifest",   &s_xlsx_manifest_desc },
+        { "xlsx_style_decode", &s_xlsx_style_desc },
+        { "xlsx_artifact_meta", &s_xlsx_artifact_desc },
+        { "xlsx_sheet_meta",   &s_xlsx_sheet_desc },
+        { "xlsx_header",       &s_xlsx_header_desc },
         { "container_walk",  &s_container_desc },
         { "xlsx_vba_base64", &s_vba_b64_desc },
         { "xfdf",            &s_xfdf_desc },      /* JSON annots -> XFDF (text only) */

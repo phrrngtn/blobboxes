@@ -672,6 +672,38 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
                          reinterpret_cast<void*>(bboxes_xlsx_manifest_json),
                          meta_blob_scalar);
 
+    /* xlsx_style_decode — biconditional style decode (styles.xml + theme1.xml) */
+    register_meta_scalar(connection, "xlsx_style_decode", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_style_decode_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_style_decode", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_style_decode_json),
+                         meta_blob_scalar);
+
+    /* xlsx_artifact_meta — lean global metadata (no worksheet re-inflation) */
+    register_meta_scalar(connection, "xlsx_artifact_meta", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_artifact_meta_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_artifact_meta", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_artifact_meta_json),
+                         meta_blob_scalar);
+
+    /* xlsx_sheet_meta — merges + dimension side-channel (one worksheet inflation) */
+    register_meta_scalar(connection, "xlsx_sheet_meta", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_sheet_meta_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_sheet_meta", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_sheet_meta_json),
+                         meta_blob_scalar);
+
+    /* xlsx_header — the artifact footer bag (sha + style/theme + lean meta) */
+    register_meta_scalar(connection, "xlsx_header", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xlsx_header_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xlsx_header", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xlsx_header_json),
+                         meta_blob_scalar);
+
     /* container_walk — recursive tree of typed nodes (zip-in-zip, pdf, ...) */
     register_meta_scalar(connection, "container_walk", DUCKDB_TYPE_VARCHAR,
                          reinterpret_cast<void*>(bboxes_container_walk_json_file),
