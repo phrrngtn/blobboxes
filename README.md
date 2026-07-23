@@ -38,7 +38,7 @@ All formats produce the same five tables:
 | document_id | int | Unique ID |
 | source_type | string | `"pdf"`, `"xlsx"`, `"text"`, `"docx"` |
 | filename | string | NULL for buffer-based opens |
-| checksum | string | MD5 hex of source bytes |
+| checksum | string | SHA-256 hex of source bytes |
 | page_count | int | Number of pages (sheets for XLSX) |
 
 **pages** — one row per page/sheet

@@ -192,7 +192,7 @@ struct Page {
 
 struct BBoxResult {
     std::string source_type;   /* "pdf", "xlsx", ... */
-    std::string checksum;      /* MD5 hex of source bytes */
+    std::string checksum;      /* SHA-256 hex of source bytes */
     int         page_count;
     FontTable   fonts;
     StyleTable  styles;

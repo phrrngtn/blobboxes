@@ -22,7 +22,7 @@ typedef struct {
     uint32_t    document_id;
     const char* source_type;   /* "pdf", "xlsx", "text", "docx", ... */
     const char* filename;      /* NULL for buffer-based open  */
-    const char* checksum;      /* MD5 hex of source bytes */
+    const char* checksum;      /* SHA-256 hex of source bytes */
     int         page_count;
 } bboxes_doc;
 
