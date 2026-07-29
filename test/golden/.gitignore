@@ -1,0 +1,5 @@
+# Golden JSON is derived from third-party corpus (POI/Enron/...) — regenerate with
+# gen_golden_dc1.sh; don't redistribute. Keep only our own authored fixture's golden
+# so the diff path is exercisable out-of-the-box, plus the tracked docs/baseline.
+*.json
+!fixtures__*.json

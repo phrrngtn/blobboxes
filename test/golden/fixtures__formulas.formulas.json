@@ -1,0 +1,8 @@
+{
+"Data!C1": "=A1+B1",
+"Data!C2": "=A1*B1-A2/2",
+"Data!C3": "=IF(A1>A2,\"hi\",\"lo\")",
+"Data!A4": "=SUM(A1:A3)",
+"Calc!A1": "=SUM(Data!A1:A3)",
+"Calc!A2": "=Data!A4*2"
+}

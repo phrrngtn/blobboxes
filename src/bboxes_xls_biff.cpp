@@ -58,7 +58,7 @@ bool read_workbook_stream(const void* buf, size_t len, std::vector<char>& out, s
 
 /* ── globals pre-scan: sheet names (BoundSheet8) + ExternSheet XTIs (for 3D ref resolution) ──────────── */
 struct Globals { std::vector<std::string> sheets; std::vector<uint32_t> sheet_pos; std::vector<uint8_t> sheet_dt;
-                 std::vector<int> xti_first; uint16_t biff_version = 0x0600; };
+                 std::vector<int> xti_first; std::vector<std::string> lbl_names; uint16_t biff_version = 0x0600; };
 Globals scan_globals(const uint8_t* p, size_t n) {
     Globals g; size_t off = 0; bool first_bof = true;
     while (off + 4 <= n) {
@@ -81,6 +81,14 @@ Globals scan_globals(const uint8_t* p, size_t n) {
             uint16_t cxti = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
             for (uint16_t i = 0; i < cxti && 2 + i*6 + 5 < len; i++)
                 g.xti_first.push_back(int16_t(uint16_t(r[2+i*6+2]) | (uint16_t(r[2+i*6+3]) << 8)));
+        } else if (type == 0x0018 && len >= 15) {            /* Lbl/NAME: capture name (1-based) for PtgName */
+            uint16_t grbit = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
+            uint8_t cch = r[3]; bool builtin = (grbit & 0x0020);
+            uint8_t flags = r[14]; const uint8_t* s = r + 15; std::string nm;
+            if (builtin && cch >= 1) { const char* bn = builtin_name(s[0]); nm = bn ? bn : ("builtin#" + std::to_string(s[0])); }
+            else if (flags & 0x01) { for (uint32_t k = 0; k < cch && 15u + 2u*k + 1u < len; k++) { uint16_t ch = uint16_t(s[2*k]) | (uint16_t(s[2*k+1]) << 8); nm += (ch < 128) ? char(ch) : '?'; } }
+            else { for (uint32_t k = 0; k < cch && 15u + k < len; k++) nm += char(s[k]); }
+            g.lbl_names.push_back(nm);
         }
         off += len;
     }
@@ -107,7 +115,8 @@ const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.19
         case 63: return "RAND"; case 74: return "NOW"; case 82: return "SEARCH"; case 97: return "ATAN2";
         case 100: return "CHOOSE"; case 101: return "HLOOKUP"; case 102: return "VLOOKUP"; case 111: return "CHAR";
         case 112: return "LOWER"; case 113: return "UPPER"; case 115: return "LEN"; case 116: return "LEFT";
-        case 117: return "RIGHT"; case 118: return "MID"; case 119: return "TEXT"; case 148: return "TRIM";
+        case 117: return "RIGHT"; case 118: return "MID"; case 119: return "TEXT"; case 120: return "SUBSTITUTE";
+        case 124: return "FIND"; case 148: return "TRIM";
         case 162: return "CLEAN"; case 190: return "ISNUMBER"; case 197: return "TRUNC"; case 212: return "ROUNDUP";
         case 213: return "ROUNDDOWN"; case 216: return "RANK"; case 219: return "ADDRESS"; case 228: return "SUMPRODUCT";
         case 252: return "COUNTIF"; case 269: return "AVERAGEA"; case 336: return "CONCATENATE"; case 345: return "SUMIFS";
@@ -211,7 +220,9 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
                     render_loc2(u16(r+2),u16(r+6),homeRow,homeCol,hasHome,a1,b1);
                     render_loc2(u16(r+4),u16(r+8),homeRow,homeCol,hasHome,a2,b2);
                     std::string q=sheet_qual(g,ix); push(q+a1+":"+a2, q+b1+":"+b2, 8);} i += 10; } break;
-                case 0x23: { i += 4; push("Name#","Name#"); } break;                   /* PtgName (index; text resolved elsewhere) */
+                case 0x23: { uint32_t idx = avail>=4 ? (uint32_t(r[0])|(uint32_t(r[1])<<8)|(uint32_t(r[2])<<16)|(uint32_t(r[3])<<24)) : 0; i += 4;
+                             std::string nm = (idx>=1 && idx<=g.lbl_names.size()) ? g.lbl_names[idx-1] : ("Name"+std::to_string(idx));
+                             push(nm,nm); } break;                                       /* PtgName -> resolved defined-name */
                 case 0x21: { uint16_t f = avail>=2 ? u16(r) : 0; i += 2;
                              const char* fn=ftab(f); std::string nm = fn ? fn : ("FUNC"+std::to_string(f)); func(nm.c_str(), 1); } break;   /* PtgFunc (fixed; argc best-effort 1) */
                 case 0x22: { uint8_t argc = avail?r[0]:0; uint16_t f = avail>=3 ? u16(r+1) : 0; i += 3;

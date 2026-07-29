@@ -82,13 +82,20 @@ def our_a1_map(data):
     return out
 
 
-def golden_path_for(path: Path):
+def golden_key(path: Path):
+    """Corpus-relative path (or fixtures/<name>) flattened to a single filename component.
+    This same key names the flattened .xls handed to LibreOffice and the golden JSON it yields."""
     try:
-        rel = path.relative_to(CORPUS)
-        base = GOLDEN / rel
+        rel = str(path.relative_to(CORPUS))
     except ValueError:
-        base = GOLDEN / "fixtures" / path.name
-    return base.with_name(base.name + ".formulas.json")
+        rel = "fixtures/" + path.name
+    if rel.endswith(".xls"):
+        rel = rel[:-4]
+    return rel.replace("/", "__")   # only slashes; existing underscores untouched
+
+
+def golden_path_for(path: Path):
+    return GOLDEN / (golden_key(path) + ".formulas.json")
 
 
 def norm(s):
@@ -122,7 +129,17 @@ def main():
     ap.add_argument("--golden-only", action="store_true")
     ap.add_argument("--timeout", type=int, default=60)
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--baseline", default=str(GOLDEN / "known_gaps.txt"),
+                    help="golden keys expected to FAIL (documented parser gaps); such failures don't fail the run")
     args = ap.parse_args()
+
+    baseline = set()
+    bp = Path(args.baseline)
+    if bp.exists():
+        for ln in bp.read_text().splitlines():
+            ln = ln.split("#", 1)[0].strip()
+            if ln:
+                baseline.add(ln)
 
     if not DUCKDB:
         sys.exit("duckdb CLI not on PATH")
@@ -137,7 +154,9 @@ def main():
     tally = {k: 0 for k in ("OK", "BIFF5/7", "FILEPASS", "FAIL", "CRASH", "HANG")}
     crashes, fails = [], []
     g_files = g_match = g_mism = 0
-    g_fail_files = []
+    g_fail_files = []          # unexpected golden failures (regressions)
+    g_known = []               # documented gaps that still fail (expected)
+    g_fixed = []               # baseline entries that now PASS -> remove from known_gaps.txt
 
     for p in files:
         gpath = golden_path_for(p)
@@ -160,9 +179,16 @@ def main():
                 m, mm, missing, extra, samples = diff_golden(data, gpath)
                 g_files += 1; g_match += m; g_mism += mm
                 ok = (mm == 0 and not missing)
-                gsuffix = f"  GOLDEN {'PASS' if ok else 'FAIL'} ({m} match, {mm} mismatch, {len(missing)} missing)"
-                if not ok:
+                key = golden_key(p)
+                known = key in baseline
+                tag = "PASS" if ok else ("KNOWN-GAP" if known else "FAIL")
+                gsuffix = f"  GOLDEN {tag} ({m} match, {mm} mismatch, {len(missing)} missing)"
+                if not ok and known:
+                    g_known.append(str(rel))
+                elif not ok:
                     g_fail_files.append((str(rel), samples, missing, extra))
+                elif known:
+                    g_fixed.append((str(rel), key))
             except Exception as e:
                 gsuffix = f"  GOLDEN ERR {e}"
         if args.verbose or has_golden or cat in ("BIFF5/7",):
@@ -178,18 +204,24 @@ def main():
         print(f"\nCRASH/HANG ({len(crashes)}):")
         for f, e in crashes:
             print(f"    {f}  {e}")
-    print(f"\nGOLDEN: {g_files} files diffed, {g_match} formulas matched, {g_mism} mismatched, "
-          f"{len(g_fail_files)} files failing")
+    print(f"\nGOLDEN: {g_files} diffed, {g_match} formulas matched, {g_mism} mismatched  |  "
+          f"{len(g_known)} known-gap (expected), {len(g_fail_files)} UNEXPECTED-FAIL")
+    if g_known:
+        print(f"  known gaps (see golden/KNOWN_GAPS.md): {', '.join(Path(f).name for f in g_known)}")
     for f, samples, missing, extra in g_fail_files[:15]:
-        print(f"    {f}")
+        print(f"    UNEXPECTED-FAIL {f}")
         for s in samples:
             print(f"        MISMATCH {s}")
         if missing:
             print(f"        MISSING(oracle-only): {missing}")
         if extra:
             print(f"        EXTRA(ours-only): {extra}")
+    if g_fixed:
+        print("  BASELINE NOW PASSES (remove from known_gaps.txt):")
+        for f, key in g_fixed:
+            print(f"        {key}")
 
-    # exit nonzero if anything crashed/hung or a golden diff failed
+    # regression gate: fail only on crashes/hangs or NON-baseline golden failures
     sys.exit(1 if (tally['CRASH'] or tally['HANG'] or g_fail_files) else 0)
 
 
