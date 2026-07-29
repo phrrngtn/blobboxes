@@ -13,6 +13,7 @@
 #include <xls.h>
 #include <cstdio>
 #include <string>
+#include <unordered_map>
 
 using namespace xls;   // libxls wraps its C API in `namespace xls` (see xls.h)
 
@@ -21,14 +22,37 @@ BBoxResult extract_xls(const void* buf, size_t len, const char* /*password*/,
     BBoxResult res;
     res.source_type = "xls";
     res.page_count  = 0;
-    /* one default font+style so every cell has a valid style_id (xls XF decode not attempted) */
-    uint32_t fid = res.fonts.intern("default");
-    uint32_t sid = res.styles.intern(fid, BBOXES_DEFAULT_FONT_SIZE, BBOXES_DEFAULT_COLOR,
-                                     BBOXES_DEFAULT_WEIGHT, false, false);
 
     xls_error_t err = LIBXLS_OK;
     xlsWorkBook* wb = xls_open_buffer(static_cast<const unsigned char*>(buf), len, "UTF-8", &err);
     if (!wb) { res.page_count = -1; return res; }   /* wrap_result() turns <0 into a NULL cursor */
+
+    /* Decode BIFF XF -> FONT into the bbox StyleTable, cached per XF index. Font name / size (twips->pt) /
+       bold / italic / underline are recovered; color is left default (BIFF palette-index decode is a
+       separate task). Fonts intern by name, styles by (font,size,color,weight,italic,underline). */
+    std::unordered_map<uint16_t, uint32_t> xf_to_style;
+    auto style_for = [&](uint16_t xfidx) -> uint32_t {
+        auto it = xf_to_style.find(xfidx);
+        if (it != xf_to_style.end()) return it->second;
+        std::string name = "default", weight = BBOXES_DEFAULT_WEIGHT, color = BBOXES_DEFAULT_COLOR;
+        double size = BBOXES_DEFAULT_FONT_SIZE; bool italic = false, underline = false;
+        if (xfidx < wb->xfs.count && wb->xfs.xf) {
+            uint16_t f = wb->xfs.xf[xfidx].font;
+            uint32_t fpos = (f > 4) ? static_cast<uint32_t>(f) - 1 : f;   /* BIFF skips font index 4 */
+            if (fpos < wb->fonts.count && wb->fonts.font) {
+                const auto& fo = wb->fonts.font[fpos];
+                if (fo.name && fo.name[0]) name = fo.name;
+                if (fo.height) size = fo.height / 20.0;                   /* twips -> points */
+                if (fo.bold >= 700 || (fo.flag & 0x0001)) weight = "bold";
+                italic    = (fo.flag & 0x0002) != 0;
+                underline = (fo.underline != 0);
+            }
+        }
+        uint32_t fid = res.fonts.intern(name.c_str());
+        uint32_t sid = res.styles.intern(fid, size, color, weight, italic, underline);
+        xf_to_style[xfidx] = sid;
+        return sid;
+    };
 
     const int nsheets = static_cast<int>(wb->sheets.count);
     for (int s = 0; s < nsheets; s++) {
@@ -57,7 +81,7 @@ BBoxResult extract_xls(const void* buf, size_t len, const char* /*password*/,
 
                 BBox b;
                 b.page_id  = page.page_id;
-                b.style_id = sid;
+                b.style_id = style_for(cell->xf);
                 b.x = static_cast<double>(cell->col + 1);   /* 1-based col, matching the xlsx reader */
                 b.y = static_cast<double>(cell->row + 1);   /* 1-based row */
                 b.w = static_cast<double>(cell->colspan ? cell->colspan : 1);
