@@ -12,6 +12,15 @@
 #include "bboxes.h"
 #include "bboxes_types.h"
 
+/* compoundfilereader + C-runtime headers FIRST: libxls's <xls.h> opens
+   `namespace xls { extern "C" }` and #includes C-runtime headers inside it,
+   so anything it pulls in must already be globally included (the namespace trap). */
+#include <cstdint>
+#include <cstring>
+#include <map>
+#include <vector>
+#include "compoundfilereader.h"
+
 #include <xls.h>
 #include <nlohmann/json.hpp>
 #include <cstdio>
@@ -45,6 +54,80 @@ struct FontDec {
     double size = BBOXES_DEFAULT_FONT_SIZE;
     bool italic = false, underline = false;
 };
+
+/* ── robust doc-props (MS-OLEPS), replacing libxls xls_summaryInfo ────────────────────────────────────
+   libxls's xls_summaryInfo() SIGBUSes on malformed property sets (POI clusterfuzz corpus). Since a
+   SIGBUS can't be caught in-process, we don't hand the stream to libxls: compoundfilereader (which
+   parses the same fuzzer files without crashing) pulls the \x05SummaryInformation /
+   \x05DocumentSummaryInformation streams, and this reader decodes section-0 string props with every
+   offset/length bounds-checked against the stream. */
+
+static inline uint16_t rd16(const uint8_t* p, size_t n, size_t o) {
+    return (o + 2 <= n) ? uint16_t(p[o] | (p[o + 1] << 8)) : 0;
+}
+static inline uint32_t rd32(const uint8_t* p, size_t n, size_t o) {
+    return (o + 4 <= n) ? (uint32_t(p[o]) | (uint32_t(p[o + 1]) << 8)
+                         | (uint32_t(p[o + 2]) << 16) | (uint32_t(p[o + 3]) << 24)) : 0;
+}
+
+/* Read a top-level CFB stream by ASCII name (the \x05 prefix on the *Information streams is skipped). */
+static bool read_cfb_stream(const void* buf, size_t len, const char* want, std::vector<uint8_t>& out) {
+    try {
+        CFB::CompoundFileReader cfb(static_cast<const char*>(buf), len);
+        const CFB::COMPOUND_FILE_ENTRY* found = nullptr;
+        cfb.EnumFiles(cfb.GetRootEntry(), -1,
+            [&](const CFB::COMPOUND_FILE_ENTRY* e, const std::u16string&, int) {
+                if (found || !cfb.IsStream(e)) return;
+                std::string s;
+                int chars = e->nameLen >= 2 ? e->nameLen / 2 - 1 : 0;
+                for (int i = 0; i < chars && i < 31; i++) { uint16_t ch = e->name[i]; if (ch >= 32 && ch < 128) s += char(ch); }
+                if (s == want) found = e;
+            });
+        if (!found || found->size == 0 || found->size > (1u << 24)) return false;
+        out.resize(static_cast<size_t>(found->size));
+        cfb.ReadFile(found, 0, reinterpret_cast<char*>(out.data()), out.size());
+        return true;
+    } catch (...) { return false; }
+}
+
+/* Decode section-0 VT_LPSTR/VT_LPWSTR properties into id -> UTF-8 string. Fully bounds-checked. */
+static void oleps_strings(const std::vector<uint8_t>& v, std::map<int, std::string>& out) {
+    const uint8_t* p = v.data(); size_t n = v.size();
+    if (n < 48 || rd16(p, n, 0) != 0xFFFE || rd32(p, n, 24) < 1) return;   /* ByteOrder + >=1 section */
+    uint32_t sec = rd32(p, n, 44);                                          /* first section offset */
+    if ((size_t)sec + 8 > n) return;
+    uint32_t cb = rd32(p, n, sec), cprop = rd32(p, n, sec + 4);
+    size_t secend = ((size_t)sec + cb <= n) ? (size_t)sec + cb : n;
+    if (cprop > 1024) cprop = 1024;                                         /* sanity clamp */
+    for (uint32_t i = 0; i < cprop; i++) {
+        size_t ent = (size_t)sec + 8 + (size_t)i * 8;
+        if (ent + 8 > n) break;
+        uint32_t pid = rd32(p, n, ent), poff = rd32(p, n, ent + 4);
+        size_t vp = (size_t)sec + poff;
+        if (vp + 4 > secend) continue;
+        uint32_t vt = rd32(p, n, vp); size_t dp = vp + 4;
+        if (vt == 0x1E) {                                                    /* VT_LPSTR: cch bytes (incl NUL) */
+            if (dp + 4 > secend) continue;
+            uint32_t cch = rd32(p, n, dp); dp += 4;
+            if (cch == 0 || cch > secend - dp) continue;
+            size_t l = cch; while (l > 0 && p[dp + l - 1] == 0) l--;
+            out[(int)pid] = std::string(reinterpret_cast<const char*>(p + dp), l);
+        } else if (vt == 0x1F) {                                             /* VT_LPWSTR: cch UTF-16 units */
+            if (dp + 4 > secend) continue;
+            uint32_t cch = rd32(p, n, dp); dp += 4;
+            if (cch == 0 || (uint64_t)cch * 2 > secend - dp) continue;
+            std::string s;                                                   /* minimal UTF-16LE -> UTF-8 */
+            for (uint32_t k = 0; k + 1 < cch * 2; k += 2) {
+                uint16_t c = uint16_t(p[dp + k] | (p[dp + k + 1] << 8));
+                if (c == 0) break;
+                if (c < 0x80) s += char(c);
+                else if (c < 0x800) { s += char(0xC0 | (c >> 6)); s += char(0x80 | (c & 0x3F)); }
+                else { s += char(0xE0 | (c >> 12)); s += char(0x80 | ((c >> 6) & 0x3F)); s += char(0x80 | (c & 0x3F)); }
+            }
+            out[(int)pid] = s;
+        }
+    }
+}
 
 FontDec decode_font(xlsWorkBook* wb, uint16_t xfidx) {
     FontDec d;
@@ -172,14 +255,20 @@ const char* bboxes_xls_metadata_json(const void* buf, size_t len) {
     if (!wb) { o["integrity"] = {{"status", "failed"}, {"error", "not an .xls / unparseable"}};
                out = o.dump(-1, ' ', false, json::error_handler_t::replace); return out.c_str(); }
     o["integrity"] = {{"status", "clean"}};
-    if (xlsSummaryInfo* si = xls_summaryInfo(wb)) {
-        auto S = [&](const char* k, BYTE* v) { o[k] = (v && v[0]) ? json(reinterpret_cast<const char*>(v)) : json(nullptr); };
-        S("title", si->title);   S("subject", si->subject);   S("author", si->author);
-        S("keywords", si->keywords); S("comments", si->comment); S("last_author", si->lastAuthor);
-        S("app_name", si->appName); S("category", si->category); S("manager", si->manager);
-        S("company", si->company);
-        xls_close_summaryInfo(si);
-    }
+    /* doc props via our robust MS-OLEPS reader (NOT libxls xls_summaryInfo — it SIGBUSes on
+       malformed property sets; see oleps_strings above). */
+    std::map<int, std::string> si, dsi;
+    std::vector<uint8_t> stream;
+    if (read_cfb_stream(buf, len, "SummaryInformation", stream))         oleps_strings(stream, si);
+    if (read_cfb_stream(buf, len, "DocumentSummaryInformation", stream)) oleps_strings(stream, dsi);
+    auto put = [&](const char* k, const std::map<int, std::string>& m, int id) {
+        auto it = m.find(id);
+        o[k] = (it != m.end() && !it->second.empty()) ? json(it->second) : json(nullptr);
+    };
+    put("title", si, 2);   put("subject", si, 3);   put("author", si, 4);
+    put("keywords", si, 5); put("comments", si, 6); put("last_author", si, 8);
+    put("app_name", si, 0x12);                                            /* PIDSI_APPNAME */
+    put("category", dsi, 2); put("manager", dsi, 14); put("company", dsi, 15);  /* PIDDSI */
     o["sheet_count"] = static_cast<int>(wb->sheets.count);
     json sheets = json::array();
     for (DWORD i = 0; i < wb->sheets.count; i++) {

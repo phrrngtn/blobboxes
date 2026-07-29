@@ -1,0 +1,9 @@
+# Corpus binaries are TEST-ONLY third-party files — never commit/redistribute.
+# Reconstitute with ./acquire_corpus.sh
+read-excel/
+unxls/
+poi/
+enron/
+*.xls
+*.xlsx
+_xlsx_tmp/
