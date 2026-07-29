@@ -57,21 +57,26 @@ bool read_workbook_stream(const void* buf, size_t len, std::vector<char>& out, s
 }
 
 /* ── globals pre-scan: sheet names (BoundSheet8) + ExternSheet XTIs (for 3D ref resolution) ──────────── */
-struct Globals { std::vector<std::string> sheets; std::vector<int> xti_first; };
+struct Globals { std::vector<std::string> sheets; std::vector<uint32_t> sheet_pos; std::vector<uint8_t> sheet_dt;
+                 std::vector<int> xti_first; uint16_t biff_version = 0x0600; };
 Globals scan_globals(const uint8_t* p, size_t n) {
-    Globals g; size_t off = 0;
+    Globals g; size_t off = 0; bool first_bof = true;
     while (off + 4 <= n) {
         uint16_t type = uint16_t(p[off]) | (uint16_t(p[off+1]) << 8);
         uint16_t len  = uint16_t(p[off+2]) | (uint16_t(p[off+3]) << 8);
         off += 4; if (off + len > n) break;
         const uint8_t* r = p + off;
-        if (type == 0x0085 && len >= 8) {                    /* BoundSheet8: name at offset 6 (ShortXLUnicodeString) */
-            uint8_t cch = r[6], flags = r[7]; std::string nm;
+        if (type == 0x0809 && first_bof) {                   /* first BOF = workbook globals: BIFF version */
+            if (len >= 2) g.biff_version = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
+            first_bof = false;
+        } else if (type == 0x0085 && len >= 8) {             /* BoundSheet8: lbPlyPos(4) hsState(1) dt(1) name@6 */
+            uint32_t pos = uint32_t(r[0]) | (uint32_t(r[1])<<8) | (uint32_t(r[2])<<16) | (uint32_t(r[3])<<24);
+            uint8_t dt = r[5], cch = r[6], flags = r[7]; std::string nm;
             for (uint32_t i = 0; i < cch; i++) {
                 if (flags & 0x01) { size_t o = 8 + 2*i; if (o+1 < len) nm += char(uint16_t(r[o]) | (uint16_t(r[o+1])<<8)); }
                 else              { size_t o = 8 + i;   if (o   < len) nm += char(r[o]); }
             }
-            g.sheets.push_back(nm);
+            g.sheets.push_back(nm); g.sheet_pos.push_back(pos); g.sheet_dt.push_back(dt);
         } else if (type == 0x0017 && len >= 2) {             /* ExternSheet: cXTI then {iSupBook,itabFirst,itabLast} */
             uint16_t cxti = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
             for (uint16_t i = 0; i < cxti && 2 + i*6 + 5 < len; i++)
@@ -182,8 +187,10 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
                 case 0x16: push("", ""); break;                                        /* missing arg */
                 case 0x17: { size_t used=0; std::string s = avail>=2 ? ptg_str(r,avail,used) : ""; i += used;
                              std::string q="\""+s+"\""; push(q,q); } break;            /* PtgStr */
-                case 0x19: { uint8_t grbit = avail ? r[0] : 0; i += 3;                 /* PtgAttr */
-                             if (grbit & 0x10) func("SUM", 1); } break;                 /* tAttrSum: optimized single-arg SUM */
+                case 0x19: { uint8_t grbit = avail ? r[0] : 0;                          /* PtgAttr */
+                             if (grbit & 0x04) { uint16_t c = avail >= 3 ? u16(r+1) : 0; i += 3 + (c + 1) * 2; } /* tAttrChoose: skip jump table */
+                             else { i += 3; if (grbit & 0x10) func("SUM", 1); } }        /* tAttrSum; space/if/goto/skip are 3 bytes */
+                    break;
                 case 0x1C: { uint8_t e = avail?r[0]:0; i += 1; const char* s = e==0x17?"#REF!":e==0x07?"#DIV/0!":e==0x0F?"#VALUE!":e==0x1D?"#NAME?":e==0x24?"#N/A":"#ERR!"; push(s,s);} break;
                 case 0x1D: { std::string s = (avail && r[0])?"TRUE":"FALSE"; i += 1; push(s,s);} break;   /* bool */
                 case 0x1E: { int v = avail>=2 ? (uint16_t(r[0])|(uint16_t(r[1])<<8)) : 0; i += 2; push(std::to_string(v),std::to_string(v)); } break; /* int */
@@ -267,14 +274,20 @@ const char* bboxes_xls_formulas_json(const void* buf, size_t len) {
         out=o.dump(-1,' ',false,json::error_handler_t::replace); return out.c_str(); }
     const uint8_t* p = reinterpret_cast<const uint8_t*>(wbuf.data()); size_t n = wbuf.size();
     Globals g = scan_globals(p, n);
+    std::unordered_map<uint32_t,int> pos2idx;                 /* BoundSheet8 lbPlyPos -> libxls sheet index */
+    for (size_t s = 0; s < g.sheet_pos.size(); s++) pos2idx[g.sheet_pos[s]] = (int)s;
+    if (g.biff_version != 0x0600)
+        o["warning"] = "BIFF5/7 workbook: 3D reference layout differs from BIFF8 and is not fully decoded";
     json arr = json::array(); size_t off = 0; int cur_sheet = -1;
     while (off + 4 <= n) {
+        size_t rec_start = off;
         uint16_t type = uint16_t(p[off]) | (uint16_t(p[off+1])<<8);
         uint16_t rlen = uint16_t(p[off+2]) | (uint16_t(p[off+3])<<8);
         off += 4; if (off + rlen > n) break;
         const uint8_t* r = p + off;
         if (type == 0x002F) { o["formulas"]=json::array(); o["error"]="FILEPASS: encrypted"; out=o.dump(); return out.c_str(); }
-        if (type == 0x0809 && rlen >= 4) { uint16_t dt = uint16_t(r[2])|(uint16_t(r[3])<<8); if (dt==0x0010) cur_sheet++; }
+        if (type == 0x0809) { auto it = pos2idx.find((uint32_t)rec_start);   /* align to BoundSheet8, robust to chart/macro sheets */
+                              if (it != pos2idx.end()) cur_sheet = it->second; }
         if (type == 0x0006 && rlen >= 22) {                  /* Formula: rw,col,ixfe,num(8),grbit,chn,cce,rgce */
             int rw = uint16_t(r[0])|(uint16_t(r[1])<<8), col = uint16_t(r[2])|(uint16_t(r[3])<<8);
             uint16_t cce = uint16_t(r[20])|(uint16_t(r[21])<<8);
