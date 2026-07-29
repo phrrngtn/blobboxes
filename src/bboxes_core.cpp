@@ -86,7 +86,7 @@ static json style_to_json(const StyleTable::Entry& e) {
 extern "C" int bboxes_format_int_coords(int fmt) {
     return fmt == BBOXES_FORMAT_XLSX || fmt == BBOXES_FORMAT_XLSX_FAST
         || fmt == BBOXES_FORMAT_TEXT || fmt == BBOXES_FORMAT_DOCX
-        || fmt == BBOXES_FORMAT_HTML;
+        || fmt == BBOXES_FORMAT_HTML || fmt == BBOXES_FORMAT_XLS;
 }
 
 /* The JSON builder only carries the source_type string; route it through the
@@ -96,6 +96,7 @@ static bool source_int_coords(const std::string& source_type) {
     if (source_type == "text") return bboxes_format_int_coords(BBOXES_FORMAT_TEXT);
     if (source_type == "docx") return bboxes_format_int_coords(BBOXES_FORMAT_DOCX);
     if (source_type == "html") return bboxes_format_int_coords(BBOXES_FORMAT_HTML);
+    if (source_type == "xls")  return bboxes_format_int_coords(BBOXES_FORMAT_XLS);
     return bboxes_format_int_coords(BBOXES_FORMAT_PDF);
 }
 
@@ -159,6 +160,9 @@ const char* bboxes_detect(const void* buf, size_t len) {
         }
         return "xlsx"; /* default ZIP → xlsx */
     }
+    if (len >= 8 && p[0]==0xD0 && p[1]==0xCF && p[2]==0x11 && p[3]==0xE0 &&
+        p[4]==0xA1 && p[5]==0xB1 && p[6]==0x1A && p[7]==0xE1)
+        return "xls";   /* OLE2/CFB compound file — legacy .xls */
     return "text";
 }
 
@@ -169,6 +173,7 @@ bboxes_cursor* bboxes_open(const void* buf, size_t len) {
     if (fmt == "pdf")  return bboxes_open_pdf(buf, len, nullptr, 0, 0);
     if (fmt == "xlsx") return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
     if (fmt == "docx") return bboxes_open_docx(buf, len);
+    if (fmt == "xls")  return bboxes_open_xls(buf, len, nullptr, 0, 0);
     return bboxes_open_text(buf, len);
 }
 
@@ -183,6 +188,7 @@ bboxes_cursor* bboxes_open_format(int fmt, const void* buf, size_t len) {
         case BBOXES_FORMAT_TEXT:        return bboxes_open_text(buf, len);
         case BBOXES_FORMAT_DOCX:        return bboxes_open_docx(buf, len);
         case BBOXES_FORMAT_HTML:        return bboxes_open_html(buf, len);
+        case BBOXES_FORMAT_XLS:         return bboxes_open_xls(buf, len, nullptr, 0, 0);
         default:                        return bboxes_open(buf, len);
     }
 }
@@ -223,6 +229,17 @@ bboxes_cursor* bboxes_open_xlsx(const void*, size_t, const char*, int, int) {
 bboxes_cursor* bboxes_open_xlsx_fast(const void*, size_t, const char*, int, int) {
     return nullptr;
 }
+#endif
+
+/* ── open (XLS backend) ─────────────────────────────────────────────── */
+
+#ifdef BBOXES_HAS_XLS
+bboxes_cursor* bboxes_open_xls(const void* buf, size_t len, const char* password,
+                                int start_page, int end_page) {
+    return wrap_result(extract_xls(buf, len, password, start_page, end_page), buf, len);
+}
+#else
+bboxes_cursor* bboxes_open_xls(const void*, size_t, const char*, int, int) { return nullptr; }
 #endif
 
 /* ── open (text backend) ────────────────────────────────────────────── */

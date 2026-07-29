@@ -228,4 +228,9 @@ BBoxResult extract_docx(const void* buf, size_t len);
    xlsx/text/docx — cell-grid, not float. */
 BBoxResult extract_html(const void* buf, size_t len);
 
+/* Legacy .xls (BIFF/OLE2) backend via libxls — cells/values/merges to the SAME grid as xlsx
+   (x=col, y=row, 1-based). No shared/array-formula regions (BIFF exposes evaluated results only). */
+BBoxResult extract_xls(const void* buf, size_t len, const char* password,
+                       int start_page, int end_page);
+
 #endif

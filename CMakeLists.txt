@@ -64,6 +64,7 @@ option(BUILD_XLSX_BACKEND "Build XLSX backend (requires xlnt)" OFF)
 option(BUILD_TEXT_BACKEND "Build text file backend" OFF)
 option(BUILD_DOCX_BACKEND "Build DOCX backend (requires pugixml + miniz)" OFF)
 option(BUILD_HTML_BACKEND "Build HTML backend (requires Lexbor)" OFF)
+option(BUILD_XLS_BACKEND "Build legacy .xls backend (requires libxls)" OFF)
 
 # ── HTML: Lexbor (brew-installed static lib + headers) ───────────────
 # The prototype and the extension link the static archive so the three loadable
@@ -94,6 +95,23 @@ if(BUILD_XLSX_BACKEND)
   set(SAMPLES OFF CACHE BOOL "" FORCE)
   set(BENCHMARKS OFF CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(xlnt)
+endif()
+
+# ── XLS: libxls (brew-installed) ─────────────────────────────────────
+# Legacy .xls is an OLE2/CFB + BIFF container; libxls does that parsing (BSD-licensed,
+# permissive). brew rather than FetchContent — libxls is autotools upstream. Use >=1.6 (the
+# pre-1.5 series had parser CVEs). Mirrors the lexbor brew pattern.
+if(BUILD_XLS_BACKEND)
+  execute_process(COMMAND brew --prefix libxls
+    OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE LIBXLS_PREFIX ERROR_QUIET)
+  find_path(LIBXLS_INCLUDE_DIR xls.h
+    HINTS "${LIBXLS_PREFIX}/include" /opt/homebrew/include /usr/local/include)
+  find_library(LIBXLS_LIB NAMES xlsreader xls libxls   # brew ships the lib as libxlsreader
+    HINTS "${LIBXLS_PREFIX}/lib" /opt/homebrew/lib /usr/local/lib)
+  if(NOT LIBXLS_INCLUDE_DIR OR NOT LIBXLS_LIB)
+    message(FATAL_ERROR "libxls not found for BUILD_XLS_BACKEND — install with `brew install libxls`")
+  endif()
+  message(STATUS "libxls: ${LIBXLS_LIB} (headers: ${LIBXLS_INCLUDE_DIR})")
 endif()
 
 # ── pugixml + miniz via FetchContent ────────────────────────────────
@@ -151,6 +169,13 @@ endif()
 if(BUILD_DOCX_BACKEND)
   list(APPEND BBOXES_SOURCES src/bboxes_docx.cpp)
   list(APPEND BBOXES_DEFS BBOXES_HAS_DOCX)  # pugixml + miniz already linked
+endif()
+
+if(BUILD_XLS_BACKEND)
+  list(APPEND BBOXES_SOURCES src/bboxes_xls.cpp)
+  list(APPEND BBOXES_INCLUDES ${LIBXLS_INCLUDE_DIR})
+  list(APPEND BBOXES_LIBS ${LIBXLS_LIB})
+  list(APPEND BBOXES_DEFS BBOXES_HAS_XLS)
 endif()
 
 if(BUILD_HTML_BACKEND)
