@@ -109,6 +109,11 @@ const char* bboxes_xls_metadata_json_file(const char* path);
 const char* bboxes_xls_style_decode_json(const void* buf, size_t len);
 const char* bboxes_xls_style_decode_json_file(const char* path);
 
+/* Legacy .xls WALKER lane (libxls-free; from [MS-XLS] via the OLE2/CFB container).
+   xls_names: defined-name inventory. (Cell formulas will populate the bbox `formula` field; VBA -> xls_vba.) */
+const char* bboxes_xls_names_json(const void* buf, size_t len);
+const char* bboxes_xls_names_json_file(const char* path);
+
 /* Lean global metadata (docProps/workbook/names/tables) — skips the per-worksheet
    loop that re-inflates the bulk; the artifact pipeline is single-pass. */
 const char* bboxes_xlsx_artifact_meta_json(const void* buf, size_t len);

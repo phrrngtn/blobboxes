@@ -172,8 +172,10 @@ if(BUILD_DOCX_BACKEND)
 endif()
 
 if(BUILD_XLS_BACKEND)
-  list(APPEND BBOXES_SOURCES src/bboxes_xls.cpp)
-  list(APPEND BBOXES_INCLUDES ${LIBXLS_INCLUDE_DIR})
+  # bboxes_xls.cpp = libxls value/style lane; bboxes_xls_biff.cpp = our libxls-free BIFF walker
+  # (formulas/names/VBA from [MS-XLS]/[MS-OVBA]) over the vendored compoundfilereader (MIT).
+  list(APPEND BBOXES_SOURCES src/bboxes_xls.cpp src/bboxes_xls_biff.cpp)
+  list(APPEND BBOXES_INCLUDES ${LIBXLS_INCLUDE_DIR} "${CMAKE_SOURCE_DIR}/third_party/compoundfilereader")
   list(APPEND BBOXES_LIBS ${LIBXLS_LIB})
   list(APPEND BBOXES_DEFS BBOXES_HAS_XLS)
 endif()

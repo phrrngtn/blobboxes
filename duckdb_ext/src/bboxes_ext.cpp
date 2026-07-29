@@ -764,6 +764,13 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
     register_meta_scalar(connection, "xls_style_decode", DUCKDB_TYPE_BLOB,
                          reinterpret_cast<void*>(bboxes_xls_style_decode_json),
                          meta_blob_scalar);
+    /* xls_names — defined-name inventory (BIFF walker lane) */
+    register_meta_scalar(connection, "xls_names", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xls_names_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xls_names", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xls_names_json),
+                         meta_blob_scalar);
 #endif
 
     /* xlsx_artifact_meta — lean global metadata (no worksheet re-inflation) */
