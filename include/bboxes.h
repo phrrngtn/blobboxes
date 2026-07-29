@@ -102,6 +102,13 @@ const char* bboxes_xlsx_manifest_json_file(const char* path);
 const char* bboxes_xlsx_style_decode_json(const void* buf, size_t len);
 const char* bboxes_xlsx_style_decode_json_file(const char* path);
 
+/* Legacy .xls, surfaced like the xlsx metadata/style pair. xls_metadata: doc props (via the OLE2
+   SummaryInformation stream) + sheet names. xls_style_decode: per-XF font/numfmt/fill/border. */
+const char* bboxes_xls_metadata_json(const void* buf, size_t len);
+const char* bboxes_xls_metadata_json_file(const char* path);
+const char* bboxes_xls_style_decode_json(const void* buf, size_t len);
+const char* bboxes_xls_style_decode_json_file(const char* path);
+
 /* Lean global metadata (docProps/workbook/names/tables) — skips the per-worksheet
    loop that re-inflates the bulk; the artifact pipeline is single-pass. */
 const char* bboxes_xlsx_artifact_meta_json(const void* buf, size_t len);

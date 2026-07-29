@@ -750,6 +750,22 @@ DUCKDB_EXTENSION_ENTRYPOINT(duckdb_connection connection, duckdb_extension_info 
                          reinterpret_cast<void*>(bboxes_xlsx_style_decode_json),
                          meta_blob_scalar);
 
+#ifdef BBOXES_HAS_XLS
+    /* xls_metadata / xls_style_decode — legacy .xls, surfaced like the xlsx pair above */
+    register_meta_scalar(connection, "xls_metadata", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xls_metadata_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xls_metadata", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xls_metadata_json),
+                         meta_blob_scalar);
+    register_meta_scalar(connection, "xls_style_decode", DUCKDB_TYPE_VARCHAR,
+                         reinterpret_cast<void*>(bboxes_xls_style_decode_json_file),
+                         meta_path_scalar);
+    register_meta_scalar(connection, "xls_style_decode", DUCKDB_TYPE_BLOB,
+                         reinterpret_cast<void*>(bboxes_xls_style_decode_json),
+                         meta_blob_scalar);
+#endif
+
     /* xlsx_artifact_meta — lean global metadata (no worksheet re-inflation) */
     register_meta_scalar(connection, "xlsx_artifact_meta", DUCKDB_TYPE_VARCHAR,
                          reinterpret_cast<void*>(bboxes_xlsx_artifact_meta_json_file),
