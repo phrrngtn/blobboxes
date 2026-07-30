@@ -7,10 +7,12 @@ name = "blobboxes"
 version = "0.4.5"
 description = "Extract text bounding boxes, fonts, and styles from documents"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "Paul Harrington"}]
-dependencies = ["shapely>=2.0"]
+# Core has NO runtime deps: bbox extraction is all in the compiled nanobind module.
+# (shapely was declared for a spatial-ops idea that never landed — nothing imports it.)
+dependencies = []
 keywords = ["pdf", "xlsx", "docx", "bounding-box", "text-extraction", "duckdb", "sqlite", "browser", "web-scraping"]
 
 classifiers = [
@@ -28,6 +30,18 @@ schema = ["pydantic>=2.0"]
 
 [project.urls]
 Repository = "https://github.com/phrrngtn/blobboxes"
+
+# The default index (dc1 Forgejo) only carries the blob* wheels; the browser-extra
+# packages live on pypi. Pin them there so `uv lock` can resolve the optional extra
+# without disabling dependency-confusion protection for everything else.
+# (Indexes referenced by tool.uv.sources must be declared here, not only in the user uv.toml.)
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+
+[tool.uv.sources]
+mitmproxy = { index = "pypi" }
+playwright = { index = "pypi" }
 
 [tool.scikit-build]
 cmake.args = ["-DBUILD_PYTHON_BINDINGS=ON"]
