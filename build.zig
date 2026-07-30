@@ -39,8 +39,25 @@ const std = @import("std");
 const blobzig = @import("blobzig");
 const lexbor_sources = @import("third_party/lexbor_sources.zig");
 
-const c_flags: []const []const u8 = &.{"-std=c11"};
 const cxx_flags: []const []const u8 = &.{"-std=c++17"};
+
+/// C flags for the target.
+///
+/// `-std=c11` is strict ISO, and glibc hides everything POSIX behind feature
+/// macros when it is in force — so `strdup`, `locale_t`, `newlocale`,
+/// `uselocale` and `LC_CTYPE_MASK` all vanish, and libxls stops compiling with
+/// 32 errors. Darwin's libc exposes them regardless, which is why this only
+/// showed up on the first native Linux build.
+///
+/// `_GNU_SOURCE` rather than `-std=gnu11`: it says "we want the extensions"
+/// explicitly instead of relying on a dialect flag to imply it, and it is the
+/// same switch blobhttp needed for libcurl.
+fn cFlags(target: std.Target) []const []const u8 {
+    return if (target.os.tag == .linux)
+        &.{ "-std=c11", "-D_GNU_SOURCE" }
+    else
+        &.{"-std=c11"};
+}
 
 /// The always-on extraction core. Backends are added on top.
 const core_sources: []const []const u8 = &.{
@@ -342,7 +359,7 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
     // header for why.
     mod.addIncludePath(b.path("third_party/miniz"));
     for (miniz_sources) |src| {
-        mod.addCSourceFile(.{ .file = d.miniz.path(src), .flags = c_flags });
+        mod.addCSourceFile(.{ .file = d.miniz.path(src), .flags = cFlags(t) });
     }
 
     // xlnt, when the XLSX backend is on. Compiled into each artifact like
@@ -375,13 +392,13 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
             mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cxx_flags });
         }
         for (xlnt_c_sources) |src| {
-            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = c_flags });
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cFlags(t) });
         }
         for (libstudxml_sources) |src| {
             mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cxx_flags });
         }
         for (libstudxml_c_sources) |src| {
-            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = c_flags });
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cFlags(t) });
         }
     }
 
@@ -393,7 +410,7 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
         // The BIFF walker's OLE2/CFB reader, header-only and vendored.
         mod.addIncludePath(b.path("third_party/compoundfilereader"));
         for (libxls_sources) |src| {
-            mod.addCSourceFile(.{ .file = libxls.path(src), .flags = c_flags });
+            mod.addCSourceFile(.{ .file = libxls.path(src), .flags = cFlags(t) });
         }
         // iconv translates the workbook-declared codepage of BIFF5 text into
         // UTF-8. glibc has it built in; on Darwin it is a separate library.
@@ -404,14 +421,14 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
     if (d.lexbor) |lexbor| {
         mod.addIncludePath(lexbor.path("source"));
         for (lexbor_sources.common) |src| {
-            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = c_flags });
+            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = cFlags(t) });
         }
         const ports = if (t.os.tag == .windows)
             lexbor_sources.ports_windows
         else
             lexbor_sources.ports_posix;
         for (ports) |src| {
-            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = c_flags });
+            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = cFlags(t) });
         }
     }
 

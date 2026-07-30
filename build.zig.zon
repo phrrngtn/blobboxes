@@ -7,8 +7,8 @@
         // Shared build layer for the blob* family. Brings the DuckDB C API
         // headers and the SQLite headers with it, so neither is named here.
         .blobzig = .{
-            .url = "git+https://github.com/phrrngtn/blobzig?ref=main#02fa81f6ca21774f25fb39d8c10e69ff4d2c28b9",
-            .hash = "blobzig-0.1.0-DiYQfTs1CwAYba-Kv4HeJW-MkLv-VYq4urtGLz24jKpn",
+            .url = "git+https://github.com/phrrngtn/blobzig?ref=main#abaad7d70d986ecb9cbf5c189cc32b5e5533b2df",
+            .hash = "blobzig-0.1.0-DiYQfRo4CwBYWNGZ3ulmIJ1qM7GC7JtjD3pYZWYBiDG2",
         },
 
         // PDFium, as bblanchon's prebuilt per-platform tarball — one entry per
