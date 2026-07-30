@@ -169,6 +169,10 @@ BBoxResult extract_xls(const void* buf, size_t len, const char* /*password*/,
     xlsWorkBook* wb = xls_open_buffer(static_cast<const unsigned char*>(buf), len, "UTF-8", &err);
     if (!wb) { res.page_count = -1; return res; }   /* wrap_result() turns <0 into a NULL cursor */
 
+    /* (sheet,row,col) -> A1 formula from the libxls-free BIFF walker (libxls exposes only evaluated
+       values); used to populate the bbox `formula` field, mirroring the xlsx reader. */
+    std::unordered_map<uint64_t, std::string> fmap = bboxes_xls_formula_map(buf, len);
+
     std::unordered_map<uint16_t, uint32_t> xf_to_style;   /* XF index -> bbox style_id, decoded once */
     auto style_for = [&](uint16_t xfidx) -> uint32_t {
         auto it = xf_to_style.find(xfidx);
@@ -213,6 +217,8 @@ BBoxResult extract_xls(const void* buf, size_t len, const char* /*password*/,
                 b.w = static_cast<double>(cell->colspan ? cell->colspan : 1);
                 b.h = static_cast<double>(cell->rowspan ? cell->rowspan : 1);
                 b.text = has_str ? std::string(cell->str) : std::string();
+                { auto fit = fmap.find(bboxes_xls_cellkey(s, cell->row, cell->col));   /* A1 formula from the BIFF walker */
+                  if (fit != fmap.end()) b.formula = fit->second; }
 
                 if (numeric) {
                     b.cell_type = BBOX_NUMBER; b.vnum = cell->d;

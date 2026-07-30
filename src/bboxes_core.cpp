@@ -375,7 +375,8 @@ const bboxes_bbox* bboxes_next_bbox(bboxes_cursor* c) {
             c->bbox_view.has_vbool = (b.cell_type == BBOX_BOOL);
             c->bbox_view.vbool     = b.vbool ? 1 : 0;
             c->bbox_view.text = b.text.c_str();
-            c->bbox_view.formula = (c->result.source_type == "xlsx" && !b.formula.empty())
+            c->bbox_view.formula = ((c->result.source_type == "xlsx" || c->result.source_type == "xls")
+                                    && !b.formula.empty())
                                    ? b.formula.c_str() : nullptr;
             return &c->bbox_view;
         }

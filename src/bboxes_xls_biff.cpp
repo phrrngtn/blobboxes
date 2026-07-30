@@ -6,6 +6,7 @@
  * xls_formulas (every cell formula in R1C1 + A1 with its address). Ptg parser per [MS-XLS] 2.5.198.
  */
 #include "bboxes.h"
+#include "bboxes_types.h"
 
 #include "compoundfilereader.h"
 #include <nlohmann/json.hpp>
@@ -331,6 +332,51 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
     return st.back();
 }
 
+/* ── the two-pass formula walk (shared by xls_formulas JSON + the bbox formula map) ──────────────────── */
+struct FormulaRec { int sheet, row, col; std::string a1, r1c1; };
+std::vector<FormulaRec> walk_formulas(const uint8_t* p, size_t n, const Globals& g, bool* filepass) {
+    std::vector<FormulaRec> recs;
+    std::unordered_map<uint32_t,int> pos2idx;                 /* BoundSheet8 lbPlyPos -> libxls sheet index */
+    for (size_t s = 0; s < g.sheet_pos.size(); s++) pos2idx[g.sheet_pos[s]] = (int)s;
+    auto rd16 = [&](const uint8_t* q, size_t o2){ return uint16_t(q[o2] | (q[o2+1] << 8)); };
+    auto shkey = [](int sh, int rw, int cl){ return (uint64_t(uint32_t(sh)) << 40) | (uint64_t(rw & 0xFFFF) << 16) | (uint32_t(cl) & 0xFFFF); };
+    /* pass 1: ShrFmla base rgce keyed by the anchor Formula cell (see note in bboxes_xls_formula_map) */
+    std::unordered_map<uint64_t, std::vector<uint8_t>> shared;
+    { size_t o2 = 0; int cs = -1, lastRw = -1, lastCol = -1;
+      while (o2 + 4 <= n) {
+          size_t rs = o2; uint16_t t = rd16(p, o2), l = rd16(p, o2 + 2); o2 += 4; if (o2 + l > n) break;
+          const uint8_t* rr = p + o2;
+          if (t == 0x0809) { auto it = pos2idx.find((uint32_t)rs); if (it != pos2idx.end()) cs = it->second; }
+          else if (t == 0x0006 && l >= 22) { lastRw = rd16(rr, 0); lastCol = rd16(rr, 2); }
+          else if (t == 0x04BC && l >= 10) { uint16_t cce = rd16(rr, 8);
+              if (10u + cce <= l && lastRw >= 0) shared[shkey(cs, lastRw, lastCol)] = std::vector<uint8_t>(rr + 10, rr + 10 + cce); }
+          o2 += l;
+      }
+    }
+    /* pass 2: emit one FormulaRec per Formula record, expanding shared/array members */
+    size_t off = 0; int cur_sheet = -1;
+    while (off + 4 <= n) {
+        size_t rec_start = off; uint16_t type = rd16(p, off), rlen = rd16(p, off + 2);
+        off += 4; if (off + rlen > n) break; const uint8_t* r = p + off;
+        if (type == 0x002F) { if (filepass) *filepass = true; return {}; }
+        if (type == 0x0809) { auto it = pos2idx.find((uint32_t)rec_start); if (it != pos2idx.end()) cur_sheet = it->second; }
+        if (type == 0x0006 && rlen >= 22) {
+            int rw = rd16(r, 0), col = rd16(r, 2); uint16_t cce = rd16(r, 20);
+            const uint8_t* rgce = r + 22; size_t avail = rlen >= 22 ? rlen - 22 : 0;
+            if (cce <= avail) {
+                Expr e;
+                if (cce >= 5 && rgce[0] == 0x01) { int tr = rd16(rgce, 1), tc = rd16(rgce, 3);
+                    auto it = shared.find(shkey(cur_sheet, tr, tc));
+                    if (it != shared.end()) e = render_rgce(it->second.data(), it->second.size(), rw, col, true, g); }
+                else e = render_rgce(rgce, cce, rw, col, true, g);
+                recs.push_back({cur_sheet, rw, col, e.a1, e.r1c1});
+            }
+        }
+        off += rlen;
+    }
+    return recs;
+}
+
 }  // namespace
 
 /* ── xls_names — defined-name inventory + rendered target formula ──────────────────────────────────── */
@@ -381,62 +427,33 @@ const char* bboxes_xls_formulas_json(const void* buf, size_t len) {
         out=o.dump(-1,' ',false,json::error_handler_t::replace); return out.c_str(); }
     const uint8_t* p = reinterpret_cast<const uint8_t*>(wbuf.data()); size_t n = wbuf.size();
     Globals g = scan_globals(p, n);
-    std::unordered_map<uint32_t,int> pos2idx;                 /* BoundSheet8 lbPlyPos -> libxls sheet index */
-    for (size_t s = 0; s < g.sheet_pos.size(); s++) pos2idx[g.sheet_pos[s]] = (int)s;
     if (g.biff_version != 0x0600)
         o["warning"] = "BIFF5/7 workbook: 3D reference layout differs from BIFF8 and is not fully decoded";
-    auto rd16 = [&](const uint8_t* q, size_t o2){ return uint16_t(q[o2] | (q[o2+1] << 8)); };
-    auto shkey = [](int sh, int rw, int cl){ return (uint64_t(uint32_t(sh)) << 40) | (uint64_t(rw & 0xFFFF) << 16) | uint32_t(cl & 0xFFFF); };
-    /* pass 1: ShrFmla (0x04BC) base rgce keyed by (sheet,topRow,topCol); every member cell (incl. master)
-       carries a lone PtgExp pointing here. */
-    std::unordered_map<uint64_t, std::vector<uint8_t>> shared;
-    { size_t o2 = 0; int cs = -1, lastRw = -1, lastCol = -1;
-      while (o2 + 4 <= n) {
-          size_t rs = o2; uint16_t t = rd16(p, o2), l = rd16(p, o2 + 2); o2 += 4; if (o2 + l > n) break;
-          const uint8_t* rr = p + o2;
-          if (t == 0x0809) { auto it = pos2idx.find((uint32_t)rs); if (it != pos2idx.end()) cs = it->second; }
-          else if (t == 0x0006 && l >= 22) { lastRw = rd16(rr, 0); lastCol = rd16(rr, 2); }   /* Formula: track anchor cell */
-          else if (t == 0x04BC && l >= 10) {                 /* ShrFmla follows its anchor Formula; PtgExp points at the anchor,
-                                                                 which is NOT always the ref top-left (rwFirst,colFirst) */
-              uint16_t cce = rd16(rr, 8);
-              if (10u + cce <= l && lastRw >= 0) shared[shkey(cs, lastRw, lastCol)] = std::vector<uint8_t>(rr + 10, rr + 10 + cce);
-          }
-          o2 += l;
-      }
-    }
-    json arr = json::array(); size_t off = 0; int cur_sheet = -1;
-    while (off + 4 <= n) {
-        size_t rec_start = off;
-        uint16_t type = uint16_t(p[off]) | (uint16_t(p[off+1])<<8);
-        uint16_t rlen = uint16_t(p[off+2]) | (uint16_t(p[off+3])<<8);
-        off += 4; if (off + rlen > n) break;
-        const uint8_t* r = p + off;
-        if (type == 0x002F) { o["formulas"]=json::array(); o["error"]="FILEPASS: encrypted"; out=o.dump(); return out.c_str(); }
-        if (type == 0x0809) { auto it = pos2idx.find((uint32_t)rec_start);   /* align to BoundSheet8, robust to chart/macro sheets */
-                              if (it != pos2idx.end()) cur_sheet = it->second; }
-        if (type == 0x0006 && rlen >= 22) {                  /* Formula: rw,col,ixfe,num(8),grbit,chn,cce,rgce */
-            int rw = uint16_t(r[0])|(uint16_t(r[1])<<8), col = uint16_t(r[2])|(uint16_t(r[3])<<8);
-            uint16_t cce = uint16_t(r[20])|(uint16_t(r[21])<<8);
-            const uint8_t* rgce = r + 22; size_t avail = rlen >= 22 ? rlen - 22 : 0;
-            if (cce <= avail) {
-                Expr e;
-                if (cce >= 5 && rgce[0] == 0x01) {           /* PtgExp -> shared/array member: expand base at (topRow,topCol) */
-                    int tr = rd16(rgce, 1), tc = rd16(rgce, 3);
-                    auto it = shared.find(shkey(cur_sheet, tr, tc));
-                    if (it != shared.end()) e = render_rgce(it->second.data(), it->second.size(), rw, col, true, g);
-                } else {
-                    e = render_rgce(rgce, cce, rw, col, true, g);
-                }
-                std::string addr_a1 = col_letters(col) + std::to_string(rw + 1);
-                std::string addr_r1c1 = "R" + std::to_string(rw + 1) + "C" + std::to_string(col + 1);
-                arr.push_back({{"sheet", cur_sheet}, {"row", rw}, {"col", col},
-                               {"address_a1", addr_a1}, {"address_r1c1", addr_r1c1},
-                               {"formula_a1", e.a1}, {"formula_r1c1", e.r1c1}});
-            }
-        }
-        off += rlen;
+    bool filepass = false;
+    auto recs = walk_formulas(p, n, g, &filepass);
+    if (filepass) { o["formulas"] = json::array(); o["error"] = "FILEPASS: encrypted"; out = o.dump(); return out.c_str(); }
+    json arr = json::array();
+    for (const auto& fr : recs) {
+        std::string addr_a1 = col_letters(fr.col) + std::to_string(fr.row + 1);
+        std::string addr_r1c1 = "R" + std::to_string(fr.row + 1) + "C" + std::to_string(fr.col + 1);
+        arr.push_back({{"sheet", fr.sheet}, {"row", fr.row}, {"col", fr.col},
+                       {"address_a1", addr_a1}, {"address_r1c1", addr_r1c1},
+                       {"formula_a1", fr.a1}, {"formula_r1c1", fr.r1c1}});
     }
     o["formulas"] = std::move(arr);
     out = o.dump(-1,' ',false,json::error_handler_t::replace); return out.c_str();
 }
 const char* bboxes_xls_formulas_json_file(const char* path){ std::vector<char> s=slurp(path); return bboxes_xls_formulas_json(s.data(),s.size()); }
+
+/* (sheet,row,col) -> A1 formula, for extract_xls to fill the bbox `formula` field. Same walk as the
+   JSON entry point; empty A1 (unrenderable) cells are omitted. */
+std::unordered_map<uint64_t, std::string> bboxes_xls_formula_map(const void* buf, size_t len) {
+    std::unordered_map<uint64_t, std::string> m;
+    std::vector<char> wbuf; std::string err;
+    if (!read_workbook_stream(buf, len, wbuf, err)) return m;
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(wbuf.data()); size_t n = wbuf.size();
+    Globals g = scan_globals(p, n); bool fp = false;
+    for (const auto& fr : walk_formulas(p, n, g, &fp))
+        if (!fr.a1.empty()) m[bboxes_xls_cellkey(fr.sheet, fr.row, fr.col)] = fr.a1;
+    return m;
+}

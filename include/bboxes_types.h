@@ -233,4 +233,12 @@ BBoxResult extract_html(const void* buf, size_t len);
 BBoxResult extract_xls(const void* buf, size_t len, const char* password,
                        int start_page, int end_page);
 
+/* Cell-formula map from the libxls-free BIFF walker (bboxes_xls_biff.cpp): key encodes the
+   (sheet-index, 0-based row, 0-based col) via bboxes_xls_cellkey; value is the A1 formula string.
+   extract_xls uses this to populate the bbox `formula` field (libxls exposes only evaluated values). */
+inline uint64_t bboxes_xls_cellkey(int sheet, int row, int col) {
+    return (uint64_t(uint32_t(sheet)) << 40) | (uint64_t(row & 0xFFFF) << 16) | (uint32_t(col) & 0xFFFF);
+}
+std::unordered_map<uint64_t, std::string> bboxes_xls_formula_map(const void* buf, size_t len);
+
 #endif
