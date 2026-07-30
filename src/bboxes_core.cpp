@@ -171,7 +171,14 @@ const char* bboxes_detect(const void* buf, size_t len) {
 bboxes_cursor* bboxes_open(const void* buf, size_t len) {
     std::string_view fmt = bboxes_detect(buf, len);
     if (fmt == "pdf")  return bboxes_open_pdf(buf, len, nullptr, 0, 0);
-    if (fmt == "xlsx") return bboxes_open_xlsx(buf, len, nullptr, 0, 0);
+    if (fmt == "xlsx") {
+        /* Prefer xlnt (richer: fonts/styles), but it throws "column string index error" on some
+           LibreOffice-produced workbooks — extract_xlsx catches it and wrap_result yields a NULL
+           cursor. Fall back to the robust fast byte-scan reader so auto-detect still returns cells
+           (+ formulas) instead of nothing. */
+        if (bboxes_cursor* c = bboxes_open_xlsx(buf, len, nullptr, 0, 0)) return c;
+        return bboxes_open_xlsx_fast(buf, len, nullptr, 0, 0);
+    }
     if (fmt == "docx") return bboxes_open_docx(buf, len);
     if (fmt == "xls")  return bboxes_open_xls(buf, len, nullptr, 0, 0);
     return bboxes_open_text(buf, len);
