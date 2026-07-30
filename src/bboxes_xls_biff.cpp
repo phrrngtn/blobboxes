@@ -150,8 +150,22 @@ const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.19
         case 124: return "FIND"; case 148: return "TRIM";
         case 162: return "CLEAN"; case 190: return "ISNUMBER"; case 197: return "TRUNC"; case 212: return "ROUNDUP";
         case 213: return "ROUNDDOWN"; case 216: return "RANK"; case 219: return "ADDRESS"; case 228: return "SUMPRODUCT";
-        case 252: return "COUNTIF"; case 269: return "AVERAGEA"; case 336: return "CONCATENATE"; case 345: return "SUMIFS";
+        case 221: return "TODAY"; case 252: return "COUNTIF"; case 269: return "AVERAGEA";
+        case 336: return "CONCATENATE"; case 345: return "SUMIFS";
         default: return nullptr;
+    }
+}
+/* Fixed argument count for PtgFunc (0x21) — [MS-XLS] 2.5.198.17. PtgFuncVar carries its own count,
+   so only truly-fixed functions need listing here. -1 = unknown (fall back to 1). */
+int ftab_argc(uint16_t i) {
+    switch (i) {
+        case 10: case 19: case 34: case 35: case 63: case 74: case 221: return 0;   /* NA PI TRUE FALSE RAND NOW TODAY */
+        case 2: case 3: case 15: case 16: case 17: case 18: case 20: case 24: case 25: case 26:
+        case 27: case 28: case 29: case 38: case 111: case 112: case 113: case 115: case 148:
+        case 162: case 190: return 1;                                               /* ISNA ISERROR SIN COS TAN ATAN SQRT EXP LN LOG10 ABS INT SIGN NOT CHAR LOWER UPPER LEN TRIM CLEAN ISNUMBER */
+        case 30: case 39: case 97: return 2;                                        /* ROUND MOD ATAN2 */
+        case 118: return 3;                                                         /* MID */
+        default: return -1;
     }
 }
 /* render one RgceLoc (rw + column-with-flags [MS-XLS] 2.5.198.105/.121).
@@ -268,7 +282,8 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
                              std::string nm = (idx>=1 && idx<=g.lbl_names.size()) ? g.lbl_names[idx-1] : ("Name"+std::to_string(idx));
                              push(nm,nm); } break;                                       /* PtgName -> resolved defined-name */
                 case 0x21: { uint16_t f = avail>=2 ? u16(r) : 0; i += 2;
-                             const char* fn=ftab(f); std::string nm = fn ? fn : ("FUNC"+std::to_string(f)); func(nm.c_str(), 1); } break;   /* PtgFunc (fixed; argc best-effort 1) */
+                             const char* fn=ftab(f); std::string nm = fn ? fn : ("FUNC"+std::to_string(f));
+                             int ac = ftab_argc(f); func(nm.c_str(), ac >= 0 ? ac : 1); } break;                     /* PtgFunc (fixed arg count) */
                 case 0x22: { uint8_t argc = avail?r[0]:0; uint16_t f = avail>=3 ? u16(r+1) : 0; i += 3;
                              const char* fn=ftab(f); std::string nm = fn ? fn : ("FUNC"+std::to_string(f)); func(nm.c_str(), argc); } break; /* PtgFuncVar */
                 default: i = cce; break;                                               /* unknown operand -> stop */

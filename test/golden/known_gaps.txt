@@ -6,13 +6,13 @@
 # --- shared formulas: DONE (PtgExp 0x01 -> ShrFmla 0x04BC expansion). Residual on:
 poi__test-data__spreadsheet__ex47747-sharedFormula   # 5/15 — remaining mismatches under investigation
 enron__enron_3.264848                                 # BIFF5/7 workbook (3D layout differs) — see biff_version gap
-enron__enron_3.1131604                                # under investigation
 
 # --- multi-sheet 3D range + external-workbook refs: DONE (SupBook/XTI itabFirst..itabLast + [n] index)
+# --- PtgFunc fixed arg count: DONE for common functions (0-arg TODAY/PI/NA/NOW/... no longer underflow)
 
-# --- Ftab completeness (large mixed function coverage file)
+# --- Ftab completeness: partial. Large coverage file still has unmapped FUNC<n> and a few arg-count gaps.
 poi__test-data__spreadsheet__FormulaEvalTestData
-poi__test-data__spreadsheet__FormulaRefs
+poi__test-data__spreadsheet__FormulaRefs             # sheet+cell correct; external-book [n] index differs from LibreOffice's numbering
 
 # --- array formulas (PtgExp -> Array 0x0221, not ShrFmla) : oracle emits formulas we don't yet
 unxls__spec__files__biff8__cells
