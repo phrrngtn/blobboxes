@@ -57,8 +57,11 @@ bool read_workbook_stream(const void* buf, size_t len, std::vector<char>& out, s
 }
 
 /* ── globals pre-scan: sheet names (BoundSheet8) + ExternSheet XTIs (for 3D ref resolution) ──────────── */
+struct SupBookInfo { bool self = false; int ext_index = 0; std::vector<std::string> sheets; };  /* self = this workbook; else external, sheets named here */
+struct XTI { int isup = 0, first = 0, last = 0; };                                               /* ExternSheet entry: SupBook + sheet range */
 struct Globals { std::vector<std::string> sheets; std::vector<uint32_t> sheet_pos; std::vector<uint8_t> sheet_dt;
-                 std::vector<int> xti_first; std::vector<std::string> lbl_names; uint16_t biff_version = 0x0600; };
+                 std::vector<SupBookInfo> supbooks; std::vector<XTI> xtis;
+                 std::vector<std::string> lbl_names; uint16_t biff_version = 0x0600; };
 Globals scan_globals(const uint8_t* p, size_t n) {
     Globals g; size_t off = 0; bool first_bof = true;
     while (off + 4 <= n) {
@@ -77,10 +80,38 @@ Globals scan_globals(const uint8_t* p, size_t n) {
                 else              { size_t o = 8 + i;   if (o   < len) nm += char(r[o]); }
             }
             g.sheets.push_back(nm); g.sheet_pos.push_back(pos); g.sheet_dt.push_back(dt);
+        } else if (type == 0x01AE && len >= 4) {             /* SupBook: ctab, cch(0x0401=self,0x3A01=addin,else external path+sheet names) */
+            uint16_t ctab = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
+            uint16_t cch  = uint16_t(r[2]) | (uint16_t(r[3]) << 8);
+            SupBookInfo sb;
+            if (cch == 0x0401 || cch == 0x3A01) { sb.self = true; }
+            else {
+                sb.self = false;
+                size_t pos = 4;
+                uint8_t nflags = pos < len ? r[pos] : 0; pos += 1;
+                pos += (nflags & 1) ? 2u * cch : cch;         /* skip encoded virtual-path workbook name */
+                for (uint16_t t = 0; t < ctab && pos + 3 <= len; t++) {   /* ctab sheet names (XLUnicodeString) */
+                    uint16_t scch = uint16_t(r[pos]) | (uint16_t(r[pos+1]) << 8); uint8_t sflags = r[pos+2]; pos += 3;
+                    std::string s;
+                    for (uint16_t k = 0; k < scch; k++) {
+                        if (sflags & 1) { if (pos + 2*k + 1 < len) s += char(uint16_t(r[pos+2*k]) | (uint16_t(r[pos+2*k+1]) << 8)); }
+                        else            { if (pos + k < len) s += char(r[pos+k]); }
+                    }
+                    pos += (sflags & 1) ? 2u * scch : scch;
+                    sb.sheets.push_back(s);
+                }
+            }
+            int extc = 0; for (auto& b : g.supbooks) if (!b.self) extc++;
+            if (!sb.self) sb.ext_index = extc + 1;            /* 1-based index among external workbooks */
+            g.supbooks.push_back(std::move(sb));
         } else if (type == 0x0017 && len >= 2) {             /* ExternSheet: cXTI then {iSupBook,itabFirst,itabLast} */
             uint16_t cxti = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
-            for (uint16_t i = 0; i < cxti && 2 + i*6 + 5 < len; i++)
-                g.xti_first.push_back(int16_t(uint16_t(r[2+i*6+2]) | (uint16_t(r[2+i*6+3]) << 8)));
+            for (uint16_t i = 0; i < cxti && 2 + i*6 + 5 < len; i++) {
+                XTI x; x.isup  = int16_t(uint16_t(r[2+i*6])   | (uint16_t(r[2+i*6+1]) << 8));
+                       x.first = int16_t(uint16_t(r[2+i*6+2]) | (uint16_t(r[2+i*6+3]) << 8));
+                       x.last  = int16_t(uint16_t(r[2+i*6+4]) | (uint16_t(r[2+i*6+5]) << 8));
+                g.xtis.push_back(x);
+            }
         } else if (type == 0x0018 && len >= 15) {            /* Lbl/NAME: capture name (1-based) for PtgName */
             uint16_t grbit = uint16_t(r[0]) | (uint16_t(r[1]) << 8);
             uint8_t cch = r[3]; bool builtin = (grbit & 0x0020);
@@ -144,15 +175,21 @@ void render_loc2(uint16_t rwf, uint16_t gc, int homeRow, int homeCol, int mode, 
     a1 = (colRel ? "" : "$") + col_letters(colA1) + (rowRel ? "" : "$") + std::to_string(rowA1 + 1);
 }
 std::string sheet_qual(const Globals& g, uint16_t ixti) {
-    if (ixti < g.xti_first.size()) {
-        int s = g.xti_first[ixti];
-        if (s >= 0 && s < (int)g.sheets.size()) {
-            std::string nm = g.sheets[s];
-            bool needq = nm.find(' ') != std::string::npos;
-            return (needq ? "'" + nm + "'" : nm) + "!";
-        }
+    if (ixti >= g.xtis.size()) return "";
+    const XTI& x = g.xtis[ixti];
+    bool external = false; int ext_index = 0; std::string first, last;
+    if (x.isup >= 0 && x.isup < (int)g.supbooks.size()) {
+        const SupBookInfo& sb = g.supbooks[x.isup];
+        const std::vector<std::string>& src = sb.self ? g.sheets : sb.sheets;   /* self -> local sheet names */
+        external = !sb.self; ext_index = sb.ext_index;
+        if (x.first >= 0 && x.first < (int)src.size()) first = src[x.first];
+        if (x.last  >= 0 && x.last  < (int)src.size()) last  = src[x.last];
     }
-    return "";
+    std::string prefix = external ? ("[" + std::to_string(ext_index) + "]") : "";
+    if (first.empty()) return external ? prefix + "!" : "";
+    auto q = [](const std::string& s){ return s.find(' ') != std::string::npos ? "'" + s + "'" : s; };
+    std::string sheets = (last.empty() || last == first) ? q(first) : (q(first) + ":" + q(last));   /* Sheet2:Sheet5 */
+    return prefix + sheets + "!";
 }
 std::string ptg_str(const uint8_t* r, size_t avail, size_t& consumed) {   /* ShortXLUnicodeString */
     uint8_t cch = r[0], flags = r[1]; std::string s;
@@ -220,7 +257,9 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
                     render_loc2(u16(r+2),u16(r+6), homeRow,homeCol,m,a2,b2);
                     push(a1+":"+a2, b1+":"+b2, 8);} i += 8; } break;                                                  /* PtgArea / PtgAreaN */
                 case 0x3A: { int m=hasHome?0:2; if (avail>=6){ uint16_t ix=u16(r); std::string a,b; render_loc2(u16(r+2),u16(r+4),homeRow,homeCol,m,a,b);
-                    std::string q=sheet_qual(g,ix); push(q+a,q+b);} i += 6; } break;                                  /* PtgRef3d: ixti + RgceLoc */
+                    std::string q=sheet_qual(g,ix);
+                    bool multi = ix < g.xtis.size() && g.xtis[ix].first != g.xtis[ix].last;   /* cross-sheet single ref -> area form A1:A1 */
+                    if (multi) push(q+a+":"+a, q+b+":"+b, 8); else push(q+a,q+b);} i += 6; } break;                    /* PtgRef3d: ixti + RgceLoc */
                 case 0x3B: { int m=hasHome?0:2; if (avail>=10){ uint16_t ix=u16(r); std::string a1,b1,a2,b2;         /* PtgArea3d: ixti + RgceArea */
                     render_loc2(u16(r+2),u16(r+6),homeRow,homeCol,m,a1,b1);
                     render_loc2(u16(r+4),u16(r+8),homeRow,homeCol,m,a2,b2);
