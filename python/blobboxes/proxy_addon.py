@@ -8,6 +8,19 @@ If absent, the request passes through normally.
 Chromium's own sub-resource requests carry X-BLOBBOXES-INTERNAL and are
 always passed through without triggering extraction.
 
+Design rationale
+----------------
+This is a Jina-reader-like service (fetch a URL, render it, hand back clean
+structured content) with one deliberate twist: we do NOT rewrite the URL the
+way Jina does (https://r.jina.ai/<url>). The caller keeps the original URL and
+opts in per-request by setting the X-BLOBTASTIC-EXTRA-INFO *header*, so existing
+clients/tools can route through the proxy transparently and toggle extraction
+without URL surgery.
+
+It's a long-running proxy holding a persistent Chromium BrowserPool on purpose:
+headless Chromium's startup cost is far too high to pay per request, so the
+browser stays warm and requests just borrow a page from the pool.
+
 Usage:
     mitmdump -p 8080 -s python/blobboxes/proxy_addon.py \\
         --set blobboxes_max_pages=4
