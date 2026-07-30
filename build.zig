@@ -69,11 +69,125 @@ const backends: []const Backend = &.{
         .help = "Plain-text backend (no extra dependencies)",
     },
     .{
+        .name = "xlsx",
+        .define = "BBOXES_HAS_XLSX",
+        .sources = &.{"src/bboxes_xlsx.cpp"},
+        .help = "XLSX backend (xlnt for fonts/styles, plus a pugixml fast path)",
+    },
+    .{
         .name = "docx",
         .define = "BBOXES_HAS_DOCX",
         .sources = &.{"src/bboxes_docx.cpp"},
         .help = "DOCX backend (pugixml + miniz, both always linked)",
     },
+};
+
+/// xlnt's sources, for the high-fidelity XLSX reader.
+///
+/// Enumerated rather than globbed, per PLAN.md. Tests and the Python bindings
+/// are excluded; everything else upstream compiles into libxlnt is here.
+const xlnt_sources: []const []const u8 = &.{
+    "source/cell/cell.cpp",
+    "source/cell/cell_reference.cpp",
+    "source/cell/comment.cpp",
+    "source/cell/hyperlink.cpp",
+    "source/cell/index_types.cpp",
+    "source/cell/phonetic_run.cpp",
+    "source/cell/rich_text.cpp",
+    "source/cell/rich_text_run.cpp",
+    "source/detail/constants.cpp",
+    "source/detail/cryptography/aes.cpp",
+    "source/detail/cryptography/base64.cpp",
+    "source/detail/cryptography/compound_document.cpp",
+    "source/detail/cryptography/encryption_info.cpp",
+    "source/detail/cryptography/hash.cpp",
+    "source/detail/cryptography/sha.cpp",
+    "source/detail/cryptography/xlsx_crypto_consumer.cpp",
+    "source/detail/cryptography/xlsx_crypto_producer.cpp",
+    "source/detail/header_footer/header_footer_code.cpp",
+    "source/detail/number_format/number_formatter.cpp",
+    "source/detail/serialization/custom_value_traits.cpp",
+    "source/detail/serialization/open_stream.cpp",
+    "source/detail/serialization/serialisation_helpers.cpp",
+    "source/detail/serialization/vector_streambuf.cpp",
+    "source/detail/serialization/xlsx_consumer.cpp",
+    "source/detail/serialization/xlsx_producer.cpp",
+    "source/detail/serialization/zstream.cpp",
+    "source/detail/unicode.cpp",
+    "source/detail/utils/string_helpers.cpp",
+    "source/drawing/spreadsheet_drawing.cpp",
+    "source/packaging/ext_list.cpp",
+    "source/packaging/manifest.cpp",
+    "source/packaging/relationship.cpp",
+    "source/packaging/uri.cpp",
+    "source/styles/alignment.cpp",
+    "source/styles/border.cpp",
+    "source/styles/color.cpp",
+    "source/styles/conditional_format.cpp",
+    "source/styles/fill.cpp",
+    "source/styles/font.cpp",
+    "source/styles/format.cpp",
+    "source/styles/number_format.cpp",
+    "source/styles/protection.cpp",
+    "source/styles/style.cpp",
+    "source/utils/date.cpp",
+    "source/utils/datetime.cpp",
+    "source/utils/exceptions.cpp",
+    "source/utils/path.cpp",
+    "source/utils/time.cpp",
+    "source/utils/timedelta.cpp",
+    "source/utils/variant.cpp",
+    "source/workbook/named_range.cpp",
+    "source/workbook/streaming_workbook_reader.cpp",
+    "source/workbook/streaming_workbook_writer.cpp",
+    "source/workbook/workbook.cpp",
+    "source/workbook/worksheet_iterator.cpp",
+    "source/worksheet/cell_iterator.cpp",
+    "source/worksheet/cell_vector.cpp",
+    "source/worksheet/header_footer.cpp",
+    "source/worksheet/page_margins.cpp",
+    "source/worksheet/page_setup.cpp",
+    "source/worksheet/phonetic_pr.cpp",
+    "source/worksheet/range.cpp",
+    "source/worksheet/range_iterator.cpp",
+    "source/worksheet/range_reference.cpp",
+    "source/worksheet/selection.cpp",
+    "source/worksheet/sheet_protection.cpp",
+    "source/worksheet/worksheet.cpp",
+};
+
+/// xlnt's two C sources.
+///
+/// Separate from the list above because they are C, not C++, and an
+/// enumeration that globbed only `*.cpp` silently dropped them — the build then
+/// failed at link with undefined `sha1_hash`/`sha512_hash` rather than at
+/// compile. "Enumerate, do not glob" only helps if the enumeration itself is
+/// not a glob with the wrong pattern.
+const xlnt_c_sources: []const []const u8 = &.{
+    "source/detail/cryptography/sha1.c",
+    "source/detail/cryptography/sha512.c",
+};
+
+/// libstudxml, xlnt's XML pull-parser, taken from its own build file rather
+/// than guessed: four C++ sources, the genx serialiser, and a bundled expat.
+///
+/// This is the second XML parser in the binary (pugixml is the first) and expat
+/// makes a third engine. That redundancy is inherited from xlnt, not chosen —
+/// worth remembering if the xlnt reader is ever dropped in favour of the
+/// pugixml fast path, which would remove all of it.
+const libstudxml_sources: []const []const u8 = &.{
+    "third-party/libstudxml/libstudxml/parser.cxx",
+    "third-party/libstudxml/libstudxml/qname.cxx",
+    "third-party/libstudxml/libstudxml/serializer.cxx",
+    "third-party/libstudxml/libstudxml/value-traits.cxx",
+};
+
+const libstudxml_c_sources: []const []const u8 = &.{
+    "third-party/libstudxml/libstudxml/details/genx/char-props.c",
+    "third-party/libstudxml/libstudxml/details/genx/genx.c",
+    "third-party/libstudxml/libstudxml/details/expat/xmlparse.c",
+    "third-party/libstudxml/libstudxml/details/expat/xmlrole.c",
+    "third-party/libstudxml/libstudxml/details/expat/xmltok.c",
 };
 
 /// miniz's four translation units.
@@ -122,6 +236,7 @@ fn pdfiumDep(b: *std.Build, target: std.Target) ?*std.Build.Dependency {
 
 const Deps = struct {
     pdfium: *std.Build.Dependency,
+    xlnt: ?*std.Build.Dependency,
     json: *std.Build.Dependency,
     pugixml: *std.Build.Dependency,
     miniz: *std.Build.Dependency,
@@ -202,6 +317,46 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
         mod.addCSourceFile(.{ .file = d.miniz.path(src), .flags = c_flags });
     }
 
+    // xlnt, when the XLSX backend is on. Compiled into each artifact like
+    // everything else rather than built as a separate library.
+    if (d.xlnt) |xlnt| {
+        mod.addIncludePath(xlnt.path("include"));
+        // xlnt_cmake_export.h is produced by CMake's generate_export_header;
+        // ours is committed. Must come before xlnt's own include dir would
+        // otherwise look for it. See the header for why.
+        mod.addIncludePath(b.path("third_party/xlnt"));
+        // xlnt's own sources include its internal headers by path relative to
+        // source/, and reach into the submodules directly.
+        mod.addIncludePath(xlnt.path("source"));
+        mod.addIncludePath(xlnt.path("third-party/libstudxml"));
+        mod.addIncludePath(xlnt.path("third-party/utfcpp/source"));
+        mod.addIncludePath(xlnt.path("third-party/fmt/include"));
+        mod.addIncludePath(xlnt.path("third-party/fast_float/include"));
+
+        // Deliberately NOT xlnt's third-party/miniz: it bundles miniz 2.x while
+        // we compile 3.x, and both define the whole mz_* surface. Two copies in
+        // one binary is a duplicate-symbol error at best and a silently chosen
+        // winner at worst. Only zstream.cpp includes <miniz.h>, and the zip API
+        // it uses is unchanged between the two, so it compiles against ours.
+        mod.addIncludePath(d.miniz.path("."));
+
+        // Static: no visibility attributes, nothing exported from a shared lib.
+        mod.addCMacro("XLNT_STATIC", "1");
+
+        for (xlnt_sources) |src| {
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cxx_flags });
+        }
+        for (xlnt_c_sources) |src| {
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = c_flags });
+        }
+        for (libstudxml_sources) |src| {
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = cxx_flags });
+        }
+        for (libstudxml_c_sources) |src| {
+            mod.addCSourceFile(.{ .file = xlnt.path(src), .flags = c_flags });
+        }
+    }
+
     // PDFium: link the prebuilt shared library, and find it beside us at load.
     mod.addObjectFile(pdfiumLib(b, d.pdfium, t));
     mod.addRPathSpecial(if (t.os.tag == .macos) "@loader_path" else "$ORIGIN");
@@ -227,8 +382,17 @@ pub fn build(b: *std.Build) void {
         }
     }
 
+    // Lazy: only fetched when the XLSX backend is actually on.
+    var xlnt_dep: ?*std.Build.Dependency = null;
+    for (enabled.items) |backend| {
+        if (std.mem.eql(u8, backend.name, "xlsx")) {
+            xlnt_dep = b.lazyDependency("xlnt", .{}) orelse return;
+        }
+    }
+
     const d: Deps = .{
         .pdfium = pdfium,
+        .xlnt = xlnt_dep,
         .json = b.dependency("nlohmann_json", .{}),
         .pugixml = b.dependency("pugixml", .{}),
         .miniz = b.dependency("miniz", .{}),

@@ -56,6 +56,26 @@
             .hash = "N-V-__8AAERZCACWezRV1bLpUKNG2scSJbJdweF1Id_3JKc7",
         },
 
+        // xlnt, for the high-fidelity XLSX reader.
+        //
+        // The **_with_submodules** release asset, not the source tarball. xlnt
+        // has five git submodules (libstudxml, utfcpp, fmt, fast_float,
+        // pybind11) and a GitHub source tarball contains none of them, so the
+        // ordinary archive is unbuildable — it compiles until the first
+        // `#include <libstudxml/parser>` and then stops. Upstream publishes a
+        // complete archive precisely for this; prefer what upstream publishes.
+        //
+        // Built by Zig rather than by its own CMake, contrary to the earlier
+        // note in blobzig/PLAN.md: once the submodules are present there are no
+        // generated headers to reproduce (xlnt's only configure_file calls are
+        // for Doxygen and CMake packaging), so it is 67 sources plus a 9-file
+        // libstudxml. That removes the last reason CMake existed in this family.
+        .xlnt = .{
+            .url = "https://github.com/xlnt-community/xlnt/releases/download/v1.6.1/xlnt-1.6.1_with_submodules.tar.gz",
+            .hash = "N-V-__8AAKWhEwEQaMlW9AP1V5T1pjRaTRtROwHm1V1e5siL",
+            .lazy = true,
+        },
+
         // Deliberately absent: hash-library. Only SHA256 was used, at four call
         // sites, and `std.crypto.hash.sha2.Sha256` covers it — which also
         // deletes the macOS <endian.h> shim CMake had to synthesise for it.
