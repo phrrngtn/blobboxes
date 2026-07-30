@@ -99,6 +99,18 @@ golden oracle.
   parsing engines are linked; the pugixml fast path could replace xlnt and the
   BIFF walker could replace libxls. See the memory note and the discussion of
   2026-07-30.
-- **Two corpus files OOM** (`enron_3.319803.xls`, a clusterfuzz testcase), both
-  small, so an unchecked allocation from a malformed record length. Left
-  unbaselined on purpose: adding them to `known_gaps.txt` would hide a real bug.
+- **Two corpus files fail on both platforms** — `enron_3.319803.xls` (21 KB) and
+  a clusterfuzz testcase (13 KB). Both inputs are small, so this is an unchecked
+  allocation from a malformed record length rather than a size problem. macOS
+  reports it as an allocation failure; **Linux segfaults (signal 11)**, which is
+  the same bug with a worse symptom. Left unbaselined on purpose: adding them to
+  `known_gaps.txt` would hide a real bug.
+- **One Linux-only failure**: `poi/64130.xls` reports *"conversion from
+  \'MACROMAN\' to \'UTF-8\' not available"*. libxls maps a BIFF codepage to the
+  encoding name `MACROMAN`, which Darwin\'s libiconv accepts and glibc\'s does
+  not — glibc spells it `MACINTOSH`. A libxls/glibc naming mismatch, not a build
+  problem, but it means one file decodes on macOS and not on Linux.
+
+Neither is a regression from the port: the golden formula gate reports **0
+unexpected failures on both platforms**, 2,339 formulas matched on macOS and
+2,333 on Linux (the difference being the one file above dropping out).
