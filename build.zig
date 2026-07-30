@@ -48,6 +48,9 @@ const core_sources: []const []const u8 = &.{
     "src/bboxes_pdf.cpp",
     "src/bboxes_meta.cpp",
     "src/bboxes_xfdf.cpp",
+    // The PDFium dlopen loader. Always compiled: bboxes_pdf.cpp is always
+    // compiled, and it now reaches PDFium only through these pointers.
+    "src/pdfium_dyn.cpp",
 };
 
 /// An optional backend: a `-D` and one or more sources.
@@ -412,9 +415,13 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
         }
     }
 
-    // PDFium: link the prebuilt shared library, and find it beside us at load.
-    mod.addObjectFile(pdfiumLib(b, d.pdfium, t));
-    mod.addRPathSpecial(if (t.os.tag == .macos) "@loader_path" else "$ORIGIN");
+    // PDFium: headers only. The library itself is dlopen'd at first use — see
+    // include/pdfium_dyn.h. Nothing is linked, so the extension is a single
+    // self-contained file that loads even when libpdfium is absent; only the
+    // PDF backend then reports an error, and every other format still works.
+    //
+    // The install step below still ships libpdfium beside the artifacts, since
+    // that is the first place the loader looks.
 
     mod.link_libcpp = true;
 }

@@ -1,11 +1,10 @@
 #include "bboxes.h"
 #include "bboxes_types.h"
 
-#include <fpdfview.h>
-#include <fpdf_text.h>
-#include <fpdf_edit.h>
-#include <fpdf_doc.h>
-#include <fpdf_catalog.h>
+/* PDFium is dlopen'd, not linked — see include/pdfium_dyn.h. This header
+   includes the real PDFium headers and then redirects each function name onto
+   a resolved pointer, so the call sites below are unchanged. */
+#include "pdfium_dyn.h"
 
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
@@ -355,14 +354,31 @@ static void extract_page_objects(FPDF_DOCUMENT doc, int pi,
 
 /* ── public backend API ─────────────────────────────────────────────── */
 
-void bboxes_pdf_init(void)    { FPDF_InitLibrary(); }
-void bboxes_pdf_destroy(void) { FPDF_DestroyLibrary(); }
+void bboxes_pdf_init(void) {
+    /* Loading is deferred to here rather than done at library load: a process
+       that never opens a PDF should never pay for libpdfium, and an absent
+       libpdfium must not stop the extension itself from loading. */
+    if (bb_pdfium_load()) FPDF_InitLibrary();
+}
+void bboxes_pdf_destroy(void) {
+    if (bb_dyn_FPDF_DestroyLibrary) FPDF_DestroyLibrary();
+}
 
 BBoxResult extract_pdf(const void* buf, size_t len, const char* password,
                         int start_page, int end_page) {
     std::lock_guard<std::mutex> lock(g_pdfium_mutex);
     BBoxResult result;
     result.source_type = "pdf";
+
+    /* PDFium is dlopen'd, so every FPDF_* name here is a pointer that is null
+       until bb_pdfium_load() succeeds. Calling one unresolved is a segfault, so
+       the guard is not optional — it is what turns "libpdfium is missing" from
+       a crash into an error the caller can read. page_count = -1 is this
+       backend's existing failure signal. */
+    if (!bb_pdfium_load()) {
+        result.page_count = -1;
+        return result;
+    }
 
     FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
     if (!doc) {
@@ -599,6 +615,7 @@ static int pdf_file_getblock(void* param, unsigned long pos,
 extern "C" {
 
 const char* bboxes_pdf_metadata_json(const void* buf, size_t len) {
+    if (!bb_pdfium_load()) return "null";  /* see extract_pdf */
     std::lock_guard<std::mutex> lock(g_pdfium_mutex);
     /* FPDF_LoadMemDocument borrows `buf` (no copy); it stays valid for the
        whole call, and we close the doc before returning. */
@@ -651,6 +668,16 @@ BBoxResult extract_pdf_objects(const void* buf, size_t len, const char* password
     std::lock_guard<std::mutex> lock(g_pdfium_mutex);
     BBoxResult result;
     result.source_type = "pdf";
+
+    /* PDFium is dlopen'd, so every FPDF_* name here is a pointer that is null
+       until bb_pdfium_load() succeeds. Calling one unresolved is a segfault, so
+       the guard is not optional — it is what turns "libpdfium is missing" from
+       a crash into an error the caller can read. page_count = -1 is this
+       backend's existing failure signal. */
+    if (!bb_pdfium_load()) {
+        result.page_count = -1;
+        return result;
+    }
 
     FPDF_DOCUMENT doc = FPDF_LoadMemDocument(buf, static_cast<int>(len), password);
     if (!doc) {
