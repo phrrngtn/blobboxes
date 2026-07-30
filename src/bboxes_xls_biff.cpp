@@ -174,13 +174,14 @@ const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.19
         case 235: return "DGET"; case 244: return "INFO"; case 247: return "DB"; case 252: return "FREQUENCY";
         case 261: return "ERROR.TYPE"; case 269: return "AVEDEV"; case 270: return "BETADIST"; case 273: return "BINOMDIST";
         case 276: return "COMBIN"; case 279: return "EVEN"; case 280: return "EXPONDIST"; case 285: return "FLOOR";
-        case 288: return "GAMMADIST"; case 291: return "HYPGEOMDIST"; case 297: return "SUMSQ"; case 298: return "KURT";
-        case 299: return "SKEW"; case 300: return "ZTEST"; case 304: return "SUMX2MY2"; case 305: return "SUMX2PY2";
-        case 306: return "SUMXMY2"; case 318: return "DEVSQ"; case 325: return "LARGE";
+        case 288: return "CEILING"; case 291: return "HYPGEOMDIST"; case 297: return "SUMSQ"; case 298: return "ODD";
+        case 299: return "SKEW"; case 300: return "ZTEST"; case 303: return "SUMXMY2"; case 304: return "SUMX2MY2";
+        case 305: return "SUMX2PY2"; case 318: return "DEVSQ"; case 321: return "SUMSQ"; case 325: return "LARGE";
         case 326: return "SMALL"; case 327: return "QUARTILE"; case 328: return "PERCENTILE"; case 329: return "PERCENTRANK";
         case 330: return "MODE"; case 331: return "TRIMMEAN"; case 336: return "CONCATENATE"; case 337: return "POWER";
         case 342: return "RADIANS"; case 343: return "DEGREES"; case 344: return "SUBTOTAL"; case 345: return "SUMIF";
-        case 346: return "COUNTIF"; case 347: return "COUNTBLANK"; case 359: return "HYPERLINK"; case 362: return "MAXA";
+        case 346: return "COUNTIF"; case 347: return "COUNTBLANK"; case 359: return "HYPERLINK"; case 361: return "AVERAGEA";
+        case 362: return "MAXA";
         case 363: return "MINA"; case 364: return "STDEVPA"; case 365: return "VARPA"; case 366: return "STDEVA";
         case 367: return "VARA";
         default: return nullptr;
@@ -196,9 +197,10 @@ int ftab_argc(uint16_t i) {
         case 98: case 99: case 111: case 112: case 113: case 114: case 121: case 126: case 127:
         case 128: case 129: case 130: case 131: case 162: case 184: case 190: case 198:
         case 229: case 230: case 231: case 232: case 233: case 234: case 342: case 343: return 1;
-        case 27: case 39: case 97: case 117: case 220: case 276: case 285: case 304: case 305:
-        case 306: case 337: return 2;                                               /* ROUND MOD ATAN2 EXACT DAYS360 COMBIN FLOOR SUMX2MY2 SUMX2PY2 SUMXMY2 POWER */
-        case 31: case 65: case 66: return 3;                                        /* MID DATE TIME */
+        case 27: case 39: case 97: case 117: case 212: case 213: case 220: case 276: case 285: case 288:
+        case 303: case 304: case 305: case 325: case 326: case 327: case 328: case 337: return 2;
+        /* ROUND MOD ATAN2 EXACT ROUNDUP ROUNDDOWN DAYS360 COMBIN FLOOR CEILING SUMXMY2 SUMX2MY2 SUMX2PY2 LARGE SMALL QUARTILE PERCENTILE POWER */
+        case 31: case 61: case 65: case 66: return 3;                               /* MID MIRR DATE TIME */
         case 119: return 4;                                                         /* REPLACE */
         default: return -1;
     }
@@ -292,7 +294,7 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
                              else { i += 3; if (grbit & 0x10) func("SUM", 1); } }        /* tAttrSum; space/if/goto/skip are 3 bytes */
                     break;
                 case 0x1C: { uint8_t e = avail?r[0]:0; i += 1; const char* s = e==0x17?"#REF!":e==0x07?"#DIV/0!":e==0x0F?"#VALUE!":e==0x1D?"#NAME?":e==0x24?"#N/A":"#ERR!"; push(s,s);} break;
-                case 0x1D: { std::string s = (avail && r[0])?"TRUE":"FALSE"; i += 1; push(s,s);} break;   /* bool */
+                case 0x1D: { std::string s = (avail && r[0])?"TRUE()":"FALSE()"; i += 1; push(s,s);} break;   /* PtgBool (rendered as function, matching the oracle) */
                 case 0x1E: { int v = avail>=2 ? (uint16_t(r[0])|(uint16_t(r[1])<<8)) : 0; i += 2; push(std::to_string(v),std::to_string(v)); } break; /* int */
                 case 0x1F: { double d=0; if(avail>=8) memcpy(&d,r,8); i += 8; char b[32]; snprintf(b,sizeof b,"%.15g",d); push(b,b);} break; /* num */
                 default: i = cce; break;                                               /* unknown control -> stop */
