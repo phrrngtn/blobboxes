@@ -127,20 +127,22 @@ check "xlsx/smoke" "$PYTHON" -c "
 import sys; sys.path.insert(0, '$DIR/python')
 import blobboxes as bboxes
 data = open('$XLSX','rb').read()
+# open_xlsx is the fast byte-scan reader: cells (+formulas), but NO fonts/styles by design.
 cur = bboxes.open_xlsx(data)
 d = cur.doc()
 assert d['source_type'] == 'xlsx', f'source_type={d[\"source_type\"]!r}'
 assert d['page_count'] >= 1, f'page_count={d[\"page_count\"]}'
-pages = cur.pages()
-assert len(pages) >= 1
-fonts = cur.fonts()
-assert len(fonts) >= 1
-styles = cur.styles()
-assert len(styles) >= 1
+assert len(cur.pages()) >= 1
 boxes = cur.bboxes()
 assert len(boxes) >= 1
 cur.close()
-print(f'    xlsx: {d[\"page_count\"]} pages, {len(fonts)} fonts, {len(styles)} styles, {len(boxes)} bboxes')
+# fonts/styles come from the xlnt reader (open_xlsx_slow), which decodes the style table.
+slow = bboxes.open_xlsx_slow(data)
+fonts, styles = slow.fonts(), slow.styles()
+assert len(fonts) >= 1, f'xlnt fonts={len(fonts)}'
+assert len(styles) >= 1, f'xlnt styles={len(styles)}'
+slow.close()
+print(f'    xlsx: {d[\"page_count\"]} pages, {len(boxes)} bboxes (fast); {len(fonts)} fonts, {len(styles)} styles (xlnt)')
 "
 
 # ─── Text: Python smoke test ─────────────────────────────────────
