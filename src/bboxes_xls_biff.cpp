@@ -134,24 +134,55 @@ std::string col_letters(int col) {                            /* 0-based col -> 
 
 /* ── the Ptg parser: rgce token array -> {R1C1, A1} via a dual-notation RPN stack ─────────────────────── */
 struct Expr { std::string r1c1, a1; int prec = 99; };
-const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.198.17 Ftab — common subset */
+const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.198.17 Ftab — canonical BIFF function index table */
     switch (i) {
         case 0: return "COUNT"; case 1: return "IF"; case 2: return "ISNA"; case 3: return "ISERROR";
         case 4: return "SUM"; case 5: return "AVERAGE"; case 6: return "MIN"; case 7: return "MAX";
-        case 8: return "ROW"; case 9: return "COLUMN"; case 10: return "NA"; case 15: return "SIN";
-        case 16: return "COS"; case 19: return "PI"; case 20: return "SQRT"; case 24: return "EXP";
-        case 25: return "LN"; case 26: return "LOG10"; case 27: return "ABS"; case 28: return "INT";
-        case 29: return "SIGN"; case 30: return "ROUND"; case 31: return "LOOKUP"; case 32: return "INDEX";
+        case 8: return "ROW"; case 9: return "COLUMN"; case 10: return "NA"; case 11: return "NPV";
+        case 12: return "STDEV"; case 13: return "DOLLAR"; case 14: return "FIXED"; case 15: return "SIN";
+        case 16: return "COS"; case 17: return "TAN"; case 18: return "ATAN"; case 19: return "PI";
+        case 20: return "SQRT"; case 21: return "EXP"; case 22: return "LN"; case 23: return "LOG10";
+        case 24: return "ABS"; case 25: return "INT"; case 26: return "SIGN"; case 27: return "ROUND";
+        case 28: return "LOOKUP"; case 29: return "INDEX"; case 30: return "REPT"; case 31: return "MID";
+        case 32: return "LEN"; case 33: return "VALUE"; case 34: return "TRUE"; case 35: return "FALSE";
         case 36: return "AND"; case 37: return "OR"; case 38: return "NOT"; case 39: return "MOD";
-        case 63: return "RAND"; case 74: return "NOW"; case 82: return "SEARCH"; case 97: return "ATAN2";
-        case 100: return "CHOOSE"; case 101: return "HLOOKUP"; case 102: return "VLOOKUP"; case 111: return "CHAR";
-        case 112: return "LOWER"; case 113: return "UPPER"; case 115: return "LEN"; case 116: return "LEFT";
-        case 117: return "RIGHT"; case 118: return "MID"; case 119: return "TEXT"; case 120: return "SUBSTITUTE";
-        case 124: return "FIND"; case 148: return "TRIM";
-        case 162: return "CLEAN"; case 190: return "ISNUMBER"; case 197: return "TRUNC"; case 212: return "ROUNDUP";
-        case 213: return "ROUNDDOWN"; case 216: return "RANK"; case 219: return "ADDRESS"; case 228: return "SUMPRODUCT";
-        case 221: return "TODAY"; case 252: return "COUNTIF"; case 269: return "AVERAGEA";
-        case 336: return "CONCATENATE"; case 345: return "SUMIFS";
+        case 40: return "DCOUNT"; case 41: return "DSUM"; case 42: return "DAVERAGE"; case 43: return "DMIN";
+        case 44: return "DMAX"; case 45: return "DSTDEV"; case 46: return "VAR"; case 47: return "DVAR";
+        case 48: return "TEXT"; case 56: return "PV"; case 57: return "FV"; case 58: return "NPER";
+        case 59: return "PMT"; case 60: return "RATE"; case 61: return "MIRR"; case 62: return "IRR";
+        case 63: return "RAND"; case 64: return "MATCH"; case 65: return "DATE"; case 66: return "TIME";
+        case 67: return "DAY"; case 68: return "MONTH"; case 69: return "YEAR"; case 70: return "WEEKDAY";
+        case 71: return "HOUR"; case 72: return "MINUTE"; case 73: return "SECOND"; case 74: return "NOW";
+        case 75: return "AREAS"; case 76: return "ROWS"; case 77: return "COLUMNS"; case 78: return "OFFSET";
+        case 82: return "SEARCH"; case 83: return "TRANSPOSE"; case 97: return "ATAN2"; case 98: return "ASIN";
+        case 99: return "ACOS"; case 100: return "CHOOSE"; case 101: return "HLOOKUP"; case 102: return "VLOOKUP";
+        case 105: return "ISREF"; case 109: return "LOG"; case 111: return "CHAR"; case 112: return "LOWER";
+        case 113: return "UPPER"; case 114: return "PROPER"; case 115: return "LEFT"; case 116: return "RIGHT";
+        case 117: return "EXACT"; case 118: return "TRIM"; case 119: return "REPLACE"; case 120: return "SUBSTITUTE";
+        case 121: return "CODE"; case 124: return "FIND"; case 125: return "CELL"; case 126: return "ISERR";
+        case 127: return "ISTEXT"; case 128: return "ISNUMBER"; case 129: return "ISBLANK"; case 130: return "T";
+        case 131: return "N"; case 140: return "DATEVALUE"; case 141: return "TIMEVALUE"; case 142: return "SLN";
+        case 143: return "SYD"; case 144: return "DDB"; case 148: return "INDIRECT"; case 162: return "CLEAN";
+        case 163: return "MDETERM"; case 164: return "MINVERSE"; case 165: return "MMULT"; case 167: return "IPMT";
+        case 168: return "PPMT"; case 169: return "COUNTA"; case 183: return "PRODUCT"; case 184: return "FACT";
+        case 189: return "DPRODUCT"; case 190: return "ISNONTEXT"; case 193: return "STDEVP"; case 194: return "VARP";
+        case 195: return "DSTDEVP"; case 196: return "DVARP"; case 197: return "TRUNC"; case 198: return "ISLOGICAL";
+        case 199: return "DCOUNTA"; case 212: return "ROUNDUP"; case 213: return "ROUNDDOWN"; case 216: return "RANK";
+        case 219: return "ADDRESS"; case 220: return "DAYS360"; case 221: return "TODAY"; case 222: return "VDB";
+        case 227: return "MEDIAN"; case 228: return "SUMPRODUCT"; case 229: return "SINH"; case 230: return "COSH";
+        case 231: return "TANH"; case 232: return "ASINH"; case 233: return "ACOSH"; case 234: return "ATANH";
+        case 235: return "DGET"; case 244: return "INFO"; case 247: return "DB"; case 252: return "FREQUENCY";
+        case 261: return "ERROR.TYPE"; case 269: return "AVEDEV"; case 270: return "BETADIST"; case 273: return "BINOMDIST";
+        case 276: return "COMBIN"; case 279: return "EVEN"; case 280: return "EXPONDIST"; case 285: return "FLOOR";
+        case 288: return "GAMMADIST"; case 291: return "HYPGEOMDIST"; case 297: return "SUMSQ"; case 298: return "KURT";
+        case 299: return "SKEW"; case 300: return "ZTEST"; case 304: return "SUMX2MY2"; case 305: return "SUMX2PY2";
+        case 306: return "SUMXMY2"; case 318: return "DEVSQ"; case 325: return "LARGE";
+        case 326: return "SMALL"; case 327: return "QUARTILE"; case 328: return "PERCENTILE"; case 329: return "PERCENTRANK";
+        case 330: return "MODE"; case 331: return "TRIMMEAN"; case 336: return "CONCATENATE"; case 337: return "POWER";
+        case 342: return "RADIANS"; case 343: return "DEGREES"; case 344: return "SUBTOTAL"; case 345: return "SUMIF";
+        case 346: return "COUNTIF"; case 347: return "COUNTBLANK"; case 359: return "HYPERLINK"; case 362: return "MAXA";
+        case 363: return "MINA"; case 364: return "STDEVPA"; case 365: return "VARPA"; case 366: return "STDEVA";
+        case 367: return "VARA";
         default: return nullptr;
     }
 }
@@ -160,11 +191,15 @@ const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.19
 int ftab_argc(uint16_t i) {
     switch (i) {
         case 10: case 19: case 34: case 35: case 63: case 74: case 221: return 0;   /* NA PI TRUE FALSE RAND NOW TODAY */
-        case 2: case 3: case 15: case 16: case 17: case 18: case 20: case 24: case 25: case 26:
-        case 27: case 28: case 29: case 38: case 111: case 112: case 113: case 115: case 148:
-        case 162: case 190: return 1;                                               /* ISNA ISERROR SIN COS TAN ATAN SQRT EXP LN LOG10 ABS INT SIGN NOT CHAR LOWER UPPER LEN TRIM CLEAN ISNUMBER */
-        case 30: case 39: case 97: return 2;                                        /* ROUND MOD ATAN2 */
-        case 118: return 3;                                                         /* MID */
+        case 2: case 3: case 15: case 16: case 17: case 18: case 20: case 21: case 22: case 23:
+        case 24: case 25: case 26: case 38: case 67: case 68: case 69: case 71: case 72: case 73:
+        case 98: case 99: case 111: case 112: case 113: case 114: case 121: case 126: case 127:
+        case 128: case 129: case 130: case 131: case 162: case 184: case 190: case 198:
+        case 229: case 230: case 231: case 232: case 233: case 234: case 342: case 343: return 1;
+        case 27: case 39: case 97: case 117: case 220: case 276: case 285: case 304: case 305:
+        case 306: case 337: return 2;                                               /* ROUND MOD ATAN2 EXACT DAYS360 COMBIN FLOOR SUMX2MY2 SUMX2PY2 SUMXMY2 POWER */
+        case 31: case 65: case 66: return 3;                                        /* MID DATE TIME */
+        case 119: return 4;                                                         /* REPLACE */
         default: return -1;
     }
 }
