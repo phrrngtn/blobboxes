@@ -1,0 +1,68 @@
+.{
+    .name = .blobboxes,
+    .version = "0.1.0",
+    .fingerprint = 0x20c9dfd1c939dd1f,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        // Shared build layer for the blob* family. Brings the DuckDB C API
+        // headers and the SQLite headers with it, so neither is named here.
+        .blobzig = .{
+            .url = "git+https://github.com/phrrngtn/blobzig?ref=main#b6815cb545fe91c14e2cff159f24bd49ded00667",
+            .hash = "blobzig-0.1.0-DiYQfag0CwBaGYwjbzEDZAy1AeVLXBh3ZkkRaf1xFZgb",
+        },
+
+        // PDFium, as bblanchon's prebuilt per-platform tarball — one entry per
+        // target, lazy, so a macOS build never downloads the Linux archives.
+        //
+        // Shared-only: every release ships `lib/libpdfium.dylib`/`.so` and no
+        // static variant (checked across the full asset list). That is a
+        // constraint, not a choice — but it is also why PDFium never hit the
+        // C++-runtime problem HiGHS did in blobsolver: a shared library seals
+        // its own runtime, and PDFium's public headers are pure C.
+        .pdfium_macos_aarch64 = .{
+            .url = "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F7690/pdfium-mac-arm64.tgz",
+            .hash = "N-V-__8AAJhOXQBxXCuhVARmaQRyCVvf9COoqh13DBchXs9q",
+            .lazy = true,
+        },
+        .pdfium_linux_x86_64 = .{
+            .url = "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F7690/pdfium-linux-x64.tgz",
+            .hash = "N-V-__8AALqqZABdx3RSqAkBE7y6k5TL9-mr8p401pM1zjJH",
+            .lazy = true,
+        },
+        .pdfium_linux_aarch64 = .{
+            .url = "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F7690/pdfium-linux-arm64.tgz",
+            .hash = "N-V-__8AACRTZwBVlZvXg_wVY80CWPMfH9TGbFXmzF3pcD1R",
+            .lazy = true,
+        },
+
+        .nlohmann_json = .{
+            .url = "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz",
+            .hash = "N-V-__8AAOedHADB-3e14vvAh_b1waHxfGtsxx3daxAj9Ps3",
+        },
+
+        // One C++ file. Zig builds it — there is no Zig-stdlib XML parser to
+        // replace it with, unlike hash-library below.
+        .pugixml = .{
+            .url = "https://github.com/zeux/pugixml/releases/download/v1.14/pugixml-1.14.tar.gz",
+            .hash = "N-V-__8AADZ7GABhDA-luj6Xnf0E4n-9vbSpx66_B5j3ooAM",
+        },
+
+        // One C file, for the zip container in DOCX/XLSX. `std.zip` exists, but
+        // the reader in bboxes_docx.cpp uses the miniz API at many call sites,
+        // so replacing it means rewriting that file rather than swapping a
+        // dependency. Left for later.
+        .miniz = .{
+            .url = "https://github.com/richgel999/miniz/archive/refs/tags/3.0.2.tar.gz",
+            .hash = "N-V-__8AAERZCACWezRV1bLpUKNG2scSJbJdweF1Id_3JKc7",
+        },
+
+        // Deliberately absent: hash-library. Only SHA256 was used, at four call
+        // sites, and `std.crypto.hash.sha2.Sha256` covers it — which also
+        // deletes the macOS <endian.h> shim CMake had to synthesise for it.
+    },
+    .paths = .{
+        "build.zig",     "build.zig.zon", "src",     "include",
+        "python",        "duckdb_ext",    "sqlite_ext", "example",
+        "third_party",   "shim",
+    },
+}
