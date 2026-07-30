@@ -3,13 +3,10 @@
 # on them; a NEW golden failure (any file not listed here) does fail the run, and
 # a listed file that starts PASSing is flagged so it can be removed. See KNOWN_GAPS.md.
 
-# --- shared formulas (PtgExp 0x01 -> ShrFmla 0x04BC expansion) : not yet implemented
-poi__test-data__spreadsheet__SharedFormulaTest
-poi__test-data__spreadsheet__ex47747-sharedFormula
-poi__test-data__spreadsheet__overlapSharedFormula
-poi__test-data__spreadsheet__shared_formulas
-enron__enron_3.264848
-enron__enron_3.1131604
+# --- shared formulas: DONE (PtgExp 0x01 -> ShrFmla 0x04BC expansion). Residual on:
+poi__test-data__spreadsheet__ex47747-sharedFormula   # 5/15 — remaining mismatches under investigation
+enron__enron_3.264848                                 # BIFF5/7 workbook (3D layout differs) — see biff_version gap
+enron__enron_3.1131604                                # under investigation
 
 # --- multi-sheet 3D range (Sheet2:Sheet5!) : sheet_qual renders first sheet only
 poi__test-data__spreadsheet__FormulaSheetRange
@@ -17,11 +14,10 @@ poi__test-data__spreadsheet__FormulaSheetRange
 # --- external-workbook refs ([1]Sheet!) : SupBook/XTI external index not resolved
 poi__test-data__spreadsheet__multibookFormulaA
 poi__test-data__spreadsheet__multibookFormulaB
-poi__test-data__spreadsheet__external_name
 
-# --- Ftab completeness + shared formulas (large mixed function coverage file)
+# --- Ftab completeness (large mixed function coverage file)
 poi__test-data__spreadsheet__FormulaEvalTestData
 poi__test-data__spreadsheet__FormulaRefs
 
-# --- array formulas / PtgExp-anchored (oracle emits formulas we don't yet)
+# --- array formulas (PtgExp -> Array 0x0221, not ShrFmla) : oracle emits formulas we don't yet
 unxls__spec__files__biff8__cells

@@ -123,20 +123,25 @@ const char* ftab(uint16_t i) {                                /* [MS-XLS] 2.5.19
         default: return nullptr;
     }
 }
-/* render one RgceLoc (rw + column-with-flags). hasHome: formula cell (rel = target-home); else name (rel = stored offset). */
-void render_loc2(uint16_t rwf, uint16_t gc, int homeRow, int homeCol, bool hasHome, std::string& r1c1, std::string& a1) {
-    int col14 = gc & 0x3FFF; bool colRel = (gc & 0x4000) != 0, rowRel = (gc & 0x8000) != 0;
-    // R1C1: relative axis -> R[offset] (offset = target-home for formulas, stored signed offset for names)
-    std::string rp, cp;
-    if (rowRel) { int off = hasHome ? int(rwf) - homeRow : int(int16_t(rwf));
-                  rp = "R" + (off ? "[" + std::to_string(off) + "]" : ""); }
-    else        { rp = "R" + std::to_string(int(rwf) + 1); }
-    if (colRel) { int off = hasHome ? col14 - homeCol : ((col14 & 0x2000) ? col14 - 0x4000 : col14);
-                  cp = "C" + (off ? "[" + std::to_string(off) + "]" : ""); }
-    else        { cp = "C" + std::to_string(col14 + 1); }
+/* render one RgceLoc (rw + column-with-flags [MS-XLS] 2.5.198.105/.121).
+   mode 0 = ABS  : PtgRef in a Formula — rw/col hold ABSOLUTE addresses; R1C1 rel = value-home.
+   mode 1 = N    : PtgRefN / shared-formula base — rel axis holds a SIGNED OFFSET (row int16, col int8),
+                   abs axis holds the value; A1 adds the home (member/formula) cell.
+   mode 2 = NAME : like N with home=(0,0) — best-effort A1 for relative name refs (names are usually absolute). */
+void render_loc2(uint16_t rwf, uint16_t gc, int homeRow, int homeCol, int mode, std::string& r1c1, std::string& a1) {
+    int colAbs = gc & 0x3FFF;                     // absolute column (BIFF8 uses low 8 bits, 0..255)
+    int rowOff = int(int16_t(rwf));               // signed 16-bit row offset (N/NAME)
+    int colOff = int(int8_t(gc & 0xFF));          // signed 8-bit  col offset (N/NAME) — BIFF8 stores it in the low byte
+    bool colRel = (gc & 0x4000) != 0, rowRel = (gc & 0x8000) != 0;
+    int rowR1, colR1, rowA1, colA1;               // R1C1 relative offsets; A1 absolute 0-based row/col
+    if (mode == 0) { rowR1 = int(rwf) - homeRow; colR1 = colAbs - homeCol; rowA1 = int(rwf); colA1 = colAbs; }
+    else { int hr = (mode == 1) ? homeRow : 0, hc = (mode == 1) ? homeCol : 0;
+           rowR1 = rowOff; colR1 = colOff;
+           rowA1 = rowRel ? hr + rowOff : int(rwf); colA1 = colRel ? hc + colOff : colAbs; }
+    std::string rp = rowRel ? ("R" + (rowR1 ? "[" + std::to_string(rowR1) + "]" : "")) : ("R" + std::to_string(int(rwf) + 1));
+    std::string cp = colRel ? ("C" + (colR1 ? "[" + std::to_string(colR1) + "]" : "")) : ("C" + std::to_string(colAbs + 1));
     r1c1 = rp + cp;
-    // A1: absolute target address; $ on absolute axes (names' relative refs are best-effort in A1)
-    a1 = (colRel ? "" : "$") + col_letters(col14) + (rowRel ? "" : "$") + std::to_string(int(rwf) + 1);
+    a1 = (colRel ? "" : "$") + col_letters(colA1) + (rowRel ? "" : "$") + std::to_string(rowA1 + 1);
 }
 std::string sheet_qual(const Globals& g, uint16_t ixti) {
     if (ixti < g.xti_first.size()) {
@@ -208,17 +213,17 @@ Expr render_rgce(const uint8_t* rgce, size_t cce, int homeRow, int homeCol, bool
             }
         } else {
             switch (base) {
-                case 0x24: { if (avail>=4){ std::string a,b; render_loc2(u16(r),u16(r+2),homeRow,homeCol,hasHome,a,b); push(a,b);} i += 4; } break;      /* PtgRef */
-                case 0x2C: { if (avail>=4){ std::string a,b; render_loc2(u16(r),u16(r+2),homeRow,homeCol,false,a,b);  push(a,b);} i += 4; } break;      /* PtgRefN (offset) */
-                case 0x25: case 0x2D: { if (avail>=8){ bool hh=(base==0x25)?hasHome:false; std::string a1,b1,a2,b2;    /* RgceArea: rwFirst,rwLast,colFirst,colLast */
-                    render_loc2(u16(r),  u16(r+4), homeRow,homeCol,hh,a1,b1);
-                    render_loc2(u16(r+2),u16(r+6), homeRow,homeCol,hh,a2,b2);
+                case 0x24: { int m=hasHome?0:2; if (avail>=4){ std::string a,b; render_loc2(u16(r),u16(r+2),homeRow,homeCol,m,a,b); push(a,b);} i += 4; } break;   /* PtgRef */
+                case 0x2C: { if (avail>=4){ std::string a,b; render_loc2(u16(r),u16(r+2),homeRow,homeCol,1,a,b);  push(a,b);} i += 4; } break;                        /* PtgRefN (offset) */
+                case 0x25: case 0x2D: { if (avail>=8){ int m=(base==0x25)?(hasHome?0:2):1; std::string a1,b1,a2,b2;   /* RgceArea: rwFirst,rwLast,colFirst,colLast */
+                    render_loc2(u16(r),  u16(r+4), homeRow,homeCol,m,a1,b1);
+                    render_loc2(u16(r+2),u16(r+6), homeRow,homeCol,m,a2,b2);
                     push(a1+":"+a2, b1+":"+b2, 8);} i += 8; } break;                                                  /* PtgArea / PtgAreaN */
-                case 0x3A: { if (avail>=6){ uint16_t ix=u16(r); std::string a,b; render_loc2(u16(r+2),u16(r+4),homeRow,homeCol,hasHome,a,b);
+                case 0x3A: { int m=hasHome?0:2; if (avail>=6){ uint16_t ix=u16(r); std::string a,b; render_loc2(u16(r+2),u16(r+4),homeRow,homeCol,m,a,b);
                     std::string q=sheet_qual(g,ix); push(q+a,q+b);} i += 6; } break;                                  /* PtgRef3d: ixti + RgceLoc */
-                case 0x3B: { if (avail>=10){ uint16_t ix=u16(r); std::string a1,b1,a2,b2;                             /* PtgArea3d: ixti + RgceArea */
-                    render_loc2(u16(r+2),u16(r+6),homeRow,homeCol,hasHome,a1,b1);
-                    render_loc2(u16(r+4),u16(r+8),homeRow,homeCol,hasHome,a2,b2);
+                case 0x3B: { int m=hasHome?0:2; if (avail>=10){ uint16_t ix=u16(r); std::string a1,b1,a2,b2;         /* PtgArea3d: ixti + RgceArea */
+                    render_loc2(u16(r+2),u16(r+6),homeRow,homeCol,m,a1,b1);
+                    render_loc2(u16(r+4),u16(r+8),homeRow,homeCol,m,a2,b2);
                     std::string q=sheet_qual(g,ix); push(q+a1+":"+a2, q+b1+":"+b2, 8);} i += 10; } break;
                 case 0x23: { uint32_t idx = avail>=4 ? (uint32_t(r[0])|(uint32_t(r[1])<<8)|(uint32_t(r[2])<<16)|(uint32_t(r[3])<<24)) : 0; i += 4;
                              std::string nm = (idx>=1 && idx<=g.lbl_names.size()) ? g.lbl_names[idx-1] : ("Name"+std::to_string(idx));
@@ -289,6 +294,23 @@ const char* bboxes_xls_formulas_json(const void* buf, size_t len) {
     for (size_t s = 0; s < g.sheet_pos.size(); s++) pos2idx[g.sheet_pos[s]] = (int)s;
     if (g.biff_version != 0x0600)
         o["warning"] = "BIFF5/7 workbook: 3D reference layout differs from BIFF8 and is not fully decoded";
+    auto rd16 = [&](const uint8_t* q, size_t o2){ return uint16_t(q[o2] | (q[o2+1] << 8)); };
+    auto shkey = [](int sh, int rw, int cl){ return (uint64_t(uint32_t(sh)) << 40) | (uint64_t(rw & 0xFFFF) << 16) | uint32_t(cl & 0xFFFF); };
+    /* pass 1: ShrFmla (0x04BC) base rgce keyed by (sheet,topRow,topCol); every member cell (incl. master)
+       carries a lone PtgExp pointing here. */
+    std::unordered_map<uint64_t, std::vector<uint8_t>> shared;
+    { size_t o2 = 0; int cs = -1;
+      while (o2 + 4 <= n) {
+          size_t rs = o2; uint16_t t = rd16(p, o2), l = rd16(p, o2 + 2); o2 += 4; if (o2 + l > n) break;
+          const uint8_t* rr = p + o2;
+          if (t == 0x0809) { auto it = pos2idx.find((uint32_t)rs); if (it != pos2idx.end()) cs = it->second; }
+          else if (t == 0x04BC && l >= 10) {                 /* rwFirst2 rwLast2 colFirst1 colLast1 rsvd1 cUse1 cce2 rgce */
+              int rf = rd16(rr, 0), cf = rr[4]; uint16_t cce = rd16(rr, 8);
+              if (10u + cce <= l) shared[shkey(cs, rf, cf)] = std::vector<uint8_t>(rr + 10, rr + 10 + cce);
+          }
+          o2 += l;
+      }
+    }
     json arr = json::array(); size_t off = 0; int cur_sheet = -1;
     while (off + 4 <= n) {
         size_t rec_start = off;
@@ -304,7 +326,14 @@ const char* bboxes_xls_formulas_json(const void* buf, size_t len) {
             uint16_t cce = uint16_t(r[20])|(uint16_t(r[21])<<8);
             const uint8_t* rgce = r + 22; size_t avail = rlen >= 22 ? rlen - 22 : 0;
             if (cce <= avail) {
-                Expr e = render_rgce(rgce, cce, rw, col, true, g);
+                Expr e;
+                if (cce >= 5 && rgce[0] == 0x01) {           /* PtgExp -> shared/array member: expand base at (topRow,topCol) */
+                    int tr = rd16(rgce, 1), tc = rd16(rgce, 3);
+                    auto it = shared.find(shkey(cur_sheet, tr, tc));
+                    if (it != shared.end()) e = render_rgce(it->second.data(), it->second.size(), rw, col, true, g);
+                } else {
+                    e = render_rgce(rgce, cce, rw, col, true, g);
+                }
                 std::string addr_a1 = col_letters(col) + std::to_string(rw + 1);
                 std::string addr_r1c1 = "R" + std::to_string(rw + 1) + "C" + std::to_string(col + 1);
                 arr.push_back({{"sheet", cur_sheet}, {"row", rw}, {"col", col},
