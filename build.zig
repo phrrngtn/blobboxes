@@ -37,6 +37,7 @@
 
 const std = @import("std");
 const blobzig = @import("blobzig");
+const lexbor_sources = @import("third_party/lexbor_sources.zig");
 
 const c_flags: []const []const u8 = &.{"-std=c11"};
 const cxx_flags: []const []const u8 = &.{"-std=c++17"};
@@ -73,6 +74,12 @@ const backends: []const Backend = &.{
         .define = "BBOXES_HAS_XLSX",
         .sources = &.{"src/bboxes_xlsx.cpp"},
         .help = "XLSX backend (xlnt for fonts/styles, plus a pugixml fast path)",
+    },
+    .{
+        .name = "html",
+        .define = "BBOXES_HAS_HTML",
+        .sources = &.{"src/bboxes_html.cpp"},
+        .help = "HTML backend (lexbor)",
     },
     .{
         .name = "xls",
@@ -254,6 +261,7 @@ const Deps = struct {
     pdfium: *std.Build.Dependency,
     xlnt: ?*std.Build.Dependency,
     libxls: ?*std.Build.Dependency,
+    lexbor: ?*std.Build.Dependency,
     json: *std.Build.Dependency,
     pugixml: *std.Build.Dependency,
     miniz: *std.Build.Dependency,
@@ -389,6 +397,21 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
         if (t.os.tag == .macos) mod.linkSystemLibrary("iconv", .{});
     }
 
+    // lexbor, when the HTML backend is on.
+    if (d.lexbor) |lexbor| {
+        mod.addIncludePath(lexbor.path("source"));
+        for (lexbor_sources.common) |src| {
+            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = c_flags });
+        }
+        const ports = if (t.os.tag == .windows)
+            lexbor_sources.ports_windows
+        else
+            lexbor_sources.ports_posix;
+        for (ports) |src| {
+            mod.addCSourceFile(.{ .file = lexbor.path(src), .flags = c_flags });
+        }
+    }
+
     // PDFium: link the prebuilt shared library, and find it beside us at load.
     mod.addObjectFile(pdfiumLib(b, d.pdfium, t));
     mod.addRPathSpecial(if (t.os.tag == .macos) "@loader_path" else "$ORIGIN");
@@ -429,10 +452,18 @@ pub fn build(b: *std.Build) void {
         }
     }
 
+    var lexbor_dep: ?*std.Build.Dependency = null;
+    for (enabled.items) |backend| {
+        if (std.mem.eql(u8, backend.name, "html")) {
+            lexbor_dep = b.lazyDependency("lexbor", .{}) orelse return;
+        }
+    }
+
     const d: Deps = .{
         .pdfium = pdfium,
         .xlnt = xlnt_dep,
         .libxls = libxls_dep,
+        .lexbor = lexbor_dep,
         .json = b.dependency("nlohmann_json", .{}),
         .pugixml = b.dependency("pugixml", .{}),
         .miniz = b.dependency("miniz", .{}),

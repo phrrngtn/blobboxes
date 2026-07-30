@@ -98,6 +98,16 @@
             .lazy = true,
         },
 
+        // lexbor, for the HTML backend. Plain C, 216 files, 15 modules, and no
+        // generated headers at all (its only configure_file writes a
+        // pkg-config file), so Zig builds it directly. That drops the last
+        // `brew --prefix` call in blobboxes alongside libxls.
+        .lexbor = .{
+            .url = "https://github.com/lexbor/lexbor/archive/refs/tags/v3.0.0.tar.gz",
+            .hash = "N-V-__8AAMxVvAIalChC2bXMLXbWpURCkFNzlDy86Nwguncd",
+            .lazy = true,
+        },
+
         // Deliberately absent: hash-library. Only SHA256 was used, at four call
         // sites, and `std.crypto.hash.sha2.Sha256` covers it — which also
         // deletes the macOS <endian.h> shim CMake had to synthesise for it.
