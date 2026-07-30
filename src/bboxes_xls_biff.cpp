@@ -353,14 +353,16 @@ const char* bboxes_xls_formulas_json(const void* buf, size_t len) {
     /* pass 1: ShrFmla (0x04BC) base rgce keyed by (sheet,topRow,topCol); every member cell (incl. master)
        carries a lone PtgExp pointing here. */
     std::unordered_map<uint64_t, std::vector<uint8_t>> shared;
-    { size_t o2 = 0; int cs = -1;
+    { size_t o2 = 0; int cs = -1, lastRw = -1, lastCol = -1;
       while (o2 + 4 <= n) {
           size_t rs = o2; uint16_t t = rd16(p, o2), l = rd16(p, o2 + 2); o2 += 4; if (o2 + l > n) break;
           const uint8_t* rr = p + o2;
           if (t == 0x0809) { auto it = pos2idx.find((uint32_t)rs); if (it != pos2idx.end()) cs = it->second; }
-          else if (t == 0x04BC && l >= 10) {                 /* rwFirst2 rwLast2 colFirst1 colLast1 rsvd1 cUse1 cce2 rgce */
-              int rf = rd16(rr, 0), cf = rr[4]; uint16_t cce = rd16(rr, 8);
-              if (10u + cce <= l) shared[shkey(cs, rf, cf)] = std::vector<uint8_t>(rr + 10, rr + 10 + cce);
+          else if (t == 0x0006 && l >= 22) { lastRw = rd16(rr, 0); lastCol = rd16(rr, 2); }   /* Formula: track anchor cell */
+          else if (t == 0x04BC && l >= 10) {                 /* ShrFmla follows its anchor Formula; PtgExp points at the anchor,
+                                                                 which is NOT always the ref top-left (rwFirst,colFirst) */
+              uint16_t cce = rd16(rr, 8);
+              if (10u + cce <= l && lastRw >= 0) shared[shkey(cs, lastRw, lastCol)] = std::vector<uint8_t>(rr + 10, rr + 10 + cce);
           }
           o2 += l;
       }

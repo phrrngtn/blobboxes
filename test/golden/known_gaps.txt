@@ -3,8 +3,7 @@
 # on them; a NEW golden failure (any file not listed here) does fail the run, and
 # a listed file that starts PASSing is flagged so it can be removed. See KNOWN_GAPS.md.
 
-# --- shared formulas: DONE (PtgExp 0x01 -> ShrFmla 0x04BC expansion). Residual on:
-poi__test-data__spreadsheet__ex47747-sharedFormula   # 5/15 — remaining mismatches under investigation
+# --- shared formulas: DONE (PtgExp 0x01 -> ShrFmla 0x04BC; keyed by the anchor Formula cell, not the ref corner)
 enron__enron_3.264848                                 # BIFF5/7 workbook (3D layout differs) — see biff_version gap
 
 # --- multi-sheet 3D range + external-workbook refs: DONE (SupBook/XTI itabFirst..itabLast + [n] index)
