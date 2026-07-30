@@ -1,0 +1,22 @@
+diff --git a/source/detail/serialization/xlsx_consumer.cpp b/source/detail/serialization/xlsx_consumer.cpp
+index 542a224..199867d 100644
+--- a/source/detail/serialization/xlsx_consumer.cpp
++++ b/source/detail/serialization/xlsx_consumer.cpp
+@@ -464,6 +464,9 @@ void read_defined_names(worksheet ws, std::vector<defined_name> defined_names)
+             continue;
+         }
+ 
++        // A defined-name reference we can't represent (e.g. LibreOffice's whole-row print area
++        // "$1:$65536", which has no column letters) must be skipped, not fatal to the whole load.
++        try {
+         if (name.name == "_xlnm.Print_Titles")
+         {
+             // Basic print titles parser
+@@ -523,6 +526,7 @@ void read_defined_names(worksheet ws, std::vector<defined_name> defined_names)
+             auto i = name.value.find("!");
+             ws.print_area(name.value.substr(i + 1));
+         }
++        } catch (const std::exception &) { /* skip unrepresentable ref (whole-row/col, malformed) */ }
+     }
+ }
+ 

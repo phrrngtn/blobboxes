@@ -86,10 +86,15 @@ endif()
 
 # ── XLSX: xlnt via FetchContent ──────────────────────────────────────
 if(BUILD_XLSX_BACKEND)
+  # PATCH: make xlnt's defined-name reader skip references it can't represent (e.g. LibreOffice
+  # writes whole-row print areas like "S2!$1:$65536" with no column letters) instead of throwing
+  # "column string index error" and aborting the entire workbook load. Idempotent: applies on a
+  # fresh clone, no-ops (via --reverse --check) if already applied. See patches/ for the diff.
   FetchContent_Declare(xlnt
     GIT_REPOSITORY https://github.com/xlnt-community/xlnt.git
     GIT_TAG v1.6.1
-    GIT_SHALLOW TRUE)
+    GIT_SHALLOW TRUE
+    PATCH_COMMAND bash -c "git apply --ignore-whitespace '${CMAKE_CURRENT_SOURCE_DIR}/patches/xlnt-tolerant-defined-names.patch' || git apply --reverse --check '${CMAKE_CURRENT_SOURCE_DIR}/patches/xlnt-tolerant-defined-names.patch'")
   set(XLNT_SHARED OFF CACHE BOOL "" FORCE)
   set(TESTS OFF CACHE BOOL "" FORCE)
   set(SAMPLES OFF CACHE BOOL "" FORCE)
