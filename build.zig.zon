@@ -7,8 +7,8 @@
         // Shared build layer for the blob* family. Brings the DuckDB C API
         // headers and the SQLite headers with it, so neither is named here.
         .blobzig = .{
-            .url = "git+https://github.com/phrrngtn/blobzig?ref=main#b6815cb545fe91c14e2cff159f24bd49ded00667",
-            .hash = "blobzig-0.1.0-DiYQfag0CwBaGYwjbzEDZAy1AeVLXBh3ZkkRaf1xFZgb",
+            .url = "git+https://github.com/phrrngtn/blobzig?ref=main#02fa81f6ca21774f25fb39d8c10e69ff4d2c28b9",
+            .hash = "blobzig-0.1.0-DiYQfTs1CwAYba-Kv4HeJW-MkLv-VYq4urtGLz24jKpn",
         },
 
         // PDFium, as bblanchon's prebuilt per-platform tarball — one entry per
@@ -73,6 +73,28 @@
         .xlnt = .{
             .url = "https://github.com/xlnt-community/xlnt/releases/download/v1.6.1/xlnt-1.6.1_with_submodules.tar.gz",
             .hash = "N-V-__8AAKWhEwEQaMlW9AP1V5T1pjRaTRtROwHm1V1e5siL",
+            .lazy = true,
+        },
+
+        // libxls, for the legacy .xls value/style lane.
+        //
+        // Handles BIFF5 and BIFF8 — Excel 5.0/95 through 2003 — so it covers
+        // the whole pre-xlsx range rather than only very old files.
+        //
+        // Autotools upstream, but built by Zig rather than by configure: five C
+        // sources consulting exactly three HAVE_ macros, all platform facts,
+        // so third_party/libxls/config.h is hand-authored once for every
+        // target. Running configure for that would be more machinery than the
+        // header it produces.
+        //
+        // Note the direction of travel: src/bboxes_xls_biff.cpp already parses
+        // formulas, defined names and VBA directly over the vendored
+        // compoundfilereader, and MS-OLEPS doc-props replaced a crashy
+        // xls_summaryInfo. libxls now supplies only cells, colours and sheet
+        // iteration, and may eventually be removable.
+        .libxls = .{
+            .url = "https://github.com/libxls/libxls/releases/download/v1.6.3/libxls-1.6.3.tar.gz",
+            .hash = "N-V-__8AAA3EHgBpxP42PbDVnVw9zP8DYqGrbmm6PASygrVm",
             .lazy = true,
         },
 

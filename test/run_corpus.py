@@ -23,7 +23,8 @@ import argparse, json, os, shutil, subprocess, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-EXT = REPO / "build" / "duckdb" / "bboxes.duckdb_extension"
+# zig build installs here; the old CMake path was build/duckdb/.
+EXT = REPO / "zig-out" / "lib" / "bboxes.duckdb_extension"
 CORPUS = REPO / "test" / "corpus"
 GOLDEN = REPO / "test" / "golden"
 FIXTURES = REPO.parent / "xls_biff" / "test"   # our authored xlwt fixture lives here
@@ -144,7 +145,7 @@ def main():
     if not DUCKDB:
         sys.exit("duckdb CLI not on PATH")
     if not EXT.exists():
-        sys.exit(f"extension not built: {EXT}\n  cmake --build build --target bboxes_duckdb")
+        sys.exit(f"extension not built: {EXT}\n  zig build")
 
     files = sorted(p for p in CORPUS.rglob("*.xls") if ".git" not in p.parts)
     files += sorted(FIXTURES.glob("*.xls")) if FIXTURES.exists() else []

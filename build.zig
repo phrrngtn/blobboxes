@@ -75,6 +75,14 @@ const backends: []const Backend = &.{
         .help = "XLSX backend (xlnt for fonts/styles, plus a pugixml fast path)",
     },
     .{
+        .name = "xls",
+        .define = "BBOXES_HAS_XLS",
+        // Two lanes: libxls for cells/colours, and our own BIFF walker over the
+        // vendored compoundfilereader for formulas, defined names and VBA.
+        .sources = &.{ "src/bboxes_xls.cpp", "src/bboxes_xls_biff.cpp" },
+        .help = "Legacy .xls backend (libxls + our BIFF/OLE2 walker)",
+    },
+    .{
         .name = "docx",
         .define = "BBOXES_HAS_DOCX",
         .sources = &.{"src/bboxes_docx.cpp"},
@@ -190,6 +198,14 @@ const libstudxml_c_sources: []const []const u8 = &.{
     "third-party/libstudxml/libstudxml/details/expat/xmltok.c",
 };
 
+/// libxls's library sources.
+///
+/// `xls2csv.c` is deliberately absent: it is upstream's command-line tool and
+/// carries a `main`, which would collide with every host that loads us.
+const libxls_sources: []const []const u8 = &.{
+    "src/endian.c", "src/locale.c", "src/ole.c", "src/xls.c", "src/xlstool.c",
+};
+
 /// miniz's four translation units.
 ///
 /// miniz 3.x is not the single-file library its reputation suggests — the
@@ -237,6 +253,7 @@ fn pdfiumDep(b: *std.Build, target: std.Target) ?*std.Build.Dependency {
 const Deps = struct {
     pdfium: *std.Build.Dependency,
     xlnt: ?*std.Build.Dependency,
+    libxls: ?*std.Build.Dependency,
     json: *std.Build.Dependency,
     pugixml: *std.Build.Dependency,
     miniz: *std.Build.Dependency,
@@ -357,6 +374,21 @@ fn addCore(b: *std.Build, mod: *std.Build.Module, d: Deps) void {
         }
     }
 
+    // libxls, when the legacy .xls backend is on.
+    if (d.libxls) |libxls| {
+        mod.addIncludePath(libxls.path("include"));
+        // Hand-authored stand-in for the autotools config.h. See the header.
+        mod.addIncludePath(b.path("third_party/libxls"));
+        // The BIFF walker's OLE2/CFB reader, header-only and vendored.
+        mod.addIncludePath(b.path("third_party/compoundfilereader"));
+        for (libxls_sources) |src| {
+            mod.addCSourceFile(.{ .file = libxls.path(src), .flags = c_flags });
+        }
+        // iconv translates the workbook-declared codepage of BIFF5 text into
+        // UTF-8. glibc has it built in; on Darwin it is a separate library.
+        if (t.os.tag == .macos) mod.linkSystemLibrary("iconv", .{});
+    }
+
     // PDFium: link the prebuilt shared library, and find it beside us at load.
     mod.addObjectFile(pdfiumLib(b, d.pdfium, t));
     mod.addRPathSpecial(if (t.os.tag == .macos) "@loader_path" else "$ORIGIN");
@@ -390,9 +422,17 @@ pub fn build(b: *std.Build) void {
         }
     }
 
+    var libxls_dep: ?*std.Build.Dependency = null;
+    for (enabled.items) |backend| {
+        if (std.mem.eql(u8, backend.name, "xls")) {
+            libxls_dep = b.lazyDependency("libxls", .{}) orelse return;
+        }
+    }
+
     const d: Deps = .{
         .pdfium = pdfium,
         .xlnt = xlnt_dep,
+        .libxls = libxls_dep,
         .json = b.dependency("nlohmann_json", .{}),
         .pugixml = b.dependency("pugixml", .{}),
         .miniz = b.dependency("miniz", .{}),
