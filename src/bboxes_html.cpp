@@ -67,20 +67,33 @@ static int span_attr(lxb_dom_node_t* n, const char* attr, int def) {
 
 /* ── DOM walk ────────────────────────────────────────────────────── */
 
-/* Per-table cursor: row starts at -1 (bumped by the first <tr>), col resets per row. */
+/* Per-table cursor. `row` is seeded from the enclosing document row rather than
+   from -1, so table rows continue the document's row numbering instead of
+   restarting; `col` resets per row. See the note on flow_line below. */
 struct TableCtx { int row; int col; };
 
 struct WalkCtx {
     Page*    page;
     uint32_t style_id;
-    int      flow_line = 0;   /* reading-order line counter for flow content */
+    /* The document row counter, shared by flow blocks AND tables.
+     *
+     * It used to be flow-only, with each <table> starting its own counter at 0.
+     * That made y ambiguous: a heading after a table got the same y as a row
+     * inside it, so ordering the document by (y, x) interleaved the two. Against
+     * Chromium's rendered geometry that single collision produced 23 of 24
+     * reading-order inversions; sharing one counter took Spearman rho from
+     * 0.9552 to 0.9996. See experiments/html_grid_diagnose.py, which is the
+     * regression test for this. */
+    int      flow_line = 0;
     double   max_x = 0.0;     /* widest extent  (x + w) */
     double   max_y = 0.0;     /* tallest extent (y + h) */
 };
 
 /* Walk children in document order. `tc != nullptr` means we are inside a <table>.
    Imputed integer geometry (0-based), mirroring the proven reducer:
-     - <table>: open a fresh grid cursor and descend.
+     - <table>: open a grid cursor seeded from the current document row, and
+                descend; on the way out, resume flow numbering after the last
+                row the table used.
      - <tr>:    advance row, reset col.
      - <td>/<th>: emit a cell box at (x=col, y=row, w=colspan, h=rowspan).
      - flow block (p/li/hN/…): emit a box at (x=depth, y=line++, w=len(text), h=1).
@@ -94,8 +107,16 @@ static void walk(lxb_dom_node_t* node, int depth, WalkCtx* ctx, TableCtx* tc) {
             name_is(n, "noscript") || name_is(n, "template")) continue;
 
         if (name_is(n, "table")) {
-            TableCtx t{-1, 0};
+            /* Seed from the enclosing row so the table continues the document's
+               numbering. The first <tr> bumps this, hence the -1. A nested
+               table sits within its cell's row and must not disturb the
+               document counter, so only a top-level table writes back. */
+            const int base = tc ? tc->row : ctx->flow_line - 1;
+            TableCtx t{base, 0};
             walk(n, depth + 1, ctx, &t);
+            /* Resume after the last row the table actually used. An empty table
+               emits no <tr>, leaves t.row == base, and so costs no rows. */
+            if (!tc) ctx->flow_line = t.row + 1;
 
         } else if (tc && name_is(n, "tr")) {
             tc->row++;

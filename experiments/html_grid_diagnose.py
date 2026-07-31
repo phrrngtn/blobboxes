@@ -77,9 +77,12 @@ def main() -> int:
     resets = [i for i in range(1, len(ys)) if ys[i] < ys[i - 1]]
     print(f"   grid y sequence  : {ys}")
     print(f"   backward jumps   : {len(resets)} at emission index {resets}")
-    print("   -> the table keeps its own row counter, so a heading after the")
-    print("      table can share a y with a row inside it. Sorting the whole")
-    print("      document by (y, x) therefore interleaves blocks.")
+    if resets:
+        print("   FAIL -> a block restarts the row counter, so a heading after a")
+        print("           table can share a y with a row inside it, and ordering")
+        print("           the document by (y, x) interleaves the two.")
+    else:
+        print("   PASS -> monotonic; tables continue the document numbering.")
 
     # ── what does that cost, and what would fixing it buy? ───────────
     # "Fixed" grid = emission order made monotonic by numbering rows globally,
@@ -96,12 +99,17 @@ def main() -> int:
                                  lambda r: (round(r["y"], 1), r["x"]))
     inv1, _, rho1 = inversions(pairs, lambda g, i: (fixed[id(g)], g["x"]),
                                lambda r: (round(r["y"], 1), r["x"]))
-    print("\n2. COST OF THE COLLIDING COUNTERS")
+    print("\n2. COST OF ANY COLLIDING COUNTERS")
     print(f"   as emitted       : rho={rho0:.4f}  inversions={inv0}/{tot} "
           f"({100*inv0/tot:.1f}%)")
     print(f"   with a global y  : rho={rho1:.4f}  inversions={inv1}/{tot} "
           f"({100*inv1/tot:.1f}%)")
-    print(f"   -> the single defect accounts for {inv0-inv1} of {inv0} inversions")
+    if inv0 == inv1:
+        print(f"   -> no gain available: numbering is already global")
+    else:
+        print(f"   -> restarting counters accounts for {inv0-inv1} of {inv0} inversions")
+    print(f"   (the residual {inv1} is the flex side-by-side case in section 3,")
+    print(f"    which no DOM-order model can capture)")
 
     # ── the inherent limit: side-by-side layout ──────────────────────
     print("\n3. WHAT A GRID CANNOT CAPTURE (inherent, not a bug)")
@@ -117,7 +125,8 @@ def main() -> int:
         print(f"   grid puts them on separate rows  : {gl['y'] != gr_['y']}")
         print("   -> flex/float layout is resolved by the layout engine, not by")
         print("      the DOM. No static walk can know it without doing layout.")
-    return 0
+    # Regression gate: the row counter must stay document-global.
+    return 1 if resets else 0
 
 
 if __name__ == "__main__":
