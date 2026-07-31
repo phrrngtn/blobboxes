@@ -146,6 +146,53 @@ static bboxes_cursor* wrap_result(BBoxResult r, const void* buf, size_t len) {
 
 /* ── format detection ──────────────────────────────────────────────── */
 
+namespace {
+
+/* Case-insensitive match of `needle` at `p`, without reading past `end`. */
+bool starts_with_ci(const uint8_t* p, const uint8_t* end, const char* needle) {
+    for (; *needle; ++needle, ++p) {
+        if (p >= end) return false;
+        if (std::tolower(*p) != std::tolower(static_cast<unsigned char>(*needle)))
+            return false;
+    }
+    return true;
+}
+
+/* Does this look like an HTML document?
+ *
+ * Only the opening token is considered, after leading whitespace and an
+ * optional UTF-8 BOM. A file whose first tag is <html> or whose first token is
+ * a <!DOCTYPE html> is HTML; anything else is not, including a text file that
+ * merely mentions markup further down.
+ *
+ * XML is deliberately NOT claimed. `<?xml` opens XFDF and every OOXML part, and
+ * routing those through the HTML walker would be a regression — bboxes_xfdf
+ * handles the one XML dialect this library reads directly. */
+bool is_html(const uint8_t* p, size_t len) {
+    const uint8_t* end = p + len;
+
+    if (len >= 3 && p[0] == 0xEF && p[1] == 0xBB && p[2] == 0xBF) p += 3;  /* BOM */
+    while (p < end && std::isspace(*p)) ++p;
+    if (p >= end || *p != '<') return false;
+
+    /* <!DOCTYPE html ...> — the doctype name is what matters, not the tag. */
+    if (starts_with_ci(p, end, "<!doctype")) {
+        const uint8_t* q = p + 9;
+        while (q < end && std::isspace(*q)) ++q;
+        return starts_with_ci(q, end, "html");
+    }
+
+    /* <html> or <html lang="..."> — but not <htmlish>, so require the next
+       character to end the tag name. */
+    if (starts_with_ci(p, end, "<html")) {
+        const uint8_t* q = p + 5;
+        return q >= end || *q == '>' || std::isspace(*q);
+    }
+    return false;
+}
+
+} /* namespace */
+
 const char* bboxes_detect(const void* buf, size_t len) {
     auto* p = static_cast<const uint8_t*>(buf);
     if (len >= 4 && p[0] == '%' && p[1] == 'P' && p[2] == 'D' && p[3] == 'F')
@@ -163,6 +210,20 @@ const char* bboxes_detect(const void* buf, size_t len) {
     if (len >= 8 && p[0]==0xD0 && p[1]==0xCF && p[2]==0x11 && p[3]==0xE0 &&
         p[4]==0xA1 && p[5]==0xB1 && p[6]==0x1A && p[7]==0xE1)
         return "xls";   /* OLE2/CFB compound file — legacy .xls */
+
+    /* HTML has no magic number, so this is a sniff rather than a signature and
+       is deliberately conservative: only a document that *opens* with an HTML
+       root or doctype counts. Getting this wrong in the permissive direction is
+       much worse than in the strict one — a false positive routes a plain text
+       file through the DOM walker and mangles it, while a false negative just
+       yields the previous behaviour of treating it as text.
+   
+       Before this, bb() could never reach the HTML backend at all: detection
+       fell through to "text", so an .html file came back as one row per source
+       line with raw markup as the text, while bb_html() on the same bytes
+       returned a proper grid. */
+    if (is_html(p, len)) return "html";
+
     return "text";
 }
 
@@ -181,6 +242,14 @@ bboxes_cursor* bboxes_open(const void* buf, size_t len) {
     }
     if (fmt == "docx") return bboxes_open_docx(buf, len);
     if (fmt == "xls")  return bboxes_open_xls(buf, len, nullptr, 0, 0);
+    if (fmt == "html") {
+        /* Fall back to the text reader if the DOM walk yields nothing, on the
+           same reasoning as xlsx above: auto-detect should degrade to the
+           previous behaviour rather than return an empty result. A sniff can
+           be fooled by a fragment that opens like a document and is not one. */
+        if (bboxes_cursor* c = bboxes_open_html(buf, len)) return c;
+        return bboxes_open_text(buf, len);
+    }
     return bboxes_open_text(buf, len);
 }
 
