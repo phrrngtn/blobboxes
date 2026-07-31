@@ -242,33 +242,33 @@ See `docs/browser-bundle-design.md` for architecture details.
 
 ## Building
 
-Requires CMake 3.20+ and a C++17 compiler. Dependencies (PDFium, nlohmann/json, hash-library, xlnt, pugixml, miniz) are fetched automatically via CMake FetchContent.
+`zig build`. The only prerequisite is Zig 0.16.0 — no CMake, no Make, no
+`configure`.
 
-```bash
-# Quick: build everything and run tests
-./build_all.sh
-
-# Manual: configure with desired backends
-cmake -B build \
-  -DBUILD_PYTHON_BINDINGS=ON \
-  -DBUILD_DUCKDB_EXTENSION=ON \
-  -DBUILD_SQLITE_EXTENSION=ON \
-  -DBUILD_XLSX_BACKEND=ON \
-  -DBUILD_TEXT_BACKEND=ON \
-  -DBUILD_DOCX_BACKEND=ON
-cmake --build build
+```sh
+zig build                    # everything, into zig-out/lib/
+zig build --list-steps       # tests and other targets this repo offers
+zig build -Doptimize=ReleaseFast
+zig build -Dtarget=x86_64-linux-gnu
 ```
 
-For Python bindings, the build needs a virtual environment with nanobind:
+Full instructions — cross-compilation, verifying an extension actually loads,
+per-repo exceptions, Python wheels — are in
+[Building the Blob Family](../blobzig/docs/Building%20the%20Blob%20Family.md).
+
+# Everything, with all backends on by default
+zig build
+
+# Or select backends explicitly
+zig build -Dxlsx=true -Dxls=true -Dhtml=true -Ddocx=true -Dtext=true
+```
+
+The Python package needs no separate build step. It binds the same C ABI
+through ctypes, so there is no compiled extension module and no nanobind:
 
 ```bash
-uv venv .venv
-uv pip install nanobind scikit-build-core
-cmake -B build \
-  -DBUILD_PYTHON_BINDINGS=ON \
-  -DPython_FIND_VIRTUALENV=ONLY \
-  -DPython_ROOT_DIR=.venv
-cmake --build build
+zig build                # produces libbboxes, which the package loads
+uv run python -c "import blobboxes; print(blobboxes.detect(open('f.pdf','rb').read()))"
 ```
 
 ## Testing
