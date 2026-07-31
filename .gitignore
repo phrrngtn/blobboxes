@@ -14,3 +14,6 @@ dist/
 .cache/
 *.duckdb
 *.duckdb_extension
+zig-pkg/
+zig-out/
+.zig-cache/
