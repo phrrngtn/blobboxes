@@ -543,7 +543,17 @@ pub fn build(b: *std.Build) void {
         // PDFium resolves through its own LC_LOAD_DYLIB / DT_NEEDED rather than
         // being linked in. Listing the prefix is the portability caveat: it
         // says "libpdfium must ship beside this artifact".
-        .allow_undefined = &.{"FPDF"},
+        .allow_undefined = &.{
+            // Resolved through PDFium's own dlopen table, not linked. See
+            // include/pdfium_dyn.h.
+            "FPDF",
+            // libxls converts legacy BIFF codepages through iconv. glibc has it
+            // built in; on Darwin libiconv is a separate base-system dylib that
+            // we link and the loader resolves. Not part of libc either way,
+            // which is why it is declared here rather than silently allowed —
+            // it is a genuine requirement that libiconv be present.
+            "iconv",
+        },
     });
     artifacts.lib.?.installHeader(b.path("include/bboxes.h"), "bboxes.h");
 
